@@ -81,10 +81,10 @@ export const TaskScreen: React.FC<TaskScreenProps> = ({ onSelectTask, completedT
                   }}
                 >
                   {isDone ? (
-                    `✓ Решено (+${task.difficulty} ★)`
+                    '✓ Решено'
                   ) : (
                     <>
-                      Найти:&nbsp;<b>{task.find.symbol}</b>&nbsp;({task.find.unit}) • +{task.difficulty} ★
+                      Найти:&nbsp;<b>{task.find.symbol}</b>&nbsp;({task.find.unit})
                     </>
                   )}
                 </span>

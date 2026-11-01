@@ -98,9 +98,7 @@ export const ForceTaskScreen: React.FC<ForceTaskScreenProps> = ({
                     fontWeight: 500,
                   }}
                 >
-                  {isDone
-                    ? `✓ Решено (+${meta.difficulty} ★)`
-                    : `${task.refs.length} силы к расстановке • +${meta.difficulty} ★`}
+                  {isDone ? '✓ Решено' : `${task.refs.length} силы к расстановке`}
                 </span>
 
                 <Button variant="ghost" size="xsmall">
