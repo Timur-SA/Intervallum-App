@@ -1,0 +1,174 @@
+/* ==========================================================================
+   MAX UI Design System — Top Collapsible Problem Panel
+   ========================================================================== */
+
+.problem-panel {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 12;
+}
+
+/* Верхняя полоса панели с кнопкой сворачивания */
+.problem-panel-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px 4px;
+}
+.panel-bar-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+}
+.btn-toggle-panel {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--r-xs);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background var(--transition);
+}
+.btn-toggle-panel:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+.btn-toggle-panel .chevron {
+  display: inline-block;
+  transition: transform 0.25s ease;
+  font-size: 10px;
+}
+
+/* Контент условия задачи (сворачиваемый) */
+.problem-panel-content {
+  max-height: 180px;
+  overflow: hidden;
+  padding: 0 14px 8px;
+  transition: max-height 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease, padding 0.28s ease;
+  opacity: 1;
+}
+
+.problem-text {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+.problem-text .katex {
+  font-size: 1.05em;
+  color: #5bb2ff;
+}
+
+/* Полоса фишек ДАНО и НАЙТИ */
+.givens-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 14px 10px;
+  align-items: center;
+  transition: all var(--transition);
+}
+
+/* ==========================================================================
+   Свернутое состояние (Collapsed)
+   ========================================================================== */
+.problem-panel.collapsed .problem-panel-content {
+  max-height: 0;
+  opacity: 0;
+  padding-bottom: 0;
+}
+.problem-panel.collapsed .givens-strip {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 2px 14px 8px;
+  /* Убираем скроллбар визуально */
+  scrollbar-width: none;
+}
+.problem-panel.collapsed .givens-strip::-webkit-scrollbar {
+  display: none;
+}
+
+/* ==========================================================================
+   Фишки "Дано" и "Найти"
+   ========================================================================== */
+.given-chip {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: grab;
+  touch-action: none;
+  transition: all var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+.given-chip:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.given-chip:active {
+  cursor: grabbing;
+  transform: scale(0.96);
+}
+.given-chip.dragging {
+  opacity: 0.35;
+}
+.given-sym {
+  font-weight: 700;
+  color: var(--accent-light);
+}
+.given-eq {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.given-val {
+  font-weight: 600;
+}
+.given-unit {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.find-chip {
+  background: var(--warning-bg);
+  border: 1px solid rgba(255, 159, 10, 0.5);
+  color: var(--warning);
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.find-label {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+  opacity: 0.85;
+}
+.find-target b {
+  font-size: 13px;
+  color: #ffbf66;
+}
