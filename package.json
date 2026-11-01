@@ -1,0 +1,30 @@
+{
+  "name": "intervallum-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@maxhub/max-ui": "0.9.0",
+    "katex": "^0.16.9",
+    "lucide-react": "^0.470.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.7",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.23.15",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0",
+    "vitest": "^5.0.5"
+  }
+}
