@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MaxUI } from '@maxhub/max-ui';
 import '@maxhub/max-ui/dist/styles.css';
+import '../modules/formula-trainer/styles/index.css';
 import '../shared/styles/themeTokens.css';
 
 import { MainHub } from './MainHub';

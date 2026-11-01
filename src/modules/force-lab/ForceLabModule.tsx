@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '@maxhub/max-ui';
 import { FORCE_TASKS } from './data/tasks';
-import { DrawnVector, ForceType, ReviewEntry, ValidationResult } from './types';
+import { DrawnVector, ForceTask, ForceType, ReviewEntry, ValidationResult } from './types';
 import { referenceVectors, reviewComparisons, validatePlacement } from './engine/validator';
 import { ForceCanvas } from './components/ForceCanvas';
 import { ForceCatalogSheet } from './components/ForceCatalogSheet';
 import { ForceToolbar } from './components/ForceToolbar';
+import { ForceTaskScreen } from './components/ForceTaskScreen';
 import { ReviewModal } from './components/ReviewModal';
 import { CelebrationSparks } from '../../shared/components/CelebrationSparks';
 import { haptics } from '../../shared/motion/haptics';
@@ -16,7 +18,7 @@ interface ForceLabModuleProps {
 }
 
 export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) => {
-  const [taskIndex, setTaskIndex] = useState(0);
+  const [currentTask, setCurrentTask] = useState<ForceTask | null>(null);
   const [vectors, setVectors] = useState<DrawnVector[]>([]);
   const [selectedForce, setSelectedForce] = useState<ForceType | null>(null);
   const [activeVectorType, setActiveVectorType] = useState<ForceType | null>(null);
@@ -24,7 +26,6 @@ export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) =
 
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [passed, setPassed] = useState(false);
-  const [completed, setCompleted] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
 
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
@@ -33,15 +34,19 @@ export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) =
   const [reviewIndex, setReviewIndex] = useState(0);
 
   const { setNavigationConfig } = useNavigation();
-  const currentTask = FORCE_TASKS[taskIndex];
 
   // Inform host messenger BackButton
   useEffect(() => {
-    setNavigationConfig({ canGoBack: true, onBack: onBackToHub });
-  }, [onBackToHub, setNavigationConfig]);
+    if (!currentTask) {
+      setNavigationConfig({ canGoBack: true, onBack: onBackToHub });
+    } else {
+      setNavigationConfig({ canGoBack: true, onBack: () => setCurrentTask(null) });
+    }
+  }, [currentTask, onBackToHub, setNavigationConfig]);
 
-  // Restore saved vectors from store if previously saved
+  // Restore saved vectors when entering a task
   useEffect(() => {
+    if (!currentTask) return;
     const progress = loadUserProgress();
     const saved = progress.forceLab.savedVectors[currentTask.id];
     if (saved && saved.length > 0) {
@@ -54,7 +59,7 @@ export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) =
     setActiveVectorType(null);
     setValidationResult(null);
     setPassed(false);
-  }, [taskIndex, currentTask.id]);
+  }, [currentTask]);
 
   const checkpoint = () => {
     setHistory(prev => [...prev.slice(-19), vectors.map(v => ({ ...v }))]);
@@ -90,24 +95,23 @@ export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) =
     setPassed(false);
   };
 
+  const handleSelectTask = (task: ForceTask) => {
+    haptics.impact('light');
+    setCurrentTask(task);
+  };
+
   const handleCheck = () => {
-    if (completed) {
-      setTaskIndex(0);
-      setCompleted(false);
-      setPassed(false);
-      setValidationResult(null);
-      setVectors([]);
-      return;
-    }
+    if (!currentTask) return;
 
     if (passed) {
-      if (taskIndex < FORCE_TASKS.length - 1) {
+      // Find index of current task and advance to next, or return to list
+      const curIdx = FORCE_TASKS.findIndex(t => t.id === currentTask.id);
+      if (curIdx >= 0 && curIdx < FORCE_TASKS.length - 1) {
         haptics.selection();
-        setTaskIndex(i => i + 1);
+        setCurrentTask(FORCE_TASKS[curIdx + 1]);
       } else {
-        setCompleted(true);
-        setShowCelebration(true);
-        haptics.notification('success');
+        // All completed, back to task list
+        setCurrentTask(null);
       }
       return;
     }
@@ -131,7 +135,8 @@ export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) =
     }
   };
 
-  const refsDrawn = validationResult ? referenceVectors(currentTask, vectors) : [];
+  const refsDrawn = currentTask && validationResult ? referenceVectors(currentTask, vectors) : [];
+  const progress = loadUserProgress();
 
   return (
     <div
@@ -146,135 +151,173 @@ export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) =
     >
       <CelebrationSparks active={showCelebration} onDone={() => setShowCelebration(false)} />
 
-      {/* Module In-App Header */}
-      <div className="inapp-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            type="button"
-            className="unified-header-btn"
-            onClick={onBackToHub}
-            aria-label="В главное меню"
-            title="В главное меню"
-          >
-            <span style={{ fontSize: 18, lineHeight: 1 }}>←</span>
-          </button>
-          <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
-            Расстановка сил
-          </span>
+      {!currentTask ? (
+        /* Screen 1: Task Selection List (Identical to Formula Trainer) */
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1, minHeight: 0 }}>
+          <div className="inapp-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                type="button"
+                className="unified-header-btn"
+                onClick={onBackToHub}
+                aria-label="В главное меню"
+                title="В главное меню"
+              >
+                <span style={{ fontSize: 18, lineHeight: 1 }}>←</span>
+              </button>
+              <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+                Расстановка сил
+              </span>
+            </div>
+          </div>
+
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            <ForceTaskScreen
+              onSelectTask={handleSelectTask}
+              completedTaskIds={progress.forceLab.completedTaskIds}
+            />
+          </div>
         </div>
+      ) : (
+        /* Screen 2: Vector Drawing Canvas Workspace */
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          {/* In-App Header with Back button, Title & Check Button (Identical to Formula Trainer) */}
+          <div className="inapp-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
+              <button
+                type="button"
+                className="unified-header-btn"
+                onClick={() => setCurrentTask(null)}
+                aria-label="Назад к списку задач"
+                title="Назад к списку"
+              >
+                <span style={{ fontSize: 18, lineHeight: 1 }}>←</span>
+              </button>
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {currentTask.title}
+              </span>
+            </div>
 
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: 'var(--text-secondary)',
-            padding: '3px 8px',
-            borderRadius: 8,
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border)',
-          }}
-        >
-          {taskIndex + 1} / {FORCE_TASKS.length}
-        </span>
-      </div>
+            <Button
+              variant="primary"
+              size="small"
+              className={vectors.length > 0 ? 'ready-pulse' : ''}
+              onClick={handleCheck}
+            >
+              {passed ? 'Далее →' : 'Проверить'}
+            </Button>
+          </div>
 
-      {/* Task Heading & Condition */}
-      <div style={{ padding: '10px 18px 4px' }}>
-        <h2 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 600, letterSpacing: -0.3, color: 'var(--text-primary)' }}>
-          {currentTask.title}
-        </h2>
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.35 }}>
-          {currentTask.condition}
-        </p>
-      </div>
+          {/* Task Heading & Condition */}
+          <div
+            style={{
+              padding: '8px 16px',
+              backgroundColor: 'var(--bg-card)',
+              borderBottom: '1px solid var(--border)',
+            }}
+          >
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.35 }}>
+              {currentTask.condition}
+            </p>
+          </div>
 
-      {/* SVG Canvas Scene */}
-      <ForceCanvas
-        task={currentTask}
-        vectors={vectors}
-        referenceVectors={refsDrawn}
-        selectedForce={selectedForce}
-        activeType={activeVectorType}
-        errorTypes={validationResult?.badTypes || []}
-        passed={passed}
-        onSelectVector={type => {
-          setActiveVectorType(type);
-          setSelectedForce(type);
-        }}
-        onCommitVector={handleCommitVector}
-        onRequireSelectForce={() => setIsCatalogOpen(true)}
-      />
+          {/* SVG Canvas Scene */}
+          <ForceCanvas
+            task={currentTask}
+            vectors={vectors}
+            referenceVectors={refsDrawn}
+            selectedForce={selectedForce}
+            activeType={activeVectorType}
+            errorTypes={validationResult?.badTypes || []}
+            passed={passed}
+            onSelectVector={type => {
+              setActiveVectorType(type);
+              setSelectedForce(type);
+            }}
+            onCommitVector={handleCommitVector}
+            onRequireSelectForce={() => setIsCatalogOpen(true)}
+          />
 
-      {/* Feedback slot (keeps layout stable) */}
-      <div
-        style={{
-          minHeight: 52,
-          padding: '4px 18px',
-          fontSize: 12,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: passed
-            ? 'var(--fl-pass)'
-            : validationResult
-            ? 'var(--fl-error)'
-            : 'var(--fl-soft)',
-          textAlign: 'center',
-        }}
-      >
-        {passed ? (
-          <strong>Отлично! Все точки приложения, направления и пропорции верны.</strong>
-        ) : validationResult ? (
-          <span>Есть неточности. Нажми кнопку ниже для повторной проверки или открой разбор.</span>
-        ) : selectedForce ? (
-          <span>Коснись точки на теле и протяни стрелку силы</span>
-        ) : (
-          <span>Выбери силу в библиотеке снизу</span>
-        )}
-      </div>
+          {/* Feedback bar */}
+          <div
+            style={{
+              minHeight: 40,
+              padding: '4px 16px',
+              fontSize: 12,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: passed
+                ? 'var(--success)'
+                : validationResult
+                ? 'var(--danger)'
+                : 'var(--text-muted)',
+              textAlign: 'center',
+              backgroundColor: 'var(--bg-card)',
+              borderTop: '1px solid var(--border)',
+            }}
+          >
+            {passed ? (
+              <strong>Отлично! Все точки приложения и направления верны.</strong>
+            ) : validationResult ? (
+              <span>Есть неточности. Нажмите «Проверить» для повторного анализа или разбора.</span>
+            ) : selectedForce ? (
+              <span>Коснитесь точки на теле и протяните стрелку силы</span>
+            ) : (
+              <span>Выберите силу в каталоге снизу</span>
+            )}
+          </div>
 
-      {/* Bottom Toolbar */}
-      <ForceToolbar
-        selectedForce={selectedForce}
-        activeVectorType={activeVectorType}
-        canUndo={history.length > 0}
-        canDelete={Boolean(activeVectorType)}
-        passed={passed}
-        completed={completed}
-        onOpenLibrary={() => setIsCatalogOpen(true)}
-        onUndo={handleUndo}
-        onDelete={handleDelete}
-        onCheck={handleCheck}
-      />
+          {/* Bottom Toolbar: Catalog opener + Undo + Delete */}
+          <ForceToolbar
+            selectedForce={selectedForce}
+            activeVectorType={activeVectorType}
+            canUndo={history.length > 0 && !passed}
+            canDelete={Boolean(activeVectorType) && !passed}
+            onOpenLibrary={() => setIsCatalogOpen(true)}
+            onUndo={handleUndo}
+            onDelete={handleDelete}
+          />
 
-      {/* Catalog Bottom Sheet */}
-      <ForceCatalogSheet
-        isOpen={isCatalogOpen}
-        onClose={() => setIsCatalogOpen(false)}
-        selectedForce={selectedForce}
-        drawnVectorTypes={vectors.map(v => v.type)}
-        onSelectForce={type => {
-          setSelectedForce(type);
-          setActiveVectorType(null);
-        }}
-      />
+          {/* Catalog Bottom Sheet matching Formula Trainer laws catalog */}
+          <ForceCatalogSheet
+            isOpen={isCatalogOpen}
+            onClose={() => setIsCatalogOpen(false)}
+            selectedForce={selectedForce}
+            drawnVectorTypes={vectors.map(v => v.type)}
+            onSelectForce={type => {
+              setSelectedForce(type);
+              setActiveVectorType(null);
+            }}
+          />
 
-      {/* Per-vector Review Modal */}
-      <ReviewModal
-        isOpen={isReviewOpen}
-        task={currentTask}
-        reviewQueue={reviewQueue}
-        currentIndex={reviewIndex}
-        onNext={() => {
-          if (reviewIndex + 1 < reviewQueue.length) {
-            setReviewIndex(i => i + 1);
-          } else {
-            setIsReviewOpen(false);
-          }
-        }}
-        onClose={() => setIsReviewOpen(false)}
-        illustrationSvg=""
-      />
+          {/* Per-vector Review Modal */}
+          <ReviewModal
+            isOpen={isReviewOpen}
+            task={currentTask}
+            reviewQueue={reviewQueue}
+            currentIndex={reviewIndex}
+            onNext={() => {
+              if (reviewIndex + 1 < reviewQueue.length) {
+                setReviewIndex(i => i + 1);
+              } else {
+                setIsReviewOpen(false);
+              }
+            }}
+            onClose={() => setIsReviewOpen(false)}
+            illustrationSvg=""
+          />
+        </div>
+      )}
     </div>
   );
 };

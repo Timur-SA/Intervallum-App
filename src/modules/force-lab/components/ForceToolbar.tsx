@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from '@maxhub/max-ui';
 import { Undo2, Trash2, BookOpen } from 'lucide-react';
 import { MathView } from '../../../shared/components/MathView';
 import { FORCE_CATALOG } from '../data/catalog';
@@ -10,12 +9,9 @@ interface ForceToolbarProps {
   activeVectorType: ForceType | null;
   canUndo: boolean;
   canDelete: boolean;
-  passed: boolean;
-  completed: boolean;
   onOpenLibrary: () => void;
   onUndo: () => void;
   onDelete: () => void;
-  onCheck: () => void;
 }
 
 export const ForceToolbar: React.FC<ForceToolbarProps> = ({
@@ -23,121 +19,116 @@ export const ForceToolbar: React.FC<ForceToolbarProps> = ({
   activeVectorType,
   canUndo,
   canDelete,
-  passed,
-  completed,
   onOpenLibrary,
   onUndo,
   onDelete,
-  onCheck,
 }) => {
   const activeForceItem = selectedForce ? FORCE_CATALOG[selectedForce] : null;
 
   return (
     <div
       style={{
-        padding: '8px 16px 12px',
+        padding: '10px 16px 14px',
         backgroundColor: 'var(--bg-card)',
         borderTop: '1px solid var(--border)',
         display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 10,
+        flexShrink: 0,
       }}
     >
-      {/* Top row: Selected Force info + Undo + Delete */}
-      <div
+      {/* Button to open Bottom Sheet catalog */}
+      <button
+        type="button"
+        onClick={onOpenLibrary}
         style={{
+          flex: 1,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 8,
+          gap: 10,
+          padding: '8px 14px',
+          backgroundColor: 'var(--bg-surface)',
+          border: '1px solid ' + (activeForceItem ? 'var(--accent)' : 'var(--border)'),
+          borderRadius: 14,
+          textAlign: 'left',
+          color: 'var(--text-primary)',
+          cursor: 'pointer',
+          transition: 'all 120ms ease',
         }}
+        aria-label="Каталог сил"
       >
-        <button
-          type="button"
-          onClick={onOpenLibrary}
-          disabled={passed}
+        <span
           style={{
-            flex: 1,
+            fontSize: 18,
+            color: activeForceItem ? 'var(--accent)' : 'var(--text-muted)',
+            minWidth: 28,
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
-            padding: '8px 12px',
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 12,
-            textAlign: 'left',
-            color: 'var(--text-primary)',
           }}
-          aria-label="Выбрать силу из библиотеки"
         >
-          <span style={{ fontSize: 18, color: 'var(--fl-accent)' }}>
-            {activeForceItem ? (
-              <MathView math={activeForceItem.tex} />
-            ) : (
-              <BookOpen size={18} />
-            )}
-          </span>
-          <span style={{ fontSize: 13, fontWeight: 500 }}>
-            {activeForceItem ? activeForceItem.name : 'Выбрать силу'}
-          </span>
+          {activeForceItem ? <MathView math={activeForceItem.tex} /> : <BookOpen size={18} />}
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {activeForceItem ? activeForceItem.name : 'Каталог сил'}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+            {activeForceItem ? 'Выбрана для рисования' : 'Нажмите, чтобы выбрать'}
+          </div>
+        </div>
+      </button>
+
+      {/* Undo & Delete buttons */}
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button
+          type="button"
+          onClick={onUndo}
+          disabled={!canUndo}
+          title="Отменить действие"
+          className="unified-header-btn"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            border: '1px solid var(--border)',
+            backgroundColor: 'var(--bg-surface)',
+            color: canUndo ? 'var(--text-primary)' : 'var(--text-muted)',
+            cursor: canUndo ? 'pointer' : 'default',
+            opacity: canUndo ? 1 : 0.45,
+          }}
+        >
+          <Undo2 size={18} />
         </button>
 
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button
-            type="button"
-            onClick={onUndo}
-            disabled={!canUndo || passed}
-            title="Отменить действие"
-            style={{
-              width: 40,
-              height: 40,
-              display: 'grid',
-              placeItems: 'center',
-              borderRadius: 10,
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--bg-surface)',
-              color: 'var(--text-primary)',
-            }}
-          >
-            <Undo2 size={18} />
-          </button>
-
-          <button
-            type="button"
-            onClick={onDelete}
-            disabled={!canDelete || passed}
-            title="Удалить выбранный вектор"
-            style={{
-              width: 40,
-              height: 40,
-              display: 'grid',
-              placeItems: 'center',
-              borderRadius: 10,
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--bg-surface)',
-              color: 'var(--text-primary)',
-            }}
-          >
-            <Trash2 size={18} />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={!canDelete}
+          title="Удалить выбранный вектор"
+          className="unified-header-btn"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            border: '1px solid var(--border)',
+            backgroundColor: 'var(--bg-surface)',
+            color: canDelete ? 'var(--danger)' : 'var(--text-muted)',
+            cursor: canDelete ? 'pointer' : 'default',
+            opacity: canDelete ? 1 : 0.45,
+          }}
+        >
+          <Trash2 size={18} />
+        </button>
       </div>
-
-      {/* Primary Action Button (MAX UI Button) */}
-      <Button
-        variant={passed ? 'secondary' : 'primary'}
-        size="large"
-        stretched
-        onClick={onCheck}
-        style={{
-          borderRadius: 14,
-          fontWeight: 600,
-          backgroundColor: passed ? 'var(--fl-pass)' : undefined,
-          color: passed ? 'var(--fl-on-pass)' : undefined,
-        }}
-      >
-        {completed ? 'Начать заново' : passed ? 'Следующая задача' : 'Проверить'}
-      </Button>
     </div>
   );
 };
