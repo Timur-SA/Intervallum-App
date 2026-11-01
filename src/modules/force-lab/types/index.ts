@@ -43,6 +43,7 @@ export interface ForceTask {
   kind: TaskKind;
   topic?: PhysicsTopic;
   body: 'block' | 'load' | 'wire' | 'sail' | 'lever';
+  difficulty?: 1 | 2 | 3;
   assessment: string;
   refs: ReferenceVector[];
 }

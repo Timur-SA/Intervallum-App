@@ -1,5 +1,6 @@
 /**
  * Unified Progress & Session persistence store
+ * Awards 1 / 2 / 3 stars based on task difficulty
  */
 
 const STORAGE_KEY = 'intervallum:progress:v2';
@@ -24,6 +25,30 @@ export interface UserProgressData {
   };
 }
 
+export const FORCE_DIFFICULTIES: Record<string, number> = {
+  table: 1,
+  hanging: 1,
+  incline: 2,
+  lever: 2,
+  magnetic: 2,
+  sail: 3,
+};
+
+export const FORMULA_DIFFICULTIES: Record<string, number> = {
+  task_ohm_resistance: 1,
+  task_newton_accel: 1,
+  task_electric_current_power: 1,
+  task_density_volume: 2,
+  task_ampere_conductor: 2,
+  task_work_and_power: 3,
+};
+
+export const calcForceStars = (taskIds: string[]): number =>
+  taskIds.reduce((sum, id) => sum + (FORCE_DIFFICULTIES[id] || 1), 0);
+
+export const calcFormulaStars = (taskIds: string[]): number =>
+  taskIds.reduce((sum, id) => sum + (FORMULA_DIFFICULTIES[id] || 1), 0);
+
 const defaultProgress: UserProgressData = {
   forceLab: {
     completedTaskIds: [],
@@ -42,19 +67,24 @@ export const loadUserProgress = (): UserProgressData => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultProgress;
     const parsed = JSON.parse(raw);
+
+    const forceCompleted: string[] = Array.isArray(parsed?.forceLab?.completedTaskIds)
+      ? parsed.forceLab.completedTaskIds
+      : [];
+    const formulaCompleted: string[] = Array.isArray(parsed?.formulaTrainer?.completedTaskIds)
+      ? parsed.formulaTrainer.completedTaskIds
+      : [];
+
     return {
       forceLab: {
-        completedTaskIds: Array.isArray(parsed?.forceLab?.completedTaskIds)
-          ? parsed.forceLab.completedTaskIds
-          : [],
+        completedTaskIds: forceCompleted,
         savedVectors: parsed?.forceLab?.savedVectors || {},
-        stars: Number(parsed?.forceLab?.stars) || 0,
+        // Compute stars deterministically according to 1/2/3 difficulty
+        stars: calcForceStars(forceCompleted),
       },
       formulaTrainer: {
-        completedTaskIds: Array.isArray(parsed?.formulaTrainer?.completedTaskIds)
-          ? parsed.formulaTrainer.completedTaskIds
-          : [],
-        stars: Number(parsed?.formulaTrainer?.stars) || 0,
+        completedTaskIds: formulaCompleted,
+        stars: calcFormulaStars(formulaCompleted),
       },
     };
   } catch {
@@ -71,11 +101,14 @@ export const saveUserProgress = (data: UserProgressData): void => {
   }
 };
 
-export const markForceTaskCompleted = (taskId: string, vectors?: ForceVectorSave[]): UserProgressData => {
+export const markForceTaskCompleted = (
+  taskId: string,
+  vectors?: ForceVectorSave[]
+): UserProgressData => {
   const current = loadUserProgress();
   if (!current.forceLab.completedTaskIds.includes(taskId)) {
     current.forceLab.completedTaskIds.push(taskId);
-    current.forceLab.stars += 1;
+    current.forceLab.stars = calcForceStars(current.forceLab.completedTaskIds);
   }
   if (vectors) {
     current.forceLab.savedVectors[taskId] = vectors;
@@ -88,7 +121,7 @@ export const markFormulaTaskCompleted = (taskId: string): UserProgressData => {
   const current = loadUserProgress();
   if (!current.formulaTrainer.completedTaskIds.includes(taskId)) {
     current.formulaTrainer.completedTaskIds.push(taskId);
-    current.formulaTrainer.stars += 1;
+    current.formulaTrainer.stars = calcFormulaStars(current.formulaTrainer.completedTaskIds);
   }
   saveUserProgress(current);
   return current;

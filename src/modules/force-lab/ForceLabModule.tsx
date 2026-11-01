@@ -155,20 +155,14 @@ export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) =
         /* Screen 1: Task Selection List (Identical to Formula Trainer) */
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1, minHeight: 0 }}>
           <div className="inapp-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button
-                type="button"
-                className="unified-header-btn"
-                onClick={onBackToHub}
-                aria-label="В главное меню"
-                title="В главное меню"
-              >
-                <span style={{ fontSize: 18, lineHeight: 1 }}>←</span>
-              </button>
-              <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
-                Расстановка сил
+            <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>
+              Расстановка сил
+            </span>
+            {progress.forceLab.stars > 0 && (
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#f59e0b' }}>
+                ★ {progress.forceLab.stars}
               </span>
-            </div>
+            )}
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -181,31 +175,22 @@ export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) =
       ) : (
         /* Screen 2: Vector Drawing Canvas Workspace */
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          {/* In-App Header with Back button, Title & Check Button (Identical to Formula Trainer) */}
+          {/* In-App Header with Title & Check Button (BackButton handled natively by host header) */}
           <div className="inapp-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
-              <button
-                type="button"
-                className="unified-header-btn"
-                onClick={() => setCurrentTask(null)}
-                aria-label="Назад к списку задач"
-                title="Назад к списку"
-              >
-                <span style={{ fontSize: 18, lineHeight: 1 }}>←</span>
-              </button>
-              <span
-                style={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {currentTask.title}
-              </span>
-            </div>
+            <span
+              style={{
+                fontSize: 15,
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
+              {currentTask.title}
+            </span>
 
             <Button
               variant="primary"

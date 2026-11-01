@@ -71,7 +71,7 @@ export const ForceTaskScreen: React.FC<ForceTaskScreenProps> = ({
                   className="task-diff-pill"
                   style={{ color: diff.color, borderColor: diff.color }}
                 >
-                  {diff.text}
+                  {diff.text} • {meta.difficulty === 1 ? '★ 1' : meta.difficulty === 2 ? '★ 2' : '★ 3'}
                 </span>
                 <span className="task-category-label">{meta.category}</span>
               </div>
@@ -90,7 +90,7 @@ export const ForceTaskScreen: React.FC<ForceTaskScreenProps> = ({
                   className="task-find-chip"
                   style={{
                     backgroundColor: isDone ? 'var(--success-bg)' : 'var(--bg-surface)',
-                    color: isDone ? 'var(--success)' : 'var(--text-muted)',
+                    color: isDone ? 'var(--success)' : 'var(--text-secondary)',
                     border: '1px solid ' + (isDone ? 'var(--success)' : 'var(--border)'),
                     padding: '3px 8px',
                     borderRadius: 6,
@@ -98,7 +98,9 @@ export const ForceTaskScreen: React.FC<ForceTaskScreenProps> = ({
                     fontWeight: 500,
                   }}
                 >
-                  {isDone ? '✓ Решено' : `${task.refs.length} силы к расстановке`}
+                  {isDone
+                    ? `✓ Решено (+${meta.difficulty} ★)`
+                    : `${task.refs.length} силы к расстановке • +${meta.difficulty} ★`}
                 </span>
 
                 <Button variant="ghost" size="xsmall">

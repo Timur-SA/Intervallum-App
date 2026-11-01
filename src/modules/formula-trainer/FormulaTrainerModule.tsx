@@ -10,7 +10,7 @@ import { VariablePopover } from './components/VariablePopover';
 import { ResultModal } from './components/ResultModal';
 import { CelebrationSparks } from '../../shared/components/CelebrationSparks';
 import { haptics } from '../../shared/motion/haptics';
-import { markFormulaTaskCompleted } from '../../shared/storage/progressStore';
+import { loadUserProgress, markFormulaTaskCompleted } from '../../shared/storage/progressStore';
 import { useNavigation } from '../../shell/HeaderContext';
 import {
   moveTokenInCard,
@@ -467,53 +467,41 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1, minHeight: 0 }}>
           {/* Task List In-App Header */}
           <div className="inapp-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button
-                type="button"
-                className="unified-header-btn"
-                onClick={onBackToHub}
-                aria-label="В главное меню"
-                title="В главное меню"
-              >
-                <span style={{ fontSize: 18, lineHeight: 1 }}>←</span>
-              </button>
-              <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
-                Тренажёр формул
+            <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>
+              Тренажёр формул
+            </span>
+            {loadUserProgress().formulaTrainer.stars > 0 && (
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#f59e0b' }}>
+                ★ {loadUserProgress().formulaTrainer.stars}
               </span>
-            </div>
+            )}
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            <TaskScreen onSelectTask={handleSelectTask} />
+            <TaskScreen
+              onSelectTask={handleSelectTask}
+              completedTaskIds={loadUserProgress().formulaTrainer.completedTaskIds}
+            />
           </div>
         </div>
       ) : (
         <div className="app-screen-solver" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {/* Solver In-App Header */}
           <div className="inapp-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
-              <button
-                type="button"
-                className="unified-header-btn"
-                onClick={() => setCurrentTask(null)}
-                aria-label="Назад к списку задач"
-                title="Назад к списку задач"
-              >
-                <span style={{ fontSize: 18, lineHeight: 1 }}>←</span>
-              </button>
-              <span
-                style={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {currentTask.title}
-              </span>
-            </div>
+            <span
+              style={{
+                fontSize: 15,
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
+              {currentTask.title}
+            </span>
 
             <Button
               variant="primary"
