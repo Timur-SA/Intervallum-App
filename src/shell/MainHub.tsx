@@ -4,7 +4,7 @@ import { ModeCard } from './ModeCard';
 import { UserProgressData } from '../shared/storage/progressStore';
 import { FORCE_TASKS } from '../modules/force-lab/data/tasks';
 import { PHYSICS_TASKS } from '../modules/formula-trainer/data/tasksDb';
-import { useHeader } from './HeaderContext';
+import { useNavigation } from './HeaderContext';
 
 interface MainHubProps {
   progress: UserProgressData;
@@ -12,7 +12,7 @@ interface MainHubProps {
 }
 
 export const MainHub: React.FC<MainHubProps> = ({ progress, onSelectMode }) => {
-  const { setHeaderConfig } = useHeader();
+  const { setNavigationConfig } = useNavigation();
 
   const forceTotal = FORCE_TASKS.length;
   const forceDone = progress.forceLab.completedTaskIds.length;
@@ -24,32 +24,10 @@ export const MainHub: React.FC<MainHubProps> = ({ progress, onSelectMode }) => {
 
   const totalStars = forceStars + formulaStars;
 
+  // On the root hub screen, the host messenger BackButton is hidden
   useEffect(() => {
-    setHeaderConfig({
-      title: 'Intervallum',
-      subtitle: 'Физический практикум',
-      canGoBack: false,
-      rightAction:
-        totalStars > 0 ? (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '4px 10px',
-              borderRadius: 14,
-              backgroundColor: 'rgba(245, 158, 11, 0.15)',
-              color: '#f59e0b',
-              fontWeight: 700,
-              fontSize: 13,
-            }}
-          >
-            <span>★</span>
-            <span>{totalStars}</span>
-          </div>
-        ) : null,
-    });
-  }, [totalStars, setHeaderConfig]);
+    setNavigationConfig({ canGoBack: false });
+  }, [setNavigationConfig]);
 
   return (
     <div
@@ -62,26 +40,49 @@ export const MainHub: React.FC<MainHubProps> = ({ progress, onSelectMode }) => {
         gap: 16,
       }}
     >
-      {/* Intro section */}
-      <div style={{ padding: '2px 0 0' }}>
-        <h1
-          style={{
-            margin: 0,
-            fontSize: 22,
-            fontWeight: 700,
-            letterSpacing: -0.4,
-            color: 'var(--text-primary)',
-          }}
-        >
-          Выбор практикума
-        </h1>
-        <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>
-          Закрепляй физическую интуицию и тренируйся в решении задач
-        </p>
+      {/* Mini App Brand & Stars Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 20 }}>⚡</span>
+            <span
+              style={{
+                fontSize: 22,
+                fontWeight: 700,
+                letterSpacing: -0.5,
+                color: 'var(--text-primary)',
+              }}
+            >
+              Intervallum
+            </span>
+          </div>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>
+            Интерактивный физический практикум
+          </p>
+        </div>
+
+        {totalStars > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '6px 12px',
+              borderRadius: 20,
+              backgroundColor: 'rgba(245, 158, 11, 0.15)',
+              color: '#f59e0b',
+              fontWeight: 700,
+              fontSize: 14,
+            }}
+          >
+            <span>★</span>
+            <span>{totalStars}</span>
+          </div>
+        )}
       </div>
 
       {/* Mode Selection Cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 2 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 4 }}>
         <ModeCard
           id="force-lab"
           title="Расстановка сил"

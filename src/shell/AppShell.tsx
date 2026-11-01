@@ -7,24 +7,24 @@ import { MainHub } from './MainHub';
 import { ForceLabModule } from '../modules/force-lab/ForceLabModule';
 import { FormulaTrainerModule } from '../modules/formula-trainer/FormulaTrainerModule';
 import { loadUserProgress, UserProgressData } from '../shared/storage/progressStore';
-import { HeaderProvider, useHeader } from './HeaderContext';
-import { UnifiedHeader } from './UnifiedHeader';
+import { NavigationProvider, useNavigation } from './HeaderContext';
+import { SandboxMessengerHeader } from './SandboxMessengerHeader';
 
 export type AppMode = 'hub' | 'force-lab' | 'formula-trainer';
 
 /**
- * Synchronizes Telegram / MAX client native BackButton with the active UnifiedHeader config
+ * Synchronizes Telegram / MAX client native BackButton with the active Navigation state
  */
 const NativeBackButtonSync: React.FC = () => {
-  const { headerConfig } = useHeader();
+  const { navigationConfig } = useNavigation();
 
   useEffect(() => {
     const webApp = typeof window !== 'undefined' ? (window as any).WebApp : null;
     if (!webApp?.BackButton) return;
 
-    if (headerConfig.canGoBack && headerConfig.onBack) {
+    if (navigationConfig.canGoBack && navigationConfig.onBack) {
       webApp.BackButton.show();
-      const handler = headerConfig.onBack;
+      const handler = navigationConfig.onBack;
       webApp.BackButton.onClick(handler);
       return () => {
         webApp.BackButton.offClick(handler);
@@ -32,9 +32,24 @@ const NativeBackButtonSync: React.FC = () => {
     } else {
       webApp.BackButton.hide();
     }
-  }, [headerConfig.canGoBack, headerConfig.onBack]);
+  }, [navigationConfig.canGoBack, navigationConfig.onBack]);
 
   return null;
+};
+
+/**
+ * Emulated Messenger top bar inside the desktop testing sandbox
+ */
+const SandboxMessengerBarContainer: React.FC<{ platform: 'ios' | 'android' }> = ({ platform }) => {
+  const { navigationConfig } = useNavigation();
+
+  return (
+    <SandboxMessengerHeader
+      canGoBack={navigationConfig.canGoBack}
+      onBack={navigationConfig.onBack}
+      platform={platform}
+    />
+  );
 };
 
 export const AppShell: React.FC = () => {
@@ -196,7 +211,7 @@ export const AppShell: React.FC = () => {
           }}
         >
           <MaxUI platform={platform} colorScheme={colorScheme} resetBody={false}>
-            <HeaderProvider>
+            <NavigationProvider>
               <NativeBackButtonSync />
 
               <div
@@ -208,39 +223,41 @@ export const AppShell: React.FC = () => {
                   position: 'relative',
                 }}
               >
-                {/* Phone Status Bar (Emulated for non-Telegram browser) */}
+                {/* Fixed Sandbox Host Chrome (Status bar + Messenger Navigation Header) */}
                 {!isInsideMax && (
-                  <div
-                    style={{
-                      height: 26,
-                      padding: '0 18px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: 'var(--text-secondary)',
-                      backgroundColor: 'var(--bg-card)',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span>9:41</span>
+                  <>
                     <div
                       style={{
-                        width: 44,
-                        height: 4,
-                        borderRadius: 2,
-                        backgroundColor: 'var(--border-strong)',
+                        height: 26,
+                        padding: '0 18px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: 'var(--text-secondary)',
+                        backgroundColor: 'var(--bg-card)',
+                        flexShrink: 0,
                       }}
-                    />
-                    <span>100% 🔋</span>
-                  </div>
+                    >
+                      <span>9:41</span>
+                      <div
+                        style={{
+                          width: 44,
+                          height: 4,
+                          borderRadius: 2,
+                          backgroundColor: 'var(--border-strong)',
+                        }}
+                      />
+                      <span>100% 🔋</span>
+                    </div>
+
+                    {/* Emulated Messenger Header ("Шторка мессенджера") */}
+                    <SandboxMessengerBarContainer platform={platform} />
+                  </>
                 )}
 
-                {/* Permanent Unified Top Header */}
-                <UnifiedHeader />
-
-                {/* View Router */}
+                {/* Actual Mini App Viewport */}
                 <div
                   style={{
                     flex: 1,
@@ -264,7 +281,7 @@ export const AppShell: React.FC = () => {
                   )}
                 </div>
               </div>
-            </HeaderProvider>
+            </NavigationProvider>
           </MaxUI>
         </div>
       </div>

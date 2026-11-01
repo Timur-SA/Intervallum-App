@@ -145,35 +145,101 @@ body, html {
 }
 
 /* ==========================================================================
-   Unified Top Header (Fixed and consistent across all screens)
+   Emulated Sandbox Messenger Bar (Host MAX / Telegram Client Header)
+   Fixed container element of the desktop tester chassis. Never in real MAX.
    ========================================================================== */
 
-.unified-header {
-  height: 48px;
-  min-height: 48px;
-  background: var(--bg-card);
+.sandbox-messenger-header {
+  height: 44px;
+  min-height: 44px;
+  background-color: var(--bg-card);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 0 10px 0 12px;
   position: relative;
-  z-index: 40;
+  z-index: 50;
   flex-shrink: 0;
+  user-select: none;
 }
 
-.unified-header-left {
+.sandbox-messenger-header.platform-android {
+  height: 48px;
+  min-height: 48px;
+}
+
+.messenger-header-left {
   display: flex;
   align-items: center;
-  min-width: 44px;
+  width: 44px;
+}
+
+.messenger-header-title {
+  flex: 1;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+.messenger-header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  width: 60px;
+}
+
+.messenger-btn {
+  background: none;
+  border: 0;
+  color: var(--text-secondary);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.messenger-btn:hover {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.messenger-back-btn {
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   In-App Header (Used internally by modules for tasks, titles & actions)
+   ========================================================================== */
+
+.inapp-header {
+  height: 44px;
+  min-height: 44px;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  flex-shrink: 0;
 }
 
 .unified-header-btn {
   background: none;
   border: 0;
   color: var(--text-primary);
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
   display: grid;
   place-items: center;
@@ -184,18 +250,6 @@ body, html {
 
 .unified-header-btn:hover {
   background-color: var(--bg-surface);
-}
-
-.unified-header-title {
-  flex: 1;
-  text-align: center;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0 8px;
 }
 
 .unified-header-right {

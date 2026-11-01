@@ -1,38 +1,45 @@
 import React, { createContext, useContext, useState } from 'react';
 
-export interface HeaderConfig {
-  title: string;
-  subtitle?: string;
+export interface NavigationConfig {
   canGoBack: boolean;
   onBack?: () => void;
-  rightAction?: React.ReactNode;
 }
 
-interface HeaderContextType {
-  headerConfig: HeaderConfig;
-  setHeaderConfig: (config: HeaderConfig) => void;
+interface NavigationContextType {
+  navigationConfig: NavigationConfig;
+  setNavigationConfig: (config: NavigationConfig) => void;
 }
 
-const HeaderContext = createContext<HeaderContextType | null>(null);
+const NavigationContext = createContext<NavigationContextType | null>(null);
 
-export const HeaderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [headerConfig, setHeaderConfig] = useState<HeaderConfig>({
-    title: 'Intervallum',
-    subtitle: 'Физический практикум',
+export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [navigationConfig, setNavigationConfig] = useState<NavigationConfig>({
     canGoBack: false,
   });
 
   return (
-    <HeaderContext.Provider value={{ headerConfig, setHeaderConfig }}>
+    <NavigationContext.Provider value={{ navigationConfig, setNavigationConfig }}>
       {children}
-    </HeaderContext.Provider>
+    </NavigationContext.Provider>
   );
 };
 
-export const useHeader = () => {
-  const ctx = useContext(HeaderContext);
+export const useNavigation = () => {
+  const ctx = useContext(NavigationContext);
   if (!ctx) {
-    throw new Error('useHeader must be used within a HeaderProvider');
+    throw new Error('useNavigation must be used within a NavigationProvider');
   }
   return ctx;
+};
+
+// Compatibility aliases
+export const HeaderProvider = NavigationProvider;
+export const useHeader = () => {
+  const { navigationConfig, setNavigationConfig } = useNavigation();
+  return {
+    headerConfig: navigationConfig,
+    setHeaderConfig: (cfg: { canGoBack: boolean; onBack?: () => void }) => {
+      setNavigationConfig({ canGoBack: cfg.canGoBack, onBack: cfg.onBack });
+    },
+  };
 };

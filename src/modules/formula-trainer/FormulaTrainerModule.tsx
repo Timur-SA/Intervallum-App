@@ -11,7 +11,7 @@ import { ResultModal } from './components/ResultModal';
 import { CelebrationSparks } from '../../shared/components/CelebrationSparks';
 import { haptics } from '../../shared/motion/haptics';
 import { markFormulaTaskCompleted } from '../../shared/storage/progressStore';
-import { useHeader } from '../../shell/HeaderContext';
+import { useNavigation } from '../../shell/HeaderContext';
 import {
   moveTokenInCard,
   swapSidesInCard,
@@ -439,38 +439,17 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
     handleSelectTask(next);
   };
 
-  const { setHeaderConfig } = useHeader();
+  const { setNavigationConfig } = useNavigation();
   const hasComputedResults = cards.some(c => c.computed && c.computed.value !== null);
 
-  // Synchronize UnifiedHeader
+  // Inform host messenger BackButton
   useEffect(() => {
     if (!currentTask) {
-      setHeaderConfig({
-        title: 'Тренажёр формул',
-        subtitle: 'Вывод физических законов',
-        canGoBack: true,
-        onBack: onBackToHub,
-        rightAction: null,
-      });
+      setNavigationConfig({ canGoBack: true, onBack: onBackToHub });
     } else {
-      setHeaderConfig({
-        title: currentTask.title,
-        subtitle: currentTask.category,
-        canGoBack: true,
-        onBack: () => setCurrentTask(null),
-        rightAction: (
-          <Button
-            variant="primary"
-            size="small"
-            className={hasComputedResults ? 'ready-pulse' : ''}
-            onClick={handleCheckClick}
-          >
-            Проверить
-          </Button>
-        ),
-      });
+      setNavigationConfig({ canGoBack: true, onBack: () => setCurrentTask(null) });
     }
-  }, [currentTask, hasComputedResults, onBackToHub, setHeaderConfig]);
+  }, [currentTask, onBackToHub, setNavigationConfig]);
 
   return (
     <div
@@ -486,12 +465,66 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
 
       {!currentTask ? (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1, minHeight: 0 }}>
+          {/* Task List In-App Header */}
+          <div className="inapp-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                type="button"
+                className="unified-header-btn"
+                onClick={onBackToHub}
+                aria-label="В главное меню"
+                title="В главное меню"
+              >
+                <span style={{ fontSize: 18, lineHeight: 1 }}>←</span>
+              </button>
+              <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+                Тренажёр формул
+              </span>
+            </div>
+          </div>
+
           <div style={{ flex: 1, overflowY: 'auto' }}>
             <TaskScreen onSelectTask={handleSelectTask} />
           </div>
         </div>
       ) : (
         <div className="app-screen-solver" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          {/* Solver In-App Header */}
+          <div className="inapp-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
+              <button
+                type="button"
+                className="unified-header-btn"
+                onClick={() => setCurrentTask(null)}
+                aria-label="Назад к списку задач"
+                title="Назад к списку задач"
+              >
+                <span style={{ fontSize: 18, lineHeight: 1 }}>←</span>
+              </button>
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {currentTask.title}
+              </span>
+            </div>
+
+            <Button
+              variant="primary"
+              size="small"
+              className={hasComputedResults ? 'ready-pulse' : ''}
+              onClick={handleCheckClick}
+            >
+              Проверить
+            </Button>
+          </div>
+
           <CollapsibleProblemPanel task={currentTask} onPointerDownGiven={handlePointerDownGiven} />
 
           {selectionMode && (

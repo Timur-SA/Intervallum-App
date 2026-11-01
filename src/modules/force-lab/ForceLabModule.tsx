@@ -9,7 +9,7 @@ import { ReviewModal } from './components/ReviewModal';
 import { CelebrationSparks } from '../../shared/components/CelebrationSparks';
 import { haptics } from '../../shared/motion/haptics';
 import { loadUserProgress, markForceTaskCompleted } from '../../shared/storage/progressStore';
-import { useHeader } from '../../shell/HeaderContext';
+import { useNavigation } from '../../shell/HeaderContext';
 
 interface ForceLabModuleProps {
   onBackToHub: () => void;
@@ -32,32 +32,13 @@ export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) =
   const [reviewQueue, setReviewQueue] = useState<ReviewEntry[]>([]);
   const [reviewIndex, setReviewIndex] = useState(0);
 
-  const { setHeaderConfig } = useHeader();
+  const { setNavigationConfig } = useNavigation();
   const currentTask = FORCE_TASKS[taskIndex];
 
-  // Synchronize UnifiedHeader
+  // Inform host messenger BackButton
   useEffect(() => {
-    setHeaderConfig({
-      title: 'Расстановка сил',
-      subtitle: `Задача ${taskIndex + 1} из ${FORCE_TASKS.length}`,
-      canGoBack: true,
-      onBack: onBackToHub,
-      rightAction: (
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: 'var(--text-secondary)',
-            padding: '4px 8px',
-            borderRadius: 8,
-            backgroundColor: 'var(--bg-surface)',
-          }}
-        >
-          {taskIndex + 1} / {FORCE_TASKS.length}
-        </span>
-      ),
-    });
-  }, [taskIndex, onBackToHub, setHeaderConfig]);
+    setNavigationConfig({ canGoBack: true, onBack: onBackToHub });
+  }, [onBackToHub, setNavigationConfig]);
 
   // Restore saved vectors from store if previously saved
   useEffect(() => {
@@ -165,12 +146,44 @@ export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) =
     >
       <CelebrationSparks active={showCelebration} onDone={() => setShowCelebration(false)} />
 
+      {/* Module In-App Header */}
+      <div className="inapp-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            type="button"
+            className="unified-header-btn"
+            onClick={onBackToHub}
+            aria-label="В главное меню"
+            title="В главное меню"
+          >
+            <span style={{ fontSize: 18, lineHeight: 1 }}>←</span>
+          </button>
+          <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+            Расстановка сил
+          </span>
+        </div>
+
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: 'var(--text-secondary)',
+            padding: '3px 8px',
+            borderRadius: 8,
+            backgroundColor: 'var(--bg-surface)',
+            border: '1px solid var(--border)',
+          }}
+        >
+          {taskIndex + 1} / {FORCE_TASKS.length}
+        </span>
+      </div>
+
       {/* Task Heading & Condition */}
-      <div style={{ padding: '12px 18px 4px' }}>
-        <h2 style={{ margin: '0 0 4px', fontSize: 20, fontWeight: 600, letterSpacing: -0.4 }}>
+      <div style={{ padding: '10px 18px 4px' }}>
+        <h2 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 600, letterSpacing: -0.3, color: 'var(--text-primary)' }}>
           {currentTask.title}
         </h2>
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--fl-soft)', lineHeight: 1.35 }}>
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.35 }}>
           {currentTask.condition}
         </p>
       </div>
