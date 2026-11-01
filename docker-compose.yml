@@ -1,0 +1,10 @@
+services:
+  intervallum-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: intervallum-app
+    restart: unless-stopped
+    ports:
+      # Bind to localhost only so host Caddy can reverse proxy with SSL
+      - "127.0.0.1:${APP_PORT:-3000}:80"
