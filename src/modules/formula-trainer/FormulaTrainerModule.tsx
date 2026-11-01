@@ -11,6 +11,7 @@ import { ResultModal } from './components/ResultModal';
 import { CelebrationSparks } from '../../shared/components/CelebrationSparks';
 import { haptics } from '../../shared/motion/haptics';
 import { markFormulaTaskCompleted } from '../../shared/storage/progressStore';
+import { useHeader } from '../../shell/HeaderContext';
 import {
   moveTokenInCard,
   swapSidesInCard,
@@ -438,7 +439,38 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
     handleSelectTask(next);
   };
 
+  const { setHeaderConfig } = useHeader();
   const hasComputedResults = cards.some(c => c.computed && c.computed.value !== null);
+
+  // Synchronize UnifiedHeader
+  useEffect(() => {
+    if (!currentTask) {
+      setHeaderConfig({
+        title: 'Тренажёр формул',
+        subtitle: 'Вывод физических законов',
+        canGoBack: true,
+        onBack: onBackToHub,
+        rightAction: null,
+      });
+    } else {
+      setHeaderConfig({
+        title: currentTask.title,
+        subtitle: currentTask.category,
+        canGoBack: true,
+        onBack: () => setCurrentTask(null),
+        rightAction: (
+          <Button
+            variant="primary"
+            size="small"
+            className={hasComputedResults ? 'ready-pulse' : ''}
+            onClick={handleCheckClick}
+          >
+            Проверить
+          </Button>
+        ),
+      });
+    }
+  }, [currentTask, hasComputedResults, onBackToHub, setHeaderConfig]);
 
   return (
     <div
@@ -447,56 +479,19 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
         flexDirection: 'column',
         height: '100%',
         position: 'relative',
-        backgroundColor: 'var(--app-bg)',
+        backgroundColor: 'var(--bg-app)',
       }}
     >
       <CelebrationSparks active={showCelebration} onDone={() => setShowCelebration(false)} />
 
       {!currentTask ? (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <header className="max-header solver-header" style={{ flexShrink: 0 }}>
-            <button
-              type="button"
-              className="btn-icon"
-              title="В главное меню"
-              onClick={onBackToHub}
-              style={{ fontSize: 18 }}
-            >
-              ←
-            </button>
-            <Typography.Text variant="title" className="header-title">
-              Тренажёр формул
-            </Typography.Text>
-            <div style={{ width: 36 }} />
-          </header>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1, minHeight: 0 }}>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             <TaskScreen onSelectTask={handleSelectTask} />
           </div>
         </div>
       ) : (
         <div className="app-screen-solver" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <header className="max-header solver-header" style={{ flexShrink: 0 }}>
-            <button
-              type="button"
-              className="btn-icon"
-              title="Назад к списку"
-              onClick={() => setCurrentTask(null)}
-            >
-              ←
-            </button>
-            <Typography.Text variant="title" className="header-title">
-              {currentTask.title}
-            </Typography.Text>
-            <Button
-              variant="primary"
-              size="small"
-              className={hasComputedResults ? 'ready-pulse' : ''}
-              onClick={handleCheckClick}
-            >
-              Проверить
-            </Button>
-          </header>
-
           <CollapsibleProblemPanel task={currentTask} onPointerDownGiven={handlePointerDownGiven} />
 
           {selectionMode && (

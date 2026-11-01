@@ -36,8 +36,8 @@ export const ForceToolbar: React.FC<ForceToolbarProps> = ({
     <div
       style={{
         padding: '8px 16px 12px',
-        backgroundColor: 'var(--fl-paper)',
-        borderTop: '1px solid var(--fl-line)',
+        backgroundColor: 'var(--bg-card)',
+        borderTop: '1px solid var(--border)',
         display: 'flex',
         flexDirection: 'column',
         gap: 8,
@@ -62,11 +62,11 @@ export const ForceToolbar: React.FC<ForceToolbarProps> = ({
             alignItems: 'center',
             gap: 10,
             padding: '8px 12px',
-            backgroundColor: 'var(--fl-panel)',
-            border: '1px solid var(--fl-line)',
+            backgroundColor: 'var(--bg-surface)',
+            border: '1px solid var(--border)',
             borderRadius: 12,
             textAlign: 'left',
-            color: 'var(--fl-ink)',
+            color: 'var(--text-primary)',
           }}
           aria-label="Выбрать силу из библиотеки"
         >
@@ -94,9 +94,9 @@ export const ForceToolbar: React.FC<ForceToolbarProps> = ({
               display: 'grid',
               placeItems: 'center',
               borderRadius: 10,
-              border: '1px solid var(--fl-line)',
-              backgroundColor: 'var(--fl-panel)',
-              color: 'var(--fl-ink)',
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--bg-surface)',
+              color: 'var(--text-primary)',
             }}
           >
             <Undo2 size={18} />
@@ -113,9 +113,9 @@ export const ForceToolbar: React.FC<ForceToolbarProps> = ({
               display: 'grid',
               placeItems: 'center',
               borderRadius: 10,
-              border: '1px solid var(--fl-line)',
-              backgroundColor: 'var(--fl-panel)',
-              color: 'var(--fl-ink)',
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--bg-surface)',
+              color: 'var(--text-primary)',
             }}
           >
             <Trash2 size={18} />

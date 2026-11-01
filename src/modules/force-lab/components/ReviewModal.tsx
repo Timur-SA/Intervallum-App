@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@maxhub/max-ui';
 import { FORCE_CATALOG } from '../data/catalog';
 import { DrawnVector, ForceTask, Region, ReviewEntry } from '../types';
+import { TaskIllustration } from './TaskIllustration';
 import { haptics } from '../../../shared/motion/haptics';
 
 interface ReviewModalProps {
@@ -226,6 +227,9 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               viewBox={viewBox}
               style={{ width: '100%', height: 180, overflow: 'hidden' }}
             >
+              <g opacity={0.45}>
+                <TaskIllustration kind={task.kind} />
+              </g>
               {renderRegion(region)}
               {renderReviewArrow(expected, 'var(--fl-reference)')}
             </svg>
@@ -258,6 +262,9 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               viewBox={viewBox}
               style={{ width: '100%', height: 180, overflow: 'hidden' }}
             >
+              <g opacity={0.45}>
+                <TaskIllustration kind={task.kind} />
+              </g>
               {renderRegion(region)}
               {ghost && renderReviewArrow(ghost, 'var(--fl-reference)', true)}
               {isOrigin && originTarget && drawn && (

@@ -17,14 +17,6 @@ export const TaskScreen: React.FC<TaskScreenProps> = ({ onSelectTask }) => {
 
   return (
     <div className="task-screen-container">
-      <header className="max-header">
-        <span className="header-logo">⚡</span>
-        <Typography.Text variant="title" className="header-title">
-          Физика — Практикум
-        </Typography.Text>
-        <span style={{ width: 36 }} />
-      </header>
-
       <div className="task-screen-hero">
         <Typography.Text variant="header" className="hero-title" style={{ display: 'block', marginBottom: 6 }}>
           Тренажёр вывода формул

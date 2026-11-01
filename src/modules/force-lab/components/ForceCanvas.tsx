@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { DrawnVector, ForceTask, ForceType } from '../types';
 import { FORCE_CATALOG } from '../data/catalog';
+import { TaskIllustration } from './TaskIllustration';
 import { MathView } from '../../../shared/components/MathView';
 import { haptics } from '../../../shared/motion/haptics';
 
@@ -134,136 +135,6 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
     setGesture(null);
   };
 
-  // SVG Illustration for the 6 task bodies
-  const renderIllustration = () => {
-    const ink = 'var(--fl-technical)';
-    const line = 'var(--fl-line)';
-    const fill = 'var(--fl-object)';
-    const angle = (25 * Math.PI) / 180;
-
-    switch (task.kind) {
-      case 'incline': {
-        const anchor = {
-          x: 180 + 41 * Math.cos(angle),
-          y: 205 - 41 * Math.sin(angle),
-        };
-        const leftY = 205 + 36 * Math.cos(angle) + (180 - 41 * Math.sin(angle) - 38) * Math.tan(angle);
-        const rightY = 205 + 36 * Math.cos(angle) + (180 - 41 * Math.sin(angle) - 321) * Math.tan(angle);
-        let spring = `M ${anchor.x} ${anchor.y} L 221 185`;
-        for (let i = 0; i < 12; i++) {
-          const x = 221 + i * 4.4;
-          const y = 185 - i * 2.05;
-          spring += ` L ${x + (i % 2 ? 2.8 : -2.8)} ${y + (i % 2 ? 6 : -6)}`;
-        }
-        spring += ' L 281 157 L 292 153';
-
-        return (
-          <g>
-            <path d={`M 38 ${leftY} L 321 ${rightY} L 321 315 Z`} fill={fill} opacity={0.3} />
-            <path d={`M 38 ${leftY} L 321 ${rightY}`} fill="none" stroke={ink} strokeWidth="2.2" />
-            <path d="M 38 315 H 321" stroke={line} strokeWidth="1" />
-            <path d="M 292 153 l -13 -27 m 13 27 l 13 27" stroke={ink} strokeWidth="3" />
-            <path d={spring} stroke={ink} strokeWidth="1.8" fill="none" />
-            <rect
-              x="139"
-              y="169"
-              width="82"
-              height="72"
-              rx="3"
-              transform="rotate(-25 180 205)"
-              fill={fill}
-              stroke={ink}
-              strokeWidth="1.8"
-            />
-            <circle cx={anchor.x} cy={anchor.y} r="3" fill={ink} />
-            <path d="M 84 315 Q 84 303 79 293" stroke={line} fill="none" />
-            <text x="92" y="306" fill={ink} fontSize="14" fontStyle="italic">
-              25°
-            </text>
-          </g>
-        );
-      }
-      case 'table':
-        return (
-          <g>
-            <rect x="135" y="153" width="90" height="74" rx="4" fill={fill} stroke={ink} strokeWidth="1.8" />
-            <path d="M 35 227 H 325 M 55 227 V 315 M 305 227 V 315" stroke={ink} strokeWidth="2.2" />
-            <path d="M 35 235 H 325" stroke={line} />
-          </g>
-        );
-      case 'hanging':
-        return (
-          <g>
-            <path d="M 95 60 H 265" stroke={ink} strokeWidth="3" />
-            <path d="M 180 60 V 165" stroke={ink} strokeWidth="1.9" />
-            <rect x="145" y="165" width="70" height="70" rx="5" fill={fill} stroke={ink} strokeWidth="1.8" />
-            <circle cx="180" cy="165" r="3" fill={ink} />
-          </g>
-        );
-      case 'magnetic':
-        return (
-          <g>
-            {[105, 152, 200, 248, 295].map(y => (
-              <path
-                key={y}
-                d={`M 42 ${y} H 318 m -9 -4 l 9 4 -9 4`}
-                stroke={ink}
-                strokeWidth="1.2"
-                opacity="0.7"
-                fill="none"
-              />
-            ))}
-            <circle cx="180" cy="200" r="31" fill={fill} stroke={ink} strokeWidth="2" />
-            <circle cx="180" cy="200" r="4.5" fill={ink} />
-            <text x="290" y="90" fill={ink} fontSize="15" fontWeight="bold">
-              B →
-            </text>
-            <text x="224" y="206" fill={ink} fontSize="15" fontStyle="italic">
-              I ⊙
-            </text>
-          </g>
-        );
-      case 'sail':
-        return (
-          <g>
-            <rect x="24" y="145" width="38" height="90" rx="4" fill={fill} stroke={ink} strokeWidth="1.5" />
-            {[160, 220].map(y => (
-              <path
-                key={y}
-                d={`M 62 ${y} H 207 m -9 -4 l 9 4 -9 4`}
-                stroke={ink}
-                strokeWidth="1.5"
-                fill="none"
-              />
-            ))}
-            <path d="M 84 176 V 204 M 84 190 H 213" stroke={ink} strokeWidth="1.6" fill="none" />
-            <rect x="213" y="142" width="14" height="96" rx="2" fill={fill} stroke={ink} strokeWidth="2" />
-            <path d="M 217 147 V 233" stroke={ink} strokeWidth="1" />
-            <circle cx="213" cy="190" r="3" fill={ink} />
-            <text x="24" y="263" fill={ink} fontSize="13">
-              Свет слева
-            </text>
-            <text x="236" y="246" fill={ink} fontSize="13">
-              Парус
-            </text>
-          </g>
-        );
-      case 'lever':
-        return (
-          <g>
-            <path d="M 210 80 H 270" stroke={ink} strokeWidth="3" />
-            <path d="M 240 80 V 192" stroke={ink} strokeWidth="1.9" />
-            <rect x="60" y="192" width="240" height="16" rx="3" fill={fill} stroke={ink} strokeWidth="1.8" />
-            <path d="M 120 208 L 107 234 H 133 Z" fill={fill} stroke={ink} strokeWidth="1.8" />
-            <path d="M 97 240 H 143" stroke={line} />
-            <circle cx="240" cy="192" r="3" fill={ink} />
-          </g>
-        );
-      default:
-        return null;
-    }
-  };
-
   const renderVector = (v: DrawnVector, isDraft = false) => {
     const len = Math.hypot(v.dx, v.dy);
     if (len < 1) return null;
@@ -387,11 +258,11 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
           display: 'block',
           touchAction: 'none',
           userSelect: 'none',
-          backgroundColor: 'var(--fl-paper)',
+          backgroundColor: 'transparent',
         }}
       >
         {/* Physical scenario drawing */}
-        {renderIllustration()}
+        <TaskIllustration kind={task.kind} />
 
         {/* Reference vectors (when available) */}
         {referenceVectors.map(renderReference)}

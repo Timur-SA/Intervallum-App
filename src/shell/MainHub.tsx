@@ -1,9 +1,10 @@
-import React from 'react';
-import { ArrowUpRight, Compass, Sparkles, Variable } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Compass, Sparkles, Variable } from 'lucide-react';
 import { ModeCard } from './ModeCard';
 import { UserProgressData } from '../shared/storage/progressStore';
 import { FORCE_TASKS } from '../modules/force-lab/data/tasks';
 import { PHYSICS_TASKS } from '../modules/formula-trainer/data/tasksDb';
+import { useHeader } from './HeaderContext';
 
 interface MainHubProps {
   progress: UserProgressData;
@@ -11,6 +12,8 @@ interface MainHubProps {
 }
 
 export const MainHub: React.FC<MainHubProps> = ({ progress, onSelectMode }) => {
+  const { setHeaderConfig } = useHeader();
+
   const forceTotal = FORCE_TASKS.length;
   const forceDone = progress.forceLab.completedTaskIds.length;
   const forceStars = progress.forceLab.stars;
@@ -20,6 +23,33 @@ export const MainHub: React.FC<MainHubProps> = ({ progress, onSelectMode }) => {
   const formulaStars = progress.formulaTrainer.stars;
 
   const totalStars = forceStars + formulaStars;
+
+  useEffect(() => {
+    setHeaderConfig({
+      title: 'Intervallum',
+      subtitle: 'Физический практикум',
+      canGoBack: false,
+      rightAction:
+        totalStars > 0 ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '4px 10px',
+              borderRadius: 14,
+              backgroundColor: 'rgba(245, 158, 11, 0.15)',
+              color: '#f59e0b',
+              fontWeight: 700,
+              fontSize: 13,
+            }}
+          >
+            <span>★</span>
+            <span>{totalStars}</span>
+          </div>
+        ) : null,
+    });
+  }, [totalStars, setHeaderConfig]);
 
   return (
     <div
@@ -32,40 +62,26 @@ export const MainHub: React.FC<MainHubProps> = ({ progress, onSelectMode }) => {
         gap: 16,
       }}
     >
-      {/* Brand Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 20 }}>⚡</span>
-            <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5 }}>Intervallum</span>
-          </div>
-          <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--app-subtext)' }}>
-            Интерактивный физический практикум
-          </p>
-        </div>
-
-        {totalStars > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              padding: '6px 12px',
-              borderRadius: 20,
-              backgroundColor: 'rgba(245, 158, 11, 0.15)',
-              color: '#d97706',
-              fontWeight: 700,
-              fontSize: 14,
-            }}
-          >
-            <span>★</span>
-            <span>{totalStars}</span>
-          </div>
-        )}
+      {/* Intro section */}
+      <div style={{ padding: '2px 0 0' }}>
+        <h1
+          style={{
+            margin: 0,
+            fontSize: 22,
+            fontWeight: 700,
+            letterSpacing: -0.4,
+            color: 'var(--text-primary)',
+          }}
+        >
+          Выбор практикума
+        </h1>
+        <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>
+          Закрепляй физическую интуицию и тренируйся в решении задач
+        </p>
       </div>
 
       {/* Mode Selection Cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 4 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 2 }}>
         <ModeCard
           id="force-lab"
           title="Расстановка сил"
@@ -99,8 +115,8 @@ export const MainHub: React.FC<MainHubProps> = ({ progress, onSelectMode }) => {
       <div
         style={{
           marginTop: 'auto',
-          backgroundColor: 'var(--fl-wash)',
-          border: '1px solid var(--fl-line)',
+          backgroundColor: 'var(--accent-bg)',
+          border: '1px solid var(--border-accent)',
           borderRadius: 16,
           padding: '12px 14px',
           display: 'flex',
@@ -108,10 +124,10 @@ export const MainHub: React.FC<MainHubProps> = ({ progress, onSelectMode }) => {
           gap: 10,
         }}
       >
-        <Sparkles size={18} style={{ color: 'var(--fl-accent)', flexShrink: 0, marginTop: 1 }} />
-        <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--fl-ink)' }}>
-          <strong>Методический совет:</strong> Решение задачи всегда начинается с качественного
-          чертежа сил, а затем переходит в вывод расчетных формул.
+        <Sparkles size={18} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 1 }} />
+        <div style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--text-primary)' }}>
+          <strong>Методический совет:</strong> Качественное решение начинается с точного
+          чертежа сил, а затем переходит в алгебраический вывод формул.
         </div>
       </div>
     </div>

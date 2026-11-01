@@ -9,6 +9,7 @@ import { ReviewModal } from './components/ReviewModal';
 import { CelebrationSparks } from '../../shared/components/CelebrationSparks';
 import { haptics } from '../../shared/motion/haptics';
 import { loadUserProgress, markForceTaskCompleted } from '../../shared/storage/progressStore';
+import { useHeader } from '../../shell/HeaderContext';
 
 interface ForceLabModuleProps {
   onBackToHub: () => void;
@@ -31,7 +32,32 @@ export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) =
   const [reviewQueue, setReviewQueue] = useState<ReviewEntry[]>([]);
   const [reviewIndex, setReviewIndex] = useState(0);
 
+  const { setHeaderConfig } = useHeader();
   const currentTask = FORCE_TASKS[taskIndex];
+
+  // Synchronize UnifiedHeader
+  useEffect(() => {
+    setHeaderConfig({
+      title: 'Расстановка сил',
+      subtitle: `Задача ${taskIndex + 1} из ${FORCE_TASKS.length}`,
+      canGoBack: true,
+      onBack: onBackToHub,
+      rightAction: (
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: 'var(--text-secondary)',
+            padding: '4px 8px',
+            borderRadius: 8,
+            backgroundColor: 'var(--bg-surface)',
+          }}
+        >
+          {taskIndex + 1} / {FORCE_TASKS.length}
+        </span>
+      ),
+    });
+  }, [taskIndex, onBackToHub, setHeaderConfig]);
 
   // Restore saved vectors from store if previously saved
   useEffect(() => {
@@ -133,31 +159,14 @@ export const ForceLabModule: React.FC<ForceLabModuleProps> = ({ onBackToHub }) =
         flexDirection: 'column',
         height: '100%',
         position: 'relative',
-        backgroundColor: 'var(--fl-paper)',
-        color: 'var(--fl-ink)',
+        backgroundColor: 'var(--bg-app)',
+        color: 'var(--text-primary)',
       }}
     >
       <CelebrationSparks active={showCelebration} onDone={() => setShowCelebration(false)} />
 
-      {/* Top Header */}
-      <div
-        style={{
-          padding: '12px 18px 8px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--fl-accent)' }}>
-          Расстановка сил
-        </span>
-        <span style={{ fontSize: 12, color: 'var(--fl-soft)' }}>
-          Задача {taskIndex + 1} из {FORCE_TASKS.length}
-        </span>
-      </div>
-
       {/* Task Heading & Condition */}
-      <div style={{ padding: '0 18px 6px' }}>
+      <div style={{ padding: '12px 18px 4px' }}>
         <h2 style={{ margin: '0 0 4px', fontSize: 20, fontWeight: 600, letterSpacing: -0.4 }}>
           {currentTask.title}
         </h2>

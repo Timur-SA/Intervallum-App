@@ -7,8 +7,35 @@ import { MainHub } from './MainHub';
 import { ForceLabModule } from '../modules/force-lab/ForceLabModule';
 import { FormulaTrainerModule } from '../modules/formula-trainer/FormulaTrainerModule';
 import { loadUserProgress, UserProgressData } from '../shared/storage/progressStore';
+import { HeaderProvider, useHeader } from './HeaderContext';
+import { UnifiedHeader } from './UnifiedHeader';
 
 export type AppMode = 'hub' | 'force-lab' | 'formula-trainer';
+
+/**
+ * Synchronizes Telegram / MAX client native BackButton with the active UnifiedHeader config
+ */
+const NativeBackButtonSync: React.FC = () => {
+  const { headerConfig } = useHeader();
+
+  useEffect(() => {
+    const webApp = typeof window !== 'undefined' ? (window as any).WebApp : null;
+    if (!webApp?.BackButton) return;
+
+    if (headerConfig.canGoBack && headerConfig.onBack) {
+      webApp.BackButton.show();
+      const handler = headerConfig.onBack;
+      webApp.BackButton.onClick(handler);
+      return () => {
+        webApp.BackButton.offClick(handler);
+      };
+    } else {
+      webApp.BackButton.hide();
+    }
+  }, [headerConfig.canGoBack, headerConfig.onBack]);
+
+  return null;
+};
 
 export const AppShell: React.FC = () => {
   const [currentMode, setCurrentMode] = useState<AppMode>('hub');
@@ -19,7 +46,7 @@ export const AppShell: React.FC = () => {
   const isInsideMax =
     typeof window !== 'undefined' && Boolean((window as any).WebApp?.platform);
 
-  // Sync platform & handle BackButton
+  // Sync platform & colorScheme with WebApp environment
   useEffect(() => {
     const webApp = typeof window !== 'undefined' ? (window as any).WebApp : null;
     if (!webApp) return;
@@ -30,23 +57,7 @@ export const AppShell: React.FC = () => {
     if (webApp.colorScheme) {
       setColorScheme(webApp.colorScheme);
     }
-
-    if (webApp.BackButton) {
-      if (currentMode !== 'hub') {
-        webApp.BackButton.show();
-        const handleBack = () => {
-          setCurrentMode('hub');
-          setProgress(loadUserProgress());
-        };
-        webApp.BackButton.onClick(handleBack);
-        return () => {
-          webApp.BackButton.offClick(handleBack);
-        };
-      } else {
-        webApp.BackButton.hide();
-      }
-    }
-  }, [currentMode]);
+  }, []);
 
   const handleSelectMode = (mode: 'force-lab' | 'formula-trainer') => {
     setCurrentMode(mode);
@@ -67,7 +78,7 @@ export const AppShell: React.FC = () => {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        backgroundColor: colorScheme === 'dark' ? '#0b0f12' : '#e5e7eb',
+        backgroundColor: colorScheme === 'dark' ? '#07090b' : '#e2e8f0',
       }}
     >
       {/* Desktop Tester Controls (hidden in mobile / MAX client) */}
@@ -79,10 +90,11 @@ export const AppShell: React.FC = () => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundColor: colorScheme === 'dark' ? '#141a1f' : '#ffffff',
-            borderBottom: '1px solid var(--app-border)',
+            backgroundColor: 'var(--bg-card)',
+            borderBottom: '1px solid var(--border)',
             fontSize: 13,
             flexShrink: 0,
+            zIndex: 50,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600 }}>
@@ -92,8 +104,8 @@ export const AppShell: React.FC = () => {
                 fontSize: 10,
                 padding: '2px 6px',
                 borderRadius: 6,
-                backgroundColor: 'rgba(2, 132, 199, 0.15)',
-                color: '#0284c7',
+                backgroundColor: 'var(--accent-bg)',
+                color: 'var(--accent)',
               }}
             >
               MAX UI 0.9
@@ -102,7 +114,7 @@ export const AppShell: React.FC = () => {
 
           <div style={{ display: 'flex', gap: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ fontSize: 11, color: 'var(--app-subtext)' }}>OS:</span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>OS:</span>
               <button
                 type="button"
                 onClick={() => setPlatform('ios')}
@@ -111,8 +123,9 @@ export const AppShell: React.FC = () => {
                   borderRadius: 6,
                   border: 0,
                   fontSize: 12,
-                  backgroundColor: platform === 'ios' ? 'var(--app-accent)' : 'transparent',
-                  color: platform === 'ios' ? '#fff' : 'inherit',
+                  backgroundColor: platform === 'ios' ? 'var(--accent)' : 'transparent',
+                  color: platform === 'ios' ? '#fff' : 'var(--text-secondary)',
+                  cursor: 'pointer',
                 }}
               >
                 iOS
@@ -125,8 +138,9 @@ export const AppShell: React.FC = () => {
                   borderRadius: 6,
                   border: 0,
                   fontSize: 12,
-                  backgroundColor: platform === 'android' ? 'var(--app-accent)' : 'transparent',
-                  color: platform === 'android' ? '#fff' : 'inherit',
+                  backgroundColor: platform === 'android' ? 'var(--accent)' : 'transparent',
+                  color: platform === 'android' ? '#fff' : 'var(--text-secondary)',
+                  cursor: 'pointer',
                 }}
               >
                 Android
@@ -140,10 +154,11 @@ export const AppShell: React.FC = () => {
                 style={{
                   padding: '3px 8px',
                   borderRadius: 6,
-                  border: '1px solid var(--app-border)',
+                  border: '1px solid var(--border)',
                   backgroundColor: 'transparent',
                   fontSize: 12,
-                  color: 'inherit',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
                 }}
               >
                 {colorScheme === 'dark' ? '🌙 Тёмная' : '☀️ Светлая'}
@@ -170,10 +185,10 @@ export const AppShell: React.FC = () => {
             width: 'min(440px, 100%)',
             height: '100%',
             maxHeight: isInsideMax ? '100%' : '880px',
-            backgroundColor: 'var(--fl-paper)',
+            backgroundColor: 'var(--bg-app)',
             borderRadius: isInsideMax ? 0 : 28,
-            boxShadow: isInsideMax ? 'none' : '0 16px 48px rgba(0,0,0,0.25)',
-            border: isInsideMax ? 'none' : '1px solid var(--fl-line)',
+            boxShadow: isInsideMax ? 'none' : '0 16px 48px rgba(0,0,0,0.3)',
+            border: isInsideMax ? 'none' : '1px solid var(--border)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -181,58 +196,75 @@ export const AppShell: React.FC = () => {
           }}
         >
           <MaxUI platform={platform} colorScheme={colorScheme} resetBody={false}>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%',
-                overflow: 'hidden',
-                position: 'relative',
-              }}
-            >
-              {/* Phone Status Bar (Emulated for non-Telegram browser) */}
-              {!isInsideMax && (
-                <div
-                  style={{
-                    height: 28,
-                    padding: '0 18px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: 'var(--fl-ink)',
-                    flexShrink: 0,
-                  }}
-                >
-                  <span>9:41</span>
+            <HeaderProvider>
+              <NativeBackButtonSync />
+
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%',
+                  overflow: 'hidden',
+                  position: 'relative',
+                }}
+              >
+                {/* Phone Status Bar (Emulated for non-Telegram browser) */}
+                {!isInsideMax && (
                   <div
                     style={{
-                      width: 50,
-                      height: 5,
-                      borderRadius: 3,
-                      backgroundColor: 'var(--fl-line)',
+                      height: 26,
+                      padding: '0 18px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: 'var(--text-secondary)',
+                      backgroundColor: 'var(--bg-card)',
+                      flexShrink: 0,
                     }}
-                  />
-                  <span>100% 🔋</span>
+                  >
+                    <span>9:41</span>
+                    <div
+                      style={{
+                        width: 44,
+                        height: 4,
+                        borderRadius: 2,
+                        backgroundColor: 'var(--border-strong)',
+                      }}
+                    />
+                    <span>100% 🔋</span>
+                  </div>
+                )}
+
+                {/* Permanent Unified Top Header */}
+                <UnifiedHeader />
+
+                {/* View Router */}
+                <div
+                  style={{
+                    flex: 1,
+                    minHeight: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {currentMode === 'hub' && (
+                    <MainHub progress={progress} onSelectMode={handleSelectMode} />
+                  )}
+
+                  {currentMode === 'force-lab' && (
+                    <ForceLabModule onBackToHub={handleBackToHub} />
+                  )}
+
+                  {currentMode === 'formula-trainer' && (
+                    <FormulaTrainerModule onBackToHub={handleBackToHub} />
+                  )}
                 </div>
-              )}
-
-              {/* View Router */}
-              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-                {currentMode === 'hub' && (
-                  <MainHub progress={progress} onSelectMode={handleSelectMode} />
-                )}
-
-                {currentMode === 'force-lab' && (
-                  <ForceLabModule onBackToHub={handleBackToHub} />
-                )}
-
-                {currentMode === 'formula-trainer' && (
-                  <FormulaTrainerModule onBackToHub={handleBackToHub} />
-                )}
               </div>
-            </div>
+            </HeaderProvider>
           </MaxUI>
         </div>
       </div>

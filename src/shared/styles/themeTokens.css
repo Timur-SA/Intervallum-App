@@ -1,33 +1,132 @@
-/* Global Theme Variables & Token Harmony between MAX UI & Intervallum */
+/* ==========================================================================
+   Intervallum — Unified Theme Tokens & Layout
+   Harmonized with MAX UI Design System
+   ========================================================================== */
 
-:root {
-  color-scheme: light dark;
-  --app-bg: light-dark(#f4f6f8, #0f1418);
-  --app-card-bg: light-dark(#ffffff, #1a2228);
-  --app-text: light-dark(#111827, #f3f4f6);
-  --app-subtext: light-dark(#6b7280, #9ca3af);
-  --app-border: light-dark(#e5e7eb, #2d3748);
-  --app-accent: light-dark(#0284c7, #38bdf8);
-  --app-accent-hover: light-dark(#0369a1, #0ea5e9);
-  
-  /* Force Lab tokens harmonized with app palette */
-  --fl-paper: light-dark(#f7f8f9, #171d21);
-  --fl-ink: light-dark(#17232b, #edf1f3);
-  --fl-soft: light-dark(#56636c, #a9b3b9);
-  --fl-line: light-dark(#d6dde1, #39444b);
-  --fl-panel: light-dark(#ffffff, #222b30);
-  --fl-accent: light-dark(#602707, #f6c873);
-  --fl-wash: light-dark(#f1e8db, #342d22);
-  --fl-object: light-dark(#e7ecef, #1b2429);
-  --fl-technical: light-dark(#7d858b, #636e75);
-  --fl-reference: light-dark(#003c4d, #99dce5);
-  --fl-error: light-dark(#6c1e1b, #ffb8aa);
-  --fl-pass: light-dark(#103e29, #a7dbb1);
-  --fl-on-accent: light-dark(#ffffff, #241c0b);
-  --fl-shadow: light-dark(#16212a16, #00000055);
+:root,
+[data-theme="dark"],
+.theme-dark {
+  /* Unified Backgrounds */
+  --bg-app: #0e1317;
+  --bg-card: #161c22;
+  --bg-surface: #1e262e;
+  --bg-surface-hover: #26313a;
+
+  /* Unified Borders */
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --border-accent: rgba(56, 189, 248, 0.5);
+
+  /* Unified Typography */
+  --text-primary: #f8fafc;
+  --text-secondary: rgba(248, 250, 252, 0.7);
+  --text-muted: rgba(248, 250, 252, 0.45);
+
+  /* Unified Accents */
+  --accent: #38bdf8;
+  --accent-hover: #0ea5e9;
+  --accent-bg: rgba(56, 189, 248, 0.14);
+  --accent-glow: rgba(56, 189, 248, 0.3);
+
+  --success: #34d399;
+  --success-bg: rgba(52, 211, 153, 0.14);
+  --warning: #fbbf24;
+  --warning-bg: rgba(251, 191, 36, 0.14);
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.14);
+
+  /* Force Lab Tokens Mapped to Unified System */
+  --fl-paper: var(--bg-app);
+  --fl-panel: var(--bg-card);
+  --fl-ink: var(--text-primary);
+  --fl-soft: var(--text-secondary);
+  --fl-line: var(--border);
+  --fl-object: var(--bg-surface);
+  --fl-technical: var(--text-muted);
+  --fl-accent: #f59e0b; /* Warm amber for physical force vectors */
+  --fl-wash: rgba(245, 158, 11, 0.14);
+  --fl-reference: #38bdf8;
+  --fl-error: var(--danger);
+  --fl-pass: var(--success);
+  --fl-on-accent: #ffffff;
+  --fl-on-pass: #ffffff;
+  --fl-shadow: rgba(0, 0, 0, 0.45);
+
+  /* Desktop Stage */
+  --desktop-tester-bg: #07090b;
+
+  /* Intervallum compatibility aliases */
+  --app-bg: var(--bg-app);
+  --app-card-bg: var(--bg-card);
+  --app-text: var(--text-primary);
+  --app-subtext: var(--text-secondary);
+  --app-border: var(--border);
+  --app-accent: var(--accent);
+  --app-accent-hover: var(--accent-hover);
 }
 
-* {
+[data-theme="light"],
+.theme-light {
+  /* Unified Backgrounds */
+  --bg-app: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-surface: #f1f5f9;
+  --bg-surface-hover: #e2e8f0;
+
+  /* Unified Borders */
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.15);
+  --border-accent: rgba(2, 132, 199, 0.5);
+
+  /* Unified Typography */
+  --text-primary: #0f172a;
+  --text-secondary: rgba(15, 23, 42, 0.68);
+  --text-muted: rgba(15, 23, 42, 0.45);
+
+  /* Unified Accents */
+  --accent: #0284c7;
+  --accent-hover: #0369a1;
+  --accent-bg: rgba(2, 132, 199, 0.12);
+  --accent-glow: rgba(2, 132, 199, 0.25);
+
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.12);
+
+  /* Force Lab Tokens Mapped to Unified System */
+  --fl-paper: var(--bg-app);
+  --fl-panel: var(--bg-card);
+  --fl-ink: var(--text-primary);
+  --fl-soft: var(--text-secondary);
+  --fl-line: var(--border);
+  --fl-object: var(--bg-surface);
+  --fl-technical: var(--text-muted);
+  --fl-accent: #b45309; /* Warm dark copper for light theme vectors */
+  --fl-wash: rgba(180, 83, 9, 0.1);
+  --fl-reference: #0369a1;
+  --fl-error: var(--danger);
+  --fl-pass: var(--success);
+  --fl-on-accent: #ffffff;
+  --fl-on-pass: #ffffff;
+  --fl-shadow: rgba(0, 0, 0, 0.08);
+
+  /* Desktop Stage */
+  --desktop-tester-bg: #e2e8f0;
+
+  /* Intervallum compatibility aliases */
+  --app-bg: var(--bg-app);
+  --app-card-bg: var(--bg-card);
+  --app-text: var(--text-primary);
+  --app-subtext: var(--text-secondary);
+  --app-border: var(--border);
+  --app-accent: var(--accent);
+  --app-accent-hover: var(--accent-hover);
+}
+
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
@@ -36,54 +135,121 @@ body, html {
   padding: 0;
   width: 100%;
   height: 100%;
-  background: var(--app-bg);
-  color: var(--app-text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
 }
 
-/* App shell container for desktop and mobile */
-.intervallum-shell {
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
+/* ==========================================================================
+   Unified Top Header (Fixed and consistent across all screens)
+   ========================================================================== */
+
+.unified-header {
+  height: 48px;
+  min-height: 48px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
   display: flex;
-  justify-content: center;
   align-items: center;
-  background: var(--app-bg);
+  justify-content: space-between;
+  padding: 0 12px;
+  position: relative;
+  z-index: 40;
+  flex-shrink: 0;
 }
 
-.intervallum-phone-frame {
-  width: min(440px, 100%);
-  height: 100%;
-  max-height: 100dvh;
-  background: var(--fl-paper);
-  position: relative;
+.unified-header-left {
+  display: flex;
+  align-items: center;
+  min-width: 44px;
+}
+
+.unified-header-btn {
+  background: none;
+  border: 0;
+  color: var(--text-primary);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+  padding: 0;
+}
+
+.unified-header-btn:hover {
+  background-color: var(--bg-surface);
+}
+
+.unified-header-title {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 8px;
+}
+
+.unified-header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 44px;
+}
+
+/* ==========================================================================
+   In-Sandbox Bottom Sheet (Never breaks mobile boundary)
+   ========================================================================== */
+
+.sandbox-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 200ms ease forwards;
+}
+
+.sandbox-sheet-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  max-height: 84%;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-strong);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@media (min-width: 600px) {
-  .intervallum-phone-frame {
-    height: min(880px, calc(100dvh - 32px));
-    border: 1px solid var(--fl-line);
-    border-radius: 28px;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
-  }
+.sandbox-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-strong);
+  margin: 10px auto 4px;
+  flex-shrink: 0;
 }
 
-/* Button & interactive states */
-button {
-  font-family: inherit;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-button:disabled {
-  cursor: default;
-  opacity: 0.45;
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }

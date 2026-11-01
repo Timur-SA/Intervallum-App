@@ -36,12 +36,12 @@ export const ModeCard: React.FC<ModeCardProps> = ({
       }}
       style={{
         position: 'relative',
-        backgroundColor: 'var(--app-card-bg)',
-        border: '1px solid var(--app-border)',
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border)',
         borderRadius: 20,
         padding: '18px 18px 16px',
         cursor: 'pointer',
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
         transition: 'transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease',
         display: 'flex',
         flexDirection: 'column',
@@ -75,10 +75,25 @@ export const ModeCard: React.FC<ModeCardProps> = ({
             {icon}
           </div>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--app-subtext)', textTransform: 'uppercase' }}>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: 'var(--text-muted)',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}
+            >
               {subtitle}
             </div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--app-text)', letterSpacing: -0.3 }}>
+            <div
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                letterSpacing: -0.3,
+              }}
+            >
               {title}
             </div>
           </div>
@@ -90,8 +105,9 @@ export const ModeCard: React.FC<ModeCardProps> = ({
             fontWeight: 600,
             padding: '4px 10px',
             borderRadius: 12,
-            backgroundColor: 'var(--fl-wash)',
-            color: 'var(--fl-accent)',
+            backgroundColor: 'var(--accent-bg)',
+            color: 'var(--accent)',
+            border: '1px solid var(--border)',
           }}
         >
           {badge}
@@ -99,7 +115,7 @@ export const ModeCard: React.FC<ModeCardProps> = ({
       </div>
 
       {/* Description */}
-      <p style={{ margin: 0, fontSize: 13, color: 'var(--app-subtext)', lineHeight: 1.4 }}>
+      <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.45 }}>
         {description}
       </p>
 
@@ -109,8 +125,8 @@ export const ModeCard: React.FC<ModeCardProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderTop: '1px solid var(--app-border)',
-          paddingTop: 10,
+          borderTop: '1px solid var(--border)',
+          paddingTop: 12,
           marginTop: 2,
         }}
       >
@@ -121,7 +137,7 @@ export const ModeCard: React.FC<ModeCardProps> = ({
               width: 70,
               height: 6,
               borderRadius: 3,
-              backgroundColor: 'var(--fl-line)',
+              backgroundColor: 'var(--bg-surface)',
               overflow: 'hidden',
             }}
           >
@@ -135,19 +151,28 @@ export const ModeCard: React.FC<ModeCardProps> = ({
               }}
             />
           </div>
-          <span style={{ fontSize: 12, color: 'var(--app-subtext)', fontWeight: 500 }}>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>
             {completedCount} из {totalCount}
           </span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {stars > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 600, color: '#f59e0b' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 3,
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#f59e0b',
+              }}
+            >
               <Star size={13} fill="#f59e0b" />
               <span>{stars}</span>
             </div>
           )}
-          <span style={{ color: 'var(--app-subtext)', display: 'grid', placeItems: 'center' }}>
+          <span style={{ color: 'var(--text-muted)', display: 'grid', placeItems: 'center' }}>
             <ChevronRight size={18} />
           </span>
         </div>

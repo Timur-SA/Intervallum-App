@@ -34,11 +34,13 @@ export interface ReferenceVector {
   dy: number;
 }
 
+export type TaskKind = 'incline' | 'table' | 'hanging' | 'magnetic' | 'sail' | 'lever';
+
 export interface ForceTask {
   id: string;
   title: string;
   condition: string;
-  kind: 'incline' | 'table' | 'hanging' | 'magnetic' | 'sail' | 'lever';
+  kind: TaskKind;
   topic?: PhysicsTopic;
   body: 'block' | 'load' | 'wire' | 'sail' | 'lever';
   assessment: string;
