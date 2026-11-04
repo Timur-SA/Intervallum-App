@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnyTask } from '../domain/types';
 import { GradeResponse } from '../api/contracts';
 import { getSectionByTopic } from '../domain/sections';
@@ -12,9 +12,7 @@ import { sumXp } from './taskView';
 
 export interface SessionSummary {
   tasks: number;
-  /** Сумма долей верного ответа (может быть дробной). */
   correct: number;
-  /** Сколько заданий решено полностью. */
   solved: number;
   score: number;
   xp: number;
@@ -24,7 +22,6 @@ export interface SessionSummary {
 
 interface SessionRunnerProps {
   tasks: AnyTask[];
-  /** Таймер дуэли; по нулю сессия завершается. */
   timerSeconds?: number;
   seed?: string;
   onComplete: (summary: SessionSummary) => void;
@@ -52,6 +49,12 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
   seed,
   onComplete,
 }) => {
+  // Карточки — учебная фаза в конце уровня, они не считаются заданиями.
+  const practice = useMemo(() => tasks.filter(task => task.type !== 'cards'), [tasks]);
+  const cards = useMemo(() => tasks.filter(task => task.type === 'cards'), [tasks]);
+
+  const [phase, setPhase] = useState<'practice' | 'cards'>('practice');
+  const [cardIndex, setCardIndex] = useState(0);
   const [acc, setAcc] = useState<Accumulator>({
     index: 0,
     xp: 0,
@@ -75,10 +78,10 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
 
     const current = accRef.current;
     onCompleteRef.current({
-      tasks: tasks.length,
+      tasks: practice.length,
       correct: current.correct,
       solved: current.solved,
-      score: tasks.length ? current.correct / tasks.length : 0,
+      score: practice.length ? current.correct / practice.length : 0,
       xp: current.xp,
       bestStreak: current.bestStreak,
       timeout,
@@ -100,14 +103,33 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
     }, 1000);
 
     return () => window.clearInterval(id);
-    // finish читает актуальные значения через ref
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timerSeconds]);
 
-  const task = tasks[acc.index];
+  const isCardsPhase = phase === 'cards';
+  const task = isCardsPhase ? cards[cardIndex] : practice[acc.index];
 
   const handleDone = (grade: GradeResponse) => {
     if (!task) return;
+
+    if (isCardsPhase) {
+      recordTaskResult({
+        taskId: task.id,
+        taskType: task.type,
+        topicId: task.topic,
+        sectionId: getSectionByTopic(task.topic)?.id ?? 'mechanics',
+        xp: 0,
+        score: grade.score,
+      });
+
+      const nextCard = cardIndex + 1;
+      if (nextCard >= cards.length) {
+        finish(false);
+      } else {
+        setCardIndex(nextCard);
+      }
+      return;
+    }
 
     const gainedXp = sumXp(grade.xpByTopic);
     const nextStreak = grade.score >= 1 ? acc.streak + 1 : 0;
@@ -133,8 +155,12 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
     accRef.current = next;
     setAcc(next);
 
-    if (next.index >= tasks.length) {
-      finish(false);
+    if (next.index >= practice.length) {
+      if (cards.length) {
+        setPhase('cards');
+      } else {
+        finish(false);
+      }
     }
   };
 
@@ -147,14 +173,21 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
       </span>
     ) : undefined;
 
+  const step = isCardsPhase ? cardIndex : acc.index;
+  const total = isCardsPhase ? cards.length : practice.length;
+
   const viewProps = {
-    step: acc.index,
-    total: tasks.length,
+    step,
+    total,
     streak: acc.streak,
     headerRight,
     seed: seed ?? 'session',
     onDone: handleDone,
   };
+
+  if (isCardsPhase && task.type === 'cards') {
+    return <CardTaskView key={`${task.id}-card-${cardIndex}`} task={task} {...viewProps} />;
+  }
 
   if (task.type === 'single') {
     return <SingleTaskView key={`${task.id}-${acc.index}`} task={task} {...viewProps} />;
@@ -172,5 +205,9 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
     return <ForceTaskView key={`${task.id}-${acc.index}`} task={task} {...viewProps} />;
   }
 
-  return <CardTaskView key={`${task.id}-${acc.index}`} task={task} {...viewProps} />;
+  if (task.type === 'cards') {
+    return <CardTaskView key={`${task.id}-${acc.index}`} task={task} {...viewProps} />;
+  }
+
+  return null;
 };

@@ -268,7 +268,6 @@ export const AppShell: React.FC = () => {
                   {currentMode === 'map' && (
                     <MapModule
                       onOpenFormulaTrainer={() => setCurrentMode('formula-trainer')}
-                      onOpenForceLab={() => setCurrentMode('force-lab')}
                     />
                   )}
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './styles/mini-games.css';
-import { Flame, Sparkles, Swords } from 'lucide-react';
+import { Flame, Swords } from 'lucide-react';
 import { AnyTask, SectionId, TopicId } from './domain/types';
 import { getSection, getTopic } from './domain/sections';
 import { BOSS_TIME_SECONDS, BOSS_WIN_SCORE } from './domain/progression';
@@ -13,14 +13,12 @@ import {
   unlockSection,
 } from '../../shared/storage/progressStore';
 import { useNavigation } from '../../shell/HeaderContext';
-import { SectionsMapScreen } from './screens/SectionsMapScreen';
-import { SectionMapScreen } from './screens/SectionMapScreen';
+import { JourneyMapScreen } from './screens/JourneyMapScreen';
 import { SessionRunner, SessionSummary } from './renderers/SessionRunner';
 import { ResultScreen } from './components/ResultScreen';
 
 interface MapModuleProps {
   onOpenFormulaTrainer: () => void;
-  onOpenForceLab: () => void;
 }
 
 type SessionKind = 'level' | 'boss';
@@ -36,17 +34,12 @@ interface SessionConfig {
 }
 
 type Screen =
-  | { name: 'sections'; choosing: boolean }
-  | { name: 'section'; sectionId: SectionId }
+  | { name: 'journey' }
   | { name: 'session'; config: SessionConfig }
-  | { name: 'result'; config: SessionConfig; summary: SessionSummary; bossLost?: boolean }
-  | { name: 'boss-victory'; sectionId: SectionId };
+  | { name: 'result'; config: SessionConfig; summary: SessionSummary; bossLost?: boolean };
 
-export const MapModule: React.FC<MapModuleProps> = ({
-  onOpenFormulaTrainer,
-  onOpenForceLab,
-}) => {
-  const [route, setRoute] = useState<Screen>({ name: 'sections', choosing: false });
+export const MapModule: React.FC<MapModuleProps> = ({ onOpenFormulaTrainer }) => {
+  const [route, setRoute] = useState<Screen>({ name: 'journey' });
   const [history, setHistory] = useState<Screen[]>([]);
   const [progress, setProgress] = useState(() => loadUserProgress());
 
@@ -71,8 +64,6 @@ export const MapModule: React.FC<MapModuleProps> = ({
     setHistory(items => [...items, route]);
     setRoute(next);
   };
-
-  const replace = (next: Screen) => setRoute(next);
 
   const startLevel = (sectionId: SectionId, topicId: TopicId) => {
     const seed = `${Date.now()}-${topicId}`;
@@ -122,32 +113,34 @@ export const MapModule: React.FC<MapModuleProps> = ({
       if (win && section) {
         defeatBoss({ sectionId: section.id, itemId: section.itemId });
         setProgress(loadUserProgress());
-        replace({ name: 'boss-victory', sectionId: section.id });
+        setRoute({ name: 'journey' });
         return;
       }
 
       setProgress(loadUserProgress());
-      replace({ name: 'result', config, summary, bossLost: true });
+      setRoute({ name: 'result', config, summary, bossLost: true });
       return;
     }
 
     setProgress(loadUserProgress());
-    replace({ name: 'result', config, summary });
+    setRoute({ name: 'result', config, summary });
   };
 
   const handleChooseSection = (sectionId: SectionId) => {
     unlockSection(sectionId);
     setProgress(loadUserProgress());
     setHistory([]);
-    replace({ name: 'section', sectionId });
+    setRoute({ name: 'journey' });
   };
 
   const handleReset = () => {
     localStorage.removeItem('intervallum:progress:v2');
     setProgress(loadUserProgress());
     setHistory([]);
-    replace({ name: 'sections', choosing: false });
+    setRoute({ name: 'journey' });
   };
+
+  const isSandbox = typeof window !== 'undefined' && !(window as any).WebApp?.platform;
 
   if (route.name === 'session') {
     return (
@@ -169,12 +162,22 @@ export const MapModule: React.FC<MapModuleProps> = ({
     return (
       <div className="mini-games">
         <ResultScreen
-          subtitle={config.kind === 'boss' ? `${section?.boss ?? ''} · ${section?.title ?? ''}` : config.title}
+          subtitle={
+            config.kind === 'boss'
+              ? `${section?.boss ?? ''} · ${section?.title ?? ''}`
+              : config.title
+          }
           color={config.kind === 'boss' ? '#f59e0b' : section?.color ?? '#0ea5e9'}
           icon={config.kind === 'boss' ? <Swords size={30} /> : <Flame size={30} />}
-          title={bossLost ? 'Босс не побеждён' : config.kind === 'boss' ? 'Дуэль завершена' : 'Уровень завершён'}
+          title={
+            bossLost
+              ? 'Босс не побеждён'
+              : config.kind === 'boss'
+                ? 'Дуэль завершена'
+                : 'Уровень завершён'
+          }
           summary={summary}
-          onRetry={() => replace({ name: 'session', config })}
+          onRetry={() => setRoute({ name: 'session', config })}
           onBack={back}
           backLabel={config.kind === 'boss' ? 'К карте' : 'К уровню'}
         />
@@ -182,75 +185,16 @@ export const MapModule: React.FC<MapModuleProps> = ({
     );
   }
 
-  if (route.name === 'boss-victory') {
-    const section = getSection(route.sectionId);
-
-    return (
-      <div className="mini-games">
-        <div className="mg-screen">
-          <div className="mg-scroll">
-            <div className="mg-victory">
-              <div className="mg-victory__flame">
-                <Flame size={40} />
-              </div>
-              <h2 className="mg-result__title">Босс повержен</h2>
-              <p className="mg-result__subtitle">{section?.boss}</p>
-              <span className="mg-item">
-                <Sparkles size={16} />
-                Получен предмет: {section?.item}
-              </span>
-
-              <p className="mg-result__hint">
-                Теперь выберите, какой раздел открыть следующим
-              </p>
-
-              <button
-                type="button"
-                className="mg-btn-primary"
-                onClick={() => replace({ name: 'sections', choosing: true })}
-              >
-                Выбрать раздел
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const isSandbox =
-    typeof window !== 'undefined' && !(window as any).WebApp?.platform;
-
-  if (route.name === 'section') {
-    return (
-      <div className="mini-games">
-        <SectionMapScreen
-          sectionId={route.sectionId}
-          progress={progress.practice}
-          onStartLevel={topicId => startLevel(route.sectionId, topicId)}
-          onStartBoss={() => startBoss(route.sectionId)}
-        />
-        <div className="mg-map__footer">
-          <button type="button" className="mg-map__force" onClick={onOpenFormulaTrainer}>
-            Тренажёр формул
-          </button>
-          {isSandbox && (
-            <button type="button" className="mg-reset" onClick={handleReset}>
-              Сбросить прогресс (тест)
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="mini-games">
-      <SectionsMapScreen
+      <JourneyMapScreen
         progress={progress.practice}
-        choosing={route.choosing}
-        onOpenSection={sectionId => navigate({ name: 'section', sectionId })}
+        onStartLevel={startLevel}
+        onStartBoss={startBoss}
         onChooseSection={handleChooseSection}
+        onOpenFormulas={onOpenFormulaTrainer}
+        onResetProgress={handleReset}
+        isSandbox={isSandbox}
       />
     </div>
   );
