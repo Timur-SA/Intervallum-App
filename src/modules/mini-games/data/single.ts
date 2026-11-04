@@ -327,4 +327,21 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
     explanation: 'Сила Ампера: F = BIl sin α = 0,4 · 2 · 0,5 · 1 = 0,4 Н.',
     hint: 'F = BIl sin α',
   },
+  {
+    id: 'single-density',
+    type: 'single',
+    topic: 'density',
+    difficulty: 2,
+    prompt:
+      'Масса медной детали равна 890 г, плотность меди 8900 кг/м³. Чему равен объём детали?',
+    options: [
+      { id: 'a', text: '0,0001 м³' },
+      { id: 'b', text: '0,001 м³' },
+      { id: 'c', text: '0,01 м³' },
+      { id: 'd', text: '0,1 м³' },
+    ],
+    correctOptionId: 'a',
+    explanation: 'V = m / ρ = 0,89 кг / 8900 кг/м³ = 0,0001 м³, то есть 100 см³.',
+    hint: 'V = m / ρ',
+  },
 ];

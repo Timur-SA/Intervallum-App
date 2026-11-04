@@ -21,6 +21,16 @@ interface Thread {
   color: string;
 }
 
+interface DragState {
+  id: string;
+  side: 'left' | 'right';
+  originX: number;
+  originY: number;
+  x: number;
+  y: number;
+  active: boolean;
+}
+
 export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
   task,
   step,
@@ -28,7 +38,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
   headerRight,
   onDone,
 }) => {
-  const [leftSelected, setLeftSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<{ side: 'left' | 'right'; id: string } | null>(null);
   const [links, setLinks] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState(false);
   const [wrongIds, setWrongIds] = useState<string[]>([]);
@@ -39,7 +49,11 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [threads, setThreads] = useState<Thread[]>([]);
+  const [drag, setDrag] = useState<DragState | null>(null);
   const [measureTick, setMeasureTick] = useState(0);
+  const dragRef = useRef<DragState | null>(null);
+  dragRef.current = drag;
+  const suppressClickRef = useRef(false);
 
   const topic = getTopic(task.topic);
   const section = getSectionByTopic(task.topic);
@@ -52,7 +66,6 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
     return THREAD_COLORS[(index < 0 ? 0 : index) % THREAD_COLORS.length];
   };
 
-  // Нитки между парами: пересчитываем после каждого изменения связей.
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -98,8 +111,35 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
     setWrongIds([]);
   };
 
-  const handleLeft = (id: string) => {
+  const applyLink = (leftId: string, rightId: string) => {
     if (solved) return;
+    resetCheck();
+    haptics.selection();
+
+    const next: Record<string, string> = {};
+    for (const [linkedLeft, linkedRight] of Object.entries(links)) {
+      if (linkedLeft !== leftId && linkedRight !== rightId) {
+        next[linkedLeft] = linkedRight;
+      }
+    }
+    next[leftId] = rightId;
+
+    setLinks(next);
+    setSelected(null);
+  };
+
+  const handleTapLeft = (id: string) => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    if (solved) return;
+
+    if (selected?.side === 'right') {
+      applyLink(id, selected.id);
+      return;
+    }
+
     resetCheck();
     haptics.selection();
 
@@ -109,24 +149,90 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
       setLinks(next);
     }
 
-    setLeftSelected(previous => (previous === id ? null : id));
+    setSelected(previous => (previous?.side === 'left' && previous.id === id ? null : { side: 'left', id }));
   };
 
-  const handleRight = (rightId: string) => {
-    if (solved || !leftSelected) return;
+  const handleTapRight = (rightId: string) => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    if (solved) return;
+
+    if (selected?.side === 'left') {
+      applyLink(selected.id, rightId);
+      return;
+    }
+
     resetCheck();
     haptics.selection();
+    setSelected(previous =>
+      previous?.side === 'right' && previous.id === rightId ? null : { side: 'right', id: rightId },
+    );
+  };
 
-    const next: Record<string, string> = {};
-    for (const [leftId, linkedRightId] of Object.entries(links)) {
-      if (leftId !== leftSelected && linkedRightId !== rightId) {
-        next[leftId] = linkedRightId;
-      }
+  const beginDrag = (event: React.PointerEvent, id: string, side: 'left' | 'right') => {
+    if (solved) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const base = container.getBoundingClientRect();
+    const tile = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const y = tile.top + tile.height / 2 - base.top;
+
+    setDrag({
+      id,
+      side,
+      originX: event.clientX,
+      originY: event.clientY,
+      x: (side === 'left' ? tile.right : tile.left) - base.left,
+      y,
+      active: false,
+    });
+  };
+
+  const moveDrag = (event: React.PointerEvent) => {
+    const current = dragRef.current;
+    const container = containerRef.current;
+    if (!current || !container) return;
+
+    const base = container.getBoundingClientRect();
+    const moved =
+      current.active ||
+      Math.hypot(event.clientX - current.originX, event.clientY - current.originY) > 8;
+
+    if (!moved) return;
+
+    setDrag({
+      ...current,
+      active: true,
+      x: event.clientX - base.left,
+      y: event.clientY - base.top,
+    });
+  };
+
+  const endDrag = (event: React.PointerEvent) => {
+    const current = dragRef.current;
+    if (!current) return;
+    setDrag(null);
+
+    if (!current.active) return;
+
+    suppressClickRef.current = true;
+    const target = document
+      .elementFromPoint(event.clientX, event.clientY)
+      ?.closest<HTMLElement>('[data-tile-left], [data-tile-right]');
+
+    if (!target) return;
+
+    const leftId = target.dataset.tileLeft;
+    const rightId = target.dataset.tileRight;
+
+    if (current.side === 'left' && rightId) {
+      applyLink(current.id, rightId);
+    } else if (current.side === 'right' && leftId) {
+      applyLink(leftId, current.id);
     }
-    next[leftSelected] = rightId;
-
-    setLinks(next);
-    setLeftSelected(null);
   };
 
   const handleCheck = async () => {
@@ -137,7 +243,6 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
     setChecked(true);
     setWrongIds(wrong);
 
-    // Оценка фиксируется по первой попытке — повторные исправления её не повышают.
     if (!grade) {
       setBusy(true);
       const result = await miniGamesApi.grade({
@@ -160,6 +265,25 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
 
   const rightOwner = (rightId: string) =>
     Object.entries(links).find(([, linkedRight]) => linkedRight === rightId)?.[0];
+
+  const dragSource = drag?.active
+    ? (() => {
+        const container = containerRef.current;
+        if (!container) return null;
+        const el = container.querySelector<HTMLElement>(
+          drag.side === 'left'
+            ? `[data-tile-left="${drag.id}"]`
+            : `[data-tile-right="${drag.id}"]`,
+        );
+        if (!el) return null;
+        const tile = el.getBoundingClientRect();
+        const base = container.getBoundingClientRect();
+        return {
+          x: (drag.side === 'left' ? tile.right : tile.left) - base.left,
+          y: tile.top + tile.height / 2 - base.top,
+        };
+      })()
+    : null;
 
   return (
     <GameShell
@@ -214,7 +338,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
 
       <p className="mg-question__prompt">{task.prompt}</p>
       <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-muted)' }}>
-        Нажмите на элемент слева, затем на подходящий элемент справа
+        Соедините пары: нажмите на две плитки или протяните нитку от одной к другой
         {errors > 0 ? ` · ошибок: ${errors}` : ''}
       </p>
 
@@ -223,6 +347,8 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
           {threads.map(thread => (
             <g key={thread.id}>
               <path
+                className="mg-thread"
+                pathLength={1}
                 d={`M ${thread.x1} ${thread.y1} C ${thread.x1 + 22} ${thread.y1}, ${
                   thread.x2 - 22
                 } ${thread.y2}, ${thread.x2} ${thread.y2}`}
@@ -231,25 +357,36 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
                 fill="none"
                 strokeLinecap="round"
               />
-              <circle cx={thread.x1} cy={thread.y1} r={3.5} fill={thread.color} />
-              <circle cx={thread.x2} cy={thread.y2} r={3.5} fill={thread.color} />
+              <circle cx={thread.x1} cy={thread.y1} r={3.5} fill={thread.color} className="mg-thread__dot" />
+              <circle cx={thread.x2} cy={thread.y2} r={3.5} fill={thread.color} className="mg-thread__dot" />
             </g>
           ))}
+
+          {dragSource && drag && (
+            <path
+              className="mg-thread--temp"
+              d={`M ${dragSource.x} ${dragSource.y} Q ${(dragSource.x + drag.x) / 2} ${
+                (dragSource.y + drag.y) / 2 - 10
+              }, ${drag.x} ${drag.y}`}
+              stroke={drag.side === 'left' ? colorFor(drag.id) : 'var(--accent)'}
+              strokeWidth={2.5}
+              fill="none"
+              strokeLinecap="round"
+            />
+          )}
         </svg>
 
         <div className="mg-match__col">
           <div className="mg-match__col-title">Слева</div>
           {task.pairs.map(pair => {
             const linkedRightId = links[pair.id];
-            const linkedRightText = linkedRightId
-              ? task.pairs.find(item => item.id === linkedRightId)?.right
-              : undefined;
             const color = colorFor(pair.id);
+            const isSelected = selected?.side === 'left' && selected.id === pair.id;
 
             const className = [
               'mg-tile',
               linkedRightId ? 'mg-tile--linked' : '',
-              leftSelected === pair.id ? 'mg-tile--selected' : '',
+              isSelected ? 'mg-tile--selected' : '',
               wrongIds.includes(pair.id) ? 'mg-tile--wrong' : '',
               solved && links[pair.id] === pair.id ? 'mg-tile--correct' : '',
             ]
@@ -260,7 +397,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
               <Button
                 key={pair.id}
                 data-tile-left={pair.id}
-                variant={leftSelected === pair.id ? 'primary' : 'secondary'}
+                variant={isSelected ? 'primary' : 'secondary'}
                 size="small"
                 stretched
                 className={className}
@@ -270,16 +407,13 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
                     ? { boxShadow: `inset 0 0 0 1.5px ${color}` }
                     : undefined
                 }
-                onClick={() => handleLeft(pair.id)}
+                onPointerDown={event => beginDrag(event, pair.id, 'left')}
+                onPointerMove={moveDrag}
+                onPointerUp={endDrag}
+                onPointerCancel={() => setDrag(null)}
+                onClick={() => handleTapLeft(pair.id)}
               >
-                <span className="mg-tile__stack">
-                  <span>{pair.left}</span>
-                  {linkedRightText && (
-                    <span className="mg-tile__link" style={{ color }}>
-                      → {linkedRightText}
-                    </span>
-                  )}
-                </span>
+                {pair.left}
               </Button>
             );
           })}
@@ -290,10 +424,12 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
           {rightItems.map(pair => {
             const owner = rightOwner(pair.id);
             const color = owner ? colorFor(owner) : undefined;
+            const isSelected = selected?.side === 'right' && selected.id === pair.id;
 
             const className = [
               'mg-tile',
               owner ? 'mg-tile--taken' : '',
+              isSelected ? 'mg-tile--selected' : '',
               owner && wrongIds.includes(owner) ? 'mg-tile--wrong' : '',
               solved && owner ? 'mg-tile--correct' : '',
             ]
@@ -304,7 +440,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
               <Button
                 key={pair.id}
                 data-tile-right={pair.id}
-                variant="secondary"
+                variant={isSelected ? 'primary' : 'secondary'}
                 size="small"
                 stretched
                 className={className}
@@ -314,7 +450,11 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
                     ? { boxShadow: `inset 0 0 0 1.5px ${color}` }
                     : undefined
                 }
-                onClick={() => handleRight(pair.id)}
+                onPointerDown={event => beginDrag(event, pair.id, 'right')}
+                onPointerMove={moveDrag}
+                onPointerUp={endDrag}
+                onPointerCancel={() => setDrag(null)}
+                onClick={() => handleTapRight(pair.id)}
               >
                 {pair.right}
               </Button>

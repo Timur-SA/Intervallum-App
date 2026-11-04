@@ -17,7 +17,6 @@ export interface SessionSummary {
   solved: number;
   score: number;
   xp: number;
-  stars: number;
   bestStreak: number;
   timeout?: boolean;
 }
@@ -34,7 +33,6 @@ interface Accumulator {
   xp: number;
   correct: number;
   solved: number;
-  stars: number;
   streak: number;
   bestStreak: number;
 }
@@ -56,7 +54,6 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
     xp: 0,
     correct: 0,
     solved: 0,
-    stars: 0,
     streak: 0,
     bestStreak: 0,
   });
@@ -80,7 +77,6 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
       solved: current.solved,
       score: tasks.length ? current.correct / tasks.length : 0,
       xp: current.xp,
-      stars: current.stars,
       bestStreak: current.bestStreak,
       timeout,
     });
@@ -113,23 +109,20 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
     const gainedXp = sumXp(grade.xpByTopic);
     const nextStreak = grade.score >= 1 ? acc.streak + 1 : 0;
 
-    const saved = recordTaskResult({
+    recordTaskResult({
       taskId: task.id,
       taskType: task.type,
       topicId: task.topic,
       sectionId: getSectionByTopic(task.topic)?.id ?? 'mechanics',
       xp: gainedXp,
       score: grade.score,
-      difficulty: task.difficulty,
     });
-    const earnedStar = saved.stars;
 
     const next: Accumulator = {
       index: acc.index + 1,
       xp: acc.xp + gainedXp,
       correct: acc.correct + grade.score,
       solved: acc.solved + (grade.score >= 1 ? 1 : 0),
-      stars: acc.stars + earnedStar,
       streak: nextStreak,
       bestStreak: Math.max(acc.bestStreak, nextStreak),
     };

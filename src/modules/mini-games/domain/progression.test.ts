@@ -1,25 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { PracticeProgress } from '../../../shared/storage/progressStore';
 import {
-  bossStarsRequired,
-  sectionMaxStars,
+  bossXpRequired,
   isBossReady,
   isSectionDefeated,
   isSectionUnlocked,
+  isTopicComplete,
   isTopicUnlocked,
   openTopicsCount,
-  sectionStars,
   sectionXp,
-  TOPIC_XP_THRESHOLD,
+  topicMaxXp,
 } from './progression';
+import { getSection } from './sections';
 
 const makeProgress = (overrides: Partial<PracticeProgress> = {}): PracticeProgress => ({
   xpByTopic: {},
   exploredTypes: [],
   bestScoreByType: {},
   taskStats: {},
-  stars: 0,
-  starsBySection: {},
   defeatedBosses: [],
   unlockedSections: [],
   items: [],
@@ -38,65 +36,73 @@ describe('разделы', () => {
     ).toBe(true);
   });
 
-  it('босс открывается по звёздам раздела', () => {
-    const required = bossStarsRequired('thermal');
+  it('босс открывается, когда все темы добрали порог опыта', () => {
+    const section = getSection('thermal')!;
+    const xpByTopic: Record<string, number> = {};
+    for (const topicId of section.topics) {
+      xpByTopic[topicId] = bossXpRequired(topicId);
+    }
+
+    const progress = makeProgress({ unlockedSections: ['thermal'], xpByTopic });
+    expect(isBossReady(progress, 'thermal')).toBe(true);
+
     const almost = makeProgress({
       unlockedSections: ['thermal'],
-      starsBySection: { thermal: required - 1 },
+      xpByTopic: { ...xpByTopic, [section.topics[0]]: bossXpRequired(section.topics[0]) - 1 },
     });
     expect(isBossReady(almost, 'thermal')).toBe(false);
-
-    const ready = makeProgress({
-      unlockedSections: ['thermal'],
-      starsBySection: { thermal: required },
-    });
-    expect(isBossReady(ready, 'thermal')).toBe(true);
-  });
-
-  it('порог босса требует почти весь раздел', () => {
-    for (const sectionId of ['mechanics', 'thermal', 'electromagnetism'] as const) {
-      const max = sectionMaxStars(sectionId);
-      expect(max).toBeGreaterThan(0);
-      expect(bossStarsRequired(sectionId)).toBeGreaterThanOrEqual(Math.ceil(max * 0.7));
-    }
   });
 
   it('побеждённый босс больше не открывается', () => {
-    const defeated = makeProgress({
-      starsBySection: { mechanics: bossStarsRequired('mechanics') },
-      defeatedBosses: ['mechanics'],
-    });
+    const section = getSection('mechanics')!;
+    const xpByTopic: Record<string, number> = {};
+    for (const topicId of section.topics) xpByTopic[topicId] = bossXpRequired(topicId);
+
+    const defeated = makeProgress({ xpByTopic, defeatedBosses: ['mechanics'] });
     expect(isBossReady(defeated, 'mechanics')).toBe(false);
     expect(isSectionDefeated(defeated, 'mechanics')).toBe(true);
   });
 
-  it('считает звёзды и опыт раздела', () => {
+  it('считает опыт раздела', () => {
     const progress = makeProgress({
-      starsBySection: { mechanics: 4 },
       xpByTopic: { 'uniform-motion': 10, momentum: 20, ohm: 100 },
     });
-    expect(sectionStars(progress, 'mechanics')).toBe(4);
     expect(sectionXp(progress, 'mechanics')).toBe(30);
   });
 });
 
 describe('темы', () => {
+  it('максимум опыта темы положительный', () => {
+    for (const topicId of getSection('mechanics')!.topics) {
+      expect(topicMaxXp(topicId)).toBeGreaterThan(0);
+    }
+  });
+
+  it('уровень считается пройденным на 100% опыта', () => {
+    const max = topicMaxXp('uniform-motion');
+    expect(isTopicComplete(makeProgress({ xpByTopic: { 'uniform-motion': max - 1 } }), 'uniform-motion')).toBe(false);
+    expect(isTopicComplete(makeProgress({ xpByTopic: { 'uniform-motion': max } }), 'uniform-motion')).toBe(true);
+  });
+
   it('первые две темы открыты сразу', () => {
     const progress = makeProgress();
-    expect(isTopicUnlocked(progress, 'mechanics', 'uniform-motion')).toBe(true);
-    expect(isTopicUnlocked(progress, 'mechanics', 'relativity')).toBe(true);
+    const section = getSection('mechanics')!;
+    expect(isTopicUnlocked(progress, 'mechanics', section.topics[0])).toBe(true);
+    expect(isTopicUnlocked(progress, 'mechanics', section.topics[1])).toBe(true);
     expect(openTopicsCount(progress, 'mechanics')).toBe(2);
   });
 
-  it('третья тема открывается по порогу опыта предыдущей', () => {
-    const before = makeProgress({ xpByTopic: { relativity: TOPIC_XP_THRESHOLD - 1 } });
-    expect(isTopicUnlocked(before, 'mechanics', 'accelerated-motion')).toBe(false);
+  it('следующая тема открывается по опыту предыдущей', () => {
+    const section = getSection('mechanics')!;
+    const previous = section.topics[1];
+    const next = section.topics[2];
+    const required = bossXpRequired(previous);
 
-    const after = makeProgress({ xpByTopic: { relativity: TOPIC_XP_THRESHOLD } });
-    expect(isTopicUnlocked(after, 'mechanics', 'accelerated-motion')).toBe(true);
-  });
-
-  it('в закрытом разделе темы закрыты', () => {
-    expect(isTopicUnlocked(makeProgress(), 'thermal', 'heat-amount')).toBe(false);
+    expect(
+      isTopicUnlocked(makeProgress({ xpByTopic: { [previous]: required - 1 } }), 'mechanics', next),
+    ).toBe(false);
+    expect(
+      isTopicUnlocked(makeProgress({ xpByTopic: { [previous]: required } }), 'mechanics', next),
+    ).toBe(true);
   });
 });

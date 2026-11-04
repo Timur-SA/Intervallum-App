@@ -27,10 +27,6 @@ export interface PracticeProgress {
   bestScoreByType: Record<string, number>;
   /** История ответов по задачам: попытки и лучший результат. */
   taskStats: Record<string, TaskStat>;
-  /** Всего звёзд за сложные и новые задачи. */
-  stars: number;
-  /** Звёзды по разделам — из них открывается босс. */
-  starsBySection: Record<string, number>;
   /** Побеждённые боссы (id разделов). */
   defeatedBosses: string[];
   /** Дополнительно открытые разделы. */
@@ -73,6 +69,9 @@ export const FORMULA_DIFFICULTIES: Record<string, number> = {
 export const calcForceStars = (taskIds: string[]): number =>
   taskIds.reduce((sum, id) => sum + (FORCE_DIFFICULTIES[id] || 1), 0);
 
+export const totalXp = (practice: PracticeProgress): number =>
+  Object.values(practice.xpByTopic).reduce((sum, value) => sum + value, 0);
+
 export const calcFormulaStars = (taskIds: string[]): number =>
   taskIds.reduce((sum, id) => sum + (FORMULA_DIFFICULTIES[id] || 1), 0);
 
@@ -81,8 +80,6 @@ const createDefaultPractice = (): PracticeProgress => ({
   exploredTypes: [],
   bestScoreByType: {},
   taskStats: {},
-  stars: 0,
-  starsBySection: {},
   defeatedBosses: [],
   unlockedSections: [],
   items: [],
@@ -144,8 +141,6 @@ export const loadUserProgress = (): UserProgressData => {
       exploredTypes: stringArray(parsed?.practice?.exploredTypes),
       bestScoreByType: numericRecord(parsed?.practice?.bestScoreByType),
       taskStats: taskStatsRecord(parsed?.practice?.taskStats),
-      stars: typeof parsed?.practice?.stars === 'number' ? parsed.practice.stars : 0,
-      starsBySection: numericRecord(parsed?.practice?.starsBySection),
       defeatedBosses: stringArray(parsed?.practice?.defeatedBosses),
       unlockedSections: stringArray(parsed?.practice?.unlockedSections),
       items: stringArray(parsed?.practice?.items),
@@ -224,15 +219,10 @@ export const recordTaskResult = (params: {
   sectionId: string;
   xp: number;
   score: number;
-  difficulty: number;
-}): { data: UserProgressData; stars: number } => {
+}): UserProgressData => {
   const current = loadUserProgress();
-  const { taskId, taskType, topicId, sectionId, xp, score, difficulty } = params;
+  const { taskId, taskType, topicId, sectionId, xp, score } = params;
   const previousStat = current.practice.taskStats[taskId];
-
-  // Звезда за первое верное решение, ещё одна — если задача повышенной сложности.
-  const firstCorrect = score >= 1 && (previousStat?.bestScore ?? 0) < 1;
-  const stars = firstCorrect ? 1 + (difficulty === 3 ? 1 : 0) : 0;
 
   if (xp > 0) {
     current.practice.xpByTopic[topicId] = (current.practice.xpByTopic[topicId] ?? 0) + xp;
@@ -252,14 +242,8 @@ export const recordTaskResult = (params: {
     bestScore: Math.max(previousStat?.bestScore ?? 0, Math.max(0, Math.min(1, score))),
   };
 
-  if (stars > 0) {
-    current.practice.stars += stars;
-    current.practice.starsBySection[sectionId] =
-      (current.practice.starsBySection[sectionId] ?? 0) + stars;
-  }
-
   saveUserProgress(current);
-  return { data: current, stars };
+  return current;
 };
 
 /** Открывает раздел после победы над боссом. */

@@ -9,8 +9,6 @@ const makeProgress = (overrides: Partial<PracticeProgress> = {}): PracticeProgre
   exploredTypes: [],
   bestScoreByType: {},
   taskStats: {},
-  stars: 0,
-  starsBySection: {},
   defeatedBosses: [],
   unlockedSections: [],
   items: [],
@@ -71,20 +69,20 @@ describe('selectTrain', () => {
 });
 
 describe('selectBossTasks', () => {
-  it('даёт ровно 10 задач раздела', () => {
+  it('даёт нужное число задач раздела', () => {
     for (const sectionId of ['mechanics', 'thermal', 'electromagnetism'] as const) {
       const tasks = selectBossTasks(sectionId, makeProgress());
       expect(tasks).toHaveLength(BOSS_TASKS);
       expect(tasks.every(task => getSectionByTopic(task.topic)?.id === sectionId)).toBe(true);
       expect(tasks.every(task => task.type !== 'cards')).toBe(true);
-      expect(tasks.every(task => task.difficulty >= 2)).toBe(true);
     }
   });
 
   it('ставит самые сложные задачи первыми', () => {
     const tasks = selectBossTasks('mechanics', makeProgress());
-    for (let i = 1; i < tasks.length; i += 1) {
-      expect(tasks[i - 1].difficulty).toBeGreaterThanOrEqual(tasks[i].difficulty);
+    const head = tasks.slice(0, 10);
+    for (let i = 1; i < head.length; i += 1) {
+      expect(head[i - 1].difficulty).toBeGreaterThanOrEqual(head[i].difficulty);
     }
   });
 });

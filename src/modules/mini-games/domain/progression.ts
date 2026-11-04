@@ -1,34 +1,41 @@
 import { PracticeProgress } from '../../../shared/storage/progressStore';
 import { TASK_BANK } from '../data';
-import { SECTIONS, getSection, getSectionByTopic } from './sections';
+import { SECTIONS, getSection } from './sections';
 import { SectionId, TopicId } from './types';
 
-/**
- * Максимум звёзд раздела: по одной за каждую практическую задачу
- * и ещё по одной за задачи повышенной сложности.
- */
-export const sectionMaxStars = (sectionId: SectionId): number =>
-  TASK_BANK.filter(
-    task => task.type !== 'cards' && getSectionByTopic(task.topic)?.id === sectionId,
-  ).reduce((sum, task) => sum + (task.difficulty === 3 ? 2 : 1), 0);
+/** Максимум опыта темы — сумма опыта всех её заданий. */
+export const topicMaxXp = (topicId: TopicId): number =>
+  TASK_BANK.filter(task => task.topic === topicId).reduce(
+    (sum, task) => sum + 10 * task.difficulty,
+    0,
+  );
 
-/** Чтобы открыть босса, нужно пройти почти весь раздел — 75% звёзд. */
-export const bossStarsRequired = (sectionId: SectionId): number =>
-  Math.max(1, Math.ceil(sectionMaxStars(sectionId) * 0.75));
+/** Полностью пройденный уровень — 100% опыта темы. */
+export const isTopicComplete = (progress: PracticeProgress, topicId: TopicId): boolean =>
+  (progress.xpByTopic[topicId] ?? 0) >= topicMaxXp(topicId);
 
-/** Порог опыта на предыдущей теме, чтобы открыть следующую. */
-export const TOPIC_XP_THRESHOLD = 20;
+/** Для босса достаточно 75% опыта на каждом уровне раздела. */
+export const bossXpRequired = (topicId: TopicId): number =>
+  Math.ceil(topicMaxXp(topicId) * 0.75);
+
+export const isBossReady = (progress: PracticeProgress, sectionId: SectionId): boolean => {
+  const section = getSection(sectionId);
+  if (!section || !isSectionUnlocked(progress, sectionId)) return false;
+  if (isSectionDefeated(progress, sectionId)) return false;
+  return section.topics.every(
+    topicId => (progress.xpByTopic[topicId] ?? 0) >= bossXpRequired(topicId),
+  );
+};
+
+/** Следующий уровень открывается, когда предыдущий добрал до порога босса. */
 
 /** Тренировка: 5–10 задач из спеки. */
 export const TRAINING_TASKS = 7;
 
 /** Дуэль с боссом. */
-export const BOSS_TASKS = 10;
-export const BOSS_TIME_SECONDS = 6 * 60;
-export const BOSS_WIN_SCORE = 9;
-
-export const sectionStars = (progress: PracticeProgress, sectionId: SectionId): number =>
-  progress.starsBySection[sectionId] ?? 0;
+export const BOSS_TASKS = 20;
+export const BOSS_TIME_SECONDS = 10 * 60;
+export const BOSS_WIN_SCORE = 17;
 
 export const sectionXp = (progress: PracticeProgress, sectionId: SectionId): number => {
   const section = getSection(sectionId);
@@ -50,11 +57,6 @@ export const isSectionDefeated = (
   sectionId: SectionId,
 ): boolean => progress.defeatedBosses.includes(sectionId);
 
-export const isBossReady = (progress: PracticeProgress, sectionId: SectionId): boolean =>
-  isSectionUnlocked(progress, sectionId) &&
-  !isSectionDefeated(progress, sectionId) &&
-  sectionStars(progress, sectionId) >= bossStarsRequired(sectionId);
-
 export const isTopicUnlocked = (
   progress: PracticeProgress,
   sectionId: SectionId,
@@ -69,7 +71,7 @@ export const isTopicUnlocked = (
   if (index <= 1) return true;
 
   const previousTopic = section.topics[index - 1];
-  return (progress.xpByTopic[previousTopic] ?? 0) >= TOPIC_XP_THRESHOLD;
+  return (progress.xpByTopic[previousTopic] ?? 0) >= bossXpRequired(previousTopic);
 };
 
 export const openTopicsCount = (

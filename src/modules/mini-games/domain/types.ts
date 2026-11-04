@@ -10,6 +10,7 @@ export type TopicId =
   | 'mechanical-energy'
   | 'work-power'
   | 'lever'
+  | 'density'
   // Тепловые явления
   | 'heat-amount'
   | 'aggregate-states'

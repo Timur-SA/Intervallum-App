@@ -21,6 +21,7 @@ export const SECTIONS: Section[] = [
       'mechanical-energy',
       'work-power',
       'lever',
+      'density',
     ],
   },
   {
@@ -58,6 +59,7 @@ export const TOPICS: Topic[] = [
   { id: 'mechanical-energy', title: 'Полная механическая энергия. ЗСЭ', section: 'mechanics' },
   { id: 'work-power', title: 'Механическая работа и мощность', section: 'mechanics' },
   { id: 'lever', title: 'Рычаг, блоки, момент силы', section: 'mechanics' },
+  { id: 'density', title: 'Плотность вещества', section: 'mechanics' },
 
   { id: 'heat-amount', title: 'Количество теплоты, нагрев', section: 'thermal' },
   { id: 'aggregate-states', title: 'Агрегатные состояния вещества, переходы', section: 'thermal' },
