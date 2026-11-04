@@ -1,0 +1,643 @@
+/* ==========================================================================
+   Quiz Lab — mini-games shell (ОГЭ практикум)
+   Built on top of MAX UI components + Intervallum theme tokens
+   ========================================================================== */
+
+.quiz-lab {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background-color: var(--bg-app);
+
+  /* MAX UI не знает про токены Intervallum — выравниваем палитру внутри модуля */
+  --background-card: var(--bg-card);
+  --background-secondary: var(--bg-surface);
+  --background-surface: var(--bg-surface);
+}
+
+.ql-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ---------------------------------------------------------------- Landing */
+
+.ql-landing__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ql-landing__title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--text-primary);
+}
+
+.ql-landing__subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.ql-landing__score {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.ql-landing__games {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ql-game-row {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.ql-game-row:active {
+  transform: scale(0.99);
+}
+
+.ql-game-row__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.ql-game-row__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #f59e0b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ql-landing__hint {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--accent-bg);
+  border: 1px solid var(--border-accent);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
+/* ------------------------------------------------------------- Game shell */
+
+.ql-game {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ql-game__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.ql-steps {
+  padding: 0 !important;
+  gap: 5px !important;
+}
+
+.is-max-client .ql-game__back {
+  display: none;
+}
+
+.ql-game__streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.ql-game__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ql-game__footer {
+  flex-shrink: 0;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+}
+
+/* -------------------------------------------------------------- Question */
+
+.ql-question__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ql-question__prompt {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ql-question__hint-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: -2px;
+}
+
+/* --------------------------------------------------------------- Options */
+
+.ql-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ql-option {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, transform 120ms ease;
+  overflow: hidden;
+}
+
+.ql-option:active {
+  transform: scale(0.99);
+}
+
+.ql-option.ql-option--selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.ql-option.ql-option--correct {
+  border-color: var(--success);
+  background: var(--success-bg);
+}
+
+.ql-option.ql-option--wrong {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.ql-option.ql-option--locked {
+  pointer-events: none;
+}
+
+.ql-option__letter {
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.ql-option--selected .ql-option__letter {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.ql-option--correct .ql-option__letter {
+  background: var(--success);
+  color: #ffffff;
+}
+
+.ql-option--wrong .ql-option__letter {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------- Matching */
+
+.ql-match {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ql-match__col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ql-match__col-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.ql-tile {
+  height: auto !important;
+  min-height: 62px !important;
+  padding: 10px 10px !important;
+  white-space: normal !important;
+  text-align: left !important;
+  border-radius: 14px !important;
+  font-size: 12.5px !important;
+  line-height: 1.3 !important;
+}
+
+.ql-tile--taken {
+  opacity: 0.5;
+}
+
+.ql-tile--linked {
+  border: 1px solid var(--accent);
+}
+
+.ql-tile__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  width: 100%;
+}
+
+.ql-tile__link {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: normal;
+  line-height: 1.2;
+}
+
+.ql-tile--selected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.ql-tile--correct {
+  outline: 2px solid var(--success);
+  outline-offset: -2px;
+}
+
+.ql-tile--wrong {
+  outline: 2px solid var(--danger);
+  outline-offset: -2px;
+}
+
+/* ------------------------------------------------------------- Flashcards */
+
+.ql-flash {
+  perspective: 1200px;
+  height: clamp(260px, 46vh, 380px);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ql-flash__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.ql-flash.is-flipped .ql-flash__inner {
+  transform: rotateY(180deg);
+}
+
+.ql-flash__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--bg-card);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 22px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.ql-flash__face--back {
+  transform: rotateY(180deg);
+  justify-content: flex-start;
+  justify-content: safe center;
+  overflow-y: auto;
+}
+
+.ql-flash__deck {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+}
+
+.ql-flash__term {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.ql-flash__definition {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.ql-flash__formula {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--border-accent);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.ql-flash__tap {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.ql-flash__counter {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* --------------------------------------------------------------- Feedback */
+
+.ql-feedback {
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 14px 14px;
+  animation: ql-slide-up 220ms ease-out;
+}
+
+.ql-feedback--correct {
+  background: var(--success-bg);
+  border-color: rgba(52, 211, 153, 0.4);
+}
+
+.ql-feedback--partial {
+  background: var(--warning-bg);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.ql-feedback--wrong {
+  background: var(--danger-bg);
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+.ql-feedback__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ql-feedback--correct .ql-feedback__title {
+  color: var(--success);
+}
+
+.ql-feedback--partial .ql-feedback__title {
+  color: var(--warning);
+}
+
+.ql-feedback--wrong .ql-feedback__title {
+  color: var(--danger);
+}
+
+.ql-feedback__text {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.ql-feedback__answer {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
+/* ----------------------------------------------------------------- Result */
+
+.ql-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  padding: 28px 24px calc(28px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  overflow-y: auto;
+}
+
+.ql-result__badge {
+  width: 76px;
+  height: 76px;
+  border-radius: 26px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.ql-result__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ql-result__subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.ql-result__stars {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 2px;
+}
+
+.ql-result__stats {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.ql-result__stat {
+  flex: 1;
+  padding: 12px 8px;
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ql-result__stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ql-result__stat-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.ql-result__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: 18px;
+}
+
+/* ------------------------------------------------------------ Hub badges */
+
+.hub-quiz-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.hub-quiz-badge {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 4px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.hub-quiz-badge:active {
+  transform: scale(0.97);
+}
+
+.hub-quiz-badge__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+}
+
+.hub-quiz-badge__label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ------------------------------------------------------------ Animations */
+
+@keyframes ql-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ql-option,
+  .ql-game-row,
+  .hub-quiz-badge,
+  .ql-flash__inner,
+  .ql-feedback {
+    transition: none !important;
+    animation: none !important;
+  }
+}

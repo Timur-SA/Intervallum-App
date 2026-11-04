@@ -1,14 +1,17 @@
 import React, { useEffect } from 'react';
-import { Compass, Sparkles, Variable } from 'lucide-react';
+import { Compass, GraduationCap, Sparkles, Variable } from 'lucide-react';
 import { ModeCard } from './ModeCard';
 import { UserProgressData } from '../shared/storage/progressStore';
 import { FORCE_TASKS } from '../modules/force-lab/data/tasks';
 import { PHYSICS_TASKS } from '../modules/formula-trainer/data/tasksDb';
+import { QUIZ_GAMES } from '../modules/quiz-lab/config';
+import { GameId } from '../modules/quiz-lab/types';
+import { haptics } from '../shared/motion/haptics';
 import { useNavigation } from './HeaderContext';
 
 interface MainHubProps {
   progress: UserProgressData;
-  onSelectMode: (mode: 'force-lab' | 'formula-trainer') => void;
+  onSelectMode: (mode: 'force-lab' | 'formula-trainer' | 'quiz-lab', game?: GameId) => void;
 }
 
 export const MainHub: React.FC<MainHubProps> = ({ progress, onSelectMode }) => {
@@ -22,7 +25,7 @@ export const MainHub: React.FC<MainHubProps> = ({ progress, onSelectMode }) => {
   const formulaDone = progress.formulaTrainer.completedTaskIds.length;
   const formulaStars = progress.formulaTrainer.stars;
 
-  const totalStars = forceStars + formulaStars;
+  const totalStars = forceStars + formulaStars + progress.quizLab.stars;
 
   // On the root hub screen, the host messenger BackButton is hidden
   useEffect(() => {
@@ -110,6 +113,43 @@ export const MainHub: React.FC<MainHubProps> = ({ progress, onSelectMode }) => {
           stars={formulaStars}
           onClick={() => onSelectMode('formula-trainer')}
         />
+
+        <ModeCard
+          id="quiz-lab"
+          title="Практикум ОГЭ"
+          subtitle="Мини-игры"
+          description="Четыре коротких раунда: один ответ, несколько ответов, соответствие и карточки теории с мгновенным разбором."
+          badge="4 игры"
+          color="#10b981"
+          icon={<GraduationCap size={22} />}
+          completedCount={progress.quizLab.completedGameIds.length}
+          totalCount={QUIZ_GAMES.length}
+          stars={progress.quizLab.stars}
+          onClick={() => onSelectMode('quiz-lab')}
+        />
+
+        <div className="hub-quiz-badges">
+          {QUIZ_GAMES.map(game => (
+            <button
+              key={game.id}
+              type="button"
+              className="hub-quiz-badge"
+              onClick={() => {
+                haptics.impact('light');
+                onSelectMode('quiz-lab', game.id);
+              }}
+            >
+              <span
+                className="hub-quiz-badge__icon"
+                style={{ backgroundColor: game.color }}
+                aria-hidden
+              >
+                {game.icon}
+              </span>
+              <span className="hub-quiz-badge__label">{game.shortLabel}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Helpful Hint banner */}

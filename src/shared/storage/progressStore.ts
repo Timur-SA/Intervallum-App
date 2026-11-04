@@ -13,6 +13,12 @@ export interface ForceVectorSave {
   dy: number;
 }
 
+export interface QuizLabProgress {
+  completedGameIds: string[];
+  bestStars: Record<string, number>;
+  stars: number;
+}
+
 export interface UserProgressData {
   forceLab: {
     completedTaskIds: string[];
@@ -23,6 +29,7 @@ export interface UserProgressData {
     completedTaskIds: string[];
     stars: number;
   };
+  quizLab: QuizLabProgress;
 }
 
 export const FORCE_DIFFICULTIES: Record<string, number> = {
@@ -49,7 +56,7 @@ export const calcForceStars = (taskIds: string[]): number =>
 export const calcFormulaStars = (taskIds: string[]): number =>
   taskIds.reduce((sum, id) => sum + (FORMULA_DIFFICULTIES[id] || 1), 0);
 
-const defaultProgress: UserProgressData = {
+const createDefaultProgress = (): UserProgressData => ({
   forceLab: {
     completedTaskIds: [],
     savedVectors: {},
@@ -59,13 +66,19 @@ const defaultProgress: UserProgressData = {
     completedTaskIds: [],
     stars: 0,
   },
-};
+  quizLab: {
+    completedGameIds: [],
+    bestStars: {},
+    stars: 0,
+  },
+});
 
 export const loadUserProgress = (): UserProgressData => {
-  if (typeof window === 'undefined') return defaultProgress;
+  const fallback = createDefaultProgress();
+  if (typeof window === 'undefined') return fallback;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultProgress;
+    if (!raw) return fallback;
     const parsed = JSON.parse(raw);
 
     const forceCompleted: string[] = Array.isArray(parsed?.forceLab?.completedTaskIds)
@@ -74,6 +87,19 @@ export const loadUserProgress = (): UserProgressData => {
     const formulaCompleted: string[] = Array.isArray(parsed?.formulaTrainer?.completedTaskIds)
       ? parsed.formulaTrainer.completedTaskIds
       : [];
+
+    // Обратная совместимость: у старых сохранений нет блока quizLab
+    const quizCompleted: string[] = Array.isArray(parsed?.quizLab?.completedGameIds)
+      ? parsed.quizLab.completedGameIds
+      : [];
+    const quizBestStars: Record<string, number> =
+      parsed?.quizLab?.bestStars && typeof parsed.quizLab.bestStars === 'object'
+        ? Object.fromEntries(
+            Object.entries(parsed.quizLab.bestStars).filter(
+              (entry): entry is [string, number] => typeof entry[1] === 'number',
+            ),
+          )
+        : {};
 
     return {
       forceLab: {
@@ -86,9 +112,14 @@ export const loadUserProgress = (): UserProgressData => {
         completedTaskIds: formulaCompleted,
         stars: calcFormulaStars(formulaCompleted),
       },
+      quizLab: {
+        completedGameIds: quizCompleted,
+        bestStars: quizBestStars,
+        stars: Object.values(quizBestStars).reduce((sum, value) => sum + value, 0),
+      },
     };
   } catch {
-    return defaultProgress;
+    return fallback;
   }
 };
 
@@ -123,6 +154,29 @@ export const markFormulaTaskCompleted = (taskId: string): UserProgressData => {
     current.formulaTrainer.completedTaskIds.push(taskId);
     current.formulaTrainer.stars = calcFormulaStars(current.formulaTrainer.completedTaskIds);
   }
+  saveUserProgress(current);
+  return current;
+};
+
+export const markQuizGameCompleted = (
+  gameId: string,
+  stars: number,
+): UserProgressData => {
+  const current = loadUserProgress();
+
+  if (!current.quizLab.completedGameIds.includes(gameId)) {
+    current.quizLab.completedGameIds.push(gameId);
+  }
+
+  current.quizLab.bestStars[gameId] = Math.max(
+    current.quizLab.bestStars[gameId] ?? 0,
+    Math.max(0, Math.min(3, Math.round(stars))),
+  );
+  current.quizLab.stars = Object.values(current.quizLab.bestStars).reduce(
+    (sum, value) => sum + value,
+    0,
+  );
+
   saveUserProgress(current);
   return current;
 };

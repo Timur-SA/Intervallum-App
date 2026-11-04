@@ -7,11 +7,13 @@ import '../shared/styles/themeTokens.css';
 import { MainHub } from './MainHub';
 import { ForceLabModule } from '../modules/force-lab/ForceLabModule';
 import { FormulaTrainerModule } from '../modules/formula-trainer/FormulaTrainerModule';
+import { QuizLabModule } from '../modules/quiz-lab/QuizLabModule';
+import { GameId } from '../modules/quiz-lab/types';
 import { loadUserProgress, UserProgressData } from '../shared/storage/progressStore';
 import { NavigationProvider, useNavigation } from './HeaderContext';
 import { SandboxMessengerHeader } from './SandboxMessengerHeader';
 
-export type AppMode = 'hub' | 'force-lab' | 'formula-trainer';
+export type AppMode = 'hub' | 'force-lab' | 'formula-trainer' | 'quiz-lab';
 
 /**
  * Synchronizes Telegram / MAX client native BackButton with the active Navigation state
@@ -55,6 +57,7 @@ const SandboxMessengerBarContainer: React.FC<{ platform: 'ios' | 'android' }> = 
 
 export const AppShell: React.FC = () => {
   const [currentMode, setCurrentMode] = useState<AppMode>('hub');
+  const [quizEntry, setQuizEntry] = useState<GameId | null>(null);
   const [platform, setPlatform] = useState<'ios' | 'android'>('ios');
   const [colorScheme, setColorScheme] = useState<'dark' | 'light'>('dark');
   const [progress, setProgress] = useState<UserProgressData>(loadUserProgress());
@@ -75,11 +78,13 @@ export const AppShell: React.FC = () => {
     }
   }, []);
 
-  const handleSelectMode = (mode: 'force-lab' | 'formula-trainer') => {
+  const handleSelectMode = (mode: AppMode, game?: GameId) => {
+    setQuizEntry(mode === 'quiz-lab' ? game ?? null : null);
     setCurrentMode(mode);
   };
 
   const handleBackToHub = () => {
+    setQuizEntry(null);
     setCurrentMode('hub');
     setProgress(loadUserProgress());
   };
@@ -279,6 +284,10 @@ export const AppShell: React.FC = () => {
 
                   {currentMode === 'formula-trainer' && (
                     <FormulaTrainerModule onBackToHub={handleBackToHub} />
+                  )}
+
+                  {currentMode === 'quiz-lab' && (
+                    <QuizLabModule onBackToHub={handleBackToHub} initialGame={quizEntry} />
                   )}
                 </div>
               </div>
