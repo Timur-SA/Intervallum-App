@@ -123,12 +123,18 @@ export interface ForcesTask extends BaseTask {
   forceTask: import('../../force-lab/types').ForceTask;
 }
 
+export interface InteractiveTask extends BaseTask {
+  type: 'interactive';
+  physicsTask: import('../../formula-trainer/types/physics').PhysicsTask;
+}
+
 export type AnyTask =
   | SingleChoiceTask
   | MultiChoiceTask
   | MatchingTask
   | TheoryCard
-  | ForcesTask;
+  | ForcesTask
+  | InteractiveTask;
 
 export type PlayableTaskType = 'single' | 'multi' | 'matching' | 'cards';
 

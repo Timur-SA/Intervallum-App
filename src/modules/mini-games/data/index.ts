@@ -1,6 +1,7 @@
 import { AnyTask, MiniGameMeta, PlayableTaskType } from '../domain/types';
 import { BOSS_TASKS } from './bossTasks';
 import { FORCE_LEVEL_TASKS } from './forces';
+import { INTERACTIVE_LEVEL_TASKS } from './interactive';
 import { CARDS } from './cards';
 import { MATCHING_TASKS } from './matching';
 import { MULTI_TASKS } from './multi';
@@ -16,6 +17,7 @@ export const TASK_BANK: AnyTask[] = [
   ...MATCHING_TASKS,
   ...CARDS,
   ...FORCE_LEVEL_TASKS,
+  ...INTERACTIVE_LEVEL_TASKS,
 ];
 
 const ALL_TASKS: AnyTask[] = [

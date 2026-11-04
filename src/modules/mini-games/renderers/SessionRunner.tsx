@@ -3,11 +3,8 @@ import { AnyTask } from '../domain/types';
 import { GradeResponse } from '../api/contracts';
 import { getSectionByTopic } from '../domain/sections';
 import { recordTaskResult } from '../../../shared/storage/progressStore';
-import { SingleTaskView } from './SingleTaskView';
-import { MultiTaskView } from './MultiTaskView';
-import { MatchingTaskView } from './MatchingTaskView';
 import { CardTaskView } from './CardTaskView';
-import { ForceTaskView } from './ForceTaskView';
+import { TASK_RENDERERS } from './registry';
 import { sumXp } from './taskView';
 
 export interface SessionSummary {
@@ -189,20 +186,9 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
     return <CardTaskView key={`${task.id}-card-${cardIndex}`} task={task} {...viewProps} />;
   }
 
-  if (task.type === 'single') {
-    return <SingleTaskView key={`${task.id}-${acc.index}`} task={task} {...viewProps} />;
-  }
-
-  if (task.type === 'multi') {
-    return <MultiTaskView key={`${task.id}-${acc.index}`} task={task} {...viewProps} />;
-  }
-
-  if (task.type === 'matching') {
-    return <MatchingTaskView key={`${task.id}-${acc.index}`} task={task} {...viewProps} />;
-  }
-
-  if (task.type === 'forces') {
-    return <ForceTaskView key={`${task.id}-${acc.index}`} task={task} {...viewProps} />;
+  const Renderer = TASK_RENDERERS[task.type];
+  if (Renderer) {
+    return <Renderer key={`${task.id}-${acc.index}`} task={task as never} {...viewProps} />;
   }
 
   if (task.type === 'cards') {

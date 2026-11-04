@@ -4,13 +4,11 @@ import '@maxhub/max-ui/dist/styles.css';
 import '../modules/formula-trainer/styles/index.css';
 import '../shared/styles/themeTokens.css';
 
-import { ForceLabModule } from '../modules/force-lab/ForceLabModule';
-import { FormulaTrainerModule } from '../modules/formula-trainer/FormulaTrainerModule';
 import { MapModule } from '../modules/mini-games/MapModule';
 import { NavigationProvider, useNavigation } from './HeaderContext';
 import { SandboxMessengerHeader } from './SandboxMessengerHeader';
 
-export type AppMode = 'map' | 'force-lab' | 'formula-trainer';
+export type AppMode = 'map';
 
 /**
  * Synchronizes Telegram / MAX client native BackButton with the active Navigation state
@@ -266,17 +264,7 @@ export const AppShell: React.FC = () => {
                   }}
                 >
                   {currentMode === 'map' && (
-                    <MapModule
-                      onOpenFormulaTrainer={() => setCurrentMode('formula-trainer')}
-                    />
-                  )}
-
-                  {currentMode === 'force-lab' && (
-                    <ForceLabModule onBackToHub={handleBackToHub} />
-                  )}
-
-                  {currentMode === 'formula-trainer' && (
-                    <FormulaTrainerModule onBackToHub={handleBackToHub} />
+                    <MapModule />
                   )}
                 </div>
               </div>

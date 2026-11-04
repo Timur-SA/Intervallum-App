@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ComponentType, ReactNode } from 'react';
 import { AnyTask } from '../domain/types';
 import { GradeResponse } from '../api/contracts';
 
@@ -15,6 +15,9 @@ export interface TaskViewProps<T extends AnyTask = AnyTask> {
   /** Вызывается, когда задание оценено и пользователь готов идти дальше. */
   onDone: (grade: GradeResponse) => void;
 }
+
+/** Единый контракт рендерера задания для реестра. */
+export type TaskRenderer = ComponentType<TaskViewProps<any>>;
 
 export const sumXp = (xp: Record<string, number | undefined>): number =>
   Object.values(xp).reduce((sum: number, value) => sum + (value ?? 0), 0);

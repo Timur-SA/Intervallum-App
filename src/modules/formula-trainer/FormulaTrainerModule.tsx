@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Typography, Button } from '@maxhub/max-ui';
 import { PhysicsTask, FormulaCard, PhysicalLaw, ComputedResult } from './types/physics';
 import { PHYSICS_TASKS } from './data/tasksDb';
@@ -36,10 +36,20 @@ interface DragState {
 
 interface FormulaTrainerModuleProps {
   onBackToHub: () => void;
+  /** Встроенный режим: одна задача внутри общего каркаса уровня. */
+  embeddedTask?: PhysicsTask;
+  onEmbeddedDone?: (score: number) => void;
 }
 
-export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBackToHub }) => {
-  const [currentTask, setCurrentTask] = useState<PhysicsTask | null>(null);
+export interface FormulaTrainerHandle {
+  check: () => void;
+}
+
+export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrainerModuleProps>(
+  ({ onBackToHub, embeddedTask, onEmbeddedDone }, ref) => {
+  const embedded = Boolean(embeddedTask);
+  const [currentTask, setCurrentTask] = useState<PhysicsTask | null>(embeddedTask ?? null);
+  const [embeddedFailed, setEmbeddedFailed] = useState(false);
   const [cards, setCards] = useState<FormulaCard[]>([]);
   const [cardCounter, setCardCounter] = useState(0);
 
@@ -417,6 +427,18 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
 
     const success = isSymbolMatch && isValueMatch;
 
+    if (embedded) {
+      if (success) {
+        haptics.notification('success');
+        onEmbeddedDone?.(embeddedFailed ? 0.5 : 1);
+      } else {
+        setEmbeddedFailed(true);
+        haptics.notification('error');
+        showToast('Неверно. Проверьте выражение и попробуйте снова');
+      }
+      return;
+    }
+
     if (success) {
       haptics.notification('success');
       setShowCelebration(true);
@@ -442,14 +464,17 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
   const { setNavigationConfig } = useNavigation();
   const hasComputedResults = cards.some(c => c.computed && c.computed.value !== null);
 
+  useImperativeHandle(ref, () => ({ check: handleCheckClick }));
+
   // Inform host messenger BackButton
   useEffect(() => {
+    if (embedded) return;
     if (!currentTask) {
       setNavigationConfig({ canGoBack: true, onBack: onBackToHub });
     } else {
       setNavigationConfig({ canGoBack: true, onBack: () => setCurrentTask(null) });
     }
-  }, [currentTask, onBackToHub, setNavigationConfig]);
+  }, [currentTask, onBackToHub, setNavigationConfig, embedded]);
 
   return (
     <div
@@ -487,6 +512,7 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
       ) : (
         <div className="app-screen-solver" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {/* Solver In-App Header */}
+          {!embedded && (
           <div className="inapp-header">
             <span
               style={{
@@ -512,6 +538,7 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
               Проверить
             </Button>
           </div>
+          )}
 
           <CollapsibleProblemPanel task={currentTask} onPointerDownGiven={handlePointerDownGiven} />
 
@@ -649,4 +676,7 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
       {toast && <div className="max-toast show">{toast}</div>}
     </div>
   );
-};
+  },
+);
+
+FormulaTrainerModule.displayName = 'FormulaTrainerModule';

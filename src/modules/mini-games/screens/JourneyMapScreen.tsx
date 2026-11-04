@@ -32,7 +32,6 @@ interface JourneyMapScreenProps {
   onStartLevel: (sectionId: SectionId, topicId: TopicId) => void;
   onStartBoss: (sectionId: SectionId) => void;
   onChooseSection: (sectionId: SectionId) => void;
-  onOpenFormulas: () => void;
   onResetProgress: () => void;
   isSandbox: boolean;
 }
@@ -70,11 +69,10 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
   onStartLevel,
   onStartBoss,
   onChooseSection,
-  onOpenFormulas,
   onResetProgress,
   isSandbox,
 }) => {
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [collapsedOverrides, setCollapsedOverrides] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<{ sectionId: SectionId; topicId: TopicId } | null>(null);
   const [theoryOpen, setTheoryOpen] = useState(false);
   const [theoryIndex, setTheoryIndex] = useState(0);
@@ -101,7 +99,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
     });
 
     setRoad(points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' '));
-  }, [progress, expanded]);
+  }, [progress, collapsedOverrides]);
 
   useEffect(() => {
     const container = mapRef.current;
@@ -153,7 +151,12 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
 
           {visibleSections.map((section, sectionIndex) => {
             const defeated = isSectionDefeated(progress, section.id);
-            const isExpanded = defeated ? Boolean(expanded[section.id]) : true;
+            const laterUnlocked = visibleSections.some(
+              (_item, index) => index > sectionIndex,
+            );
+            const manual = collapsedOverrides[section.id];
+            const collapsed = defeated ? (manual !== undefined ? manual : laterUnlocked) : false;
+            const isExpanded = !collapsed;
             const xp = sectionXp(progress, section.id);
             const required = bossXpRequired(section.id);
             const bossReady = isBossReady(progress, section.id);
@@ -169,7 +172,10 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                   onClick={() => {
                     if (!defeated) return;
                     haptics.selection();
-                    setExpanded(previous => ({ ...previous, [section.id]: !previous[section.id] }));
+                    setCollapsedOverrides(previous => ({
+                      ...previous,
+                      [section.id]: !(previous[section.id] ?? laterUnlocked),
+                    }));
                   }}
                 >
                   <span className="mg-journey__section-icon" style={{ backgroundColor: section.color }}>
@@ -293,14 +299,21 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                   <button
                     key={section.id}
                     type="button"
-                    className="mg-section-node__circle mg-section-node__circle--choice"
+                    className="mg-choice-card"
                     onClick={() => {
                       haptics.impact('medium');
                       onChooseSection(section.id);
                     }}
-                    aria-label="Неизвестный раздел"
                   >
-                    <span className="mg-section-node__question">?</span>
+                    <span
+                      className="mg-choice-card__icon"
+                      style={{ backgroundColor: section.color }}
+                      aria-hidden
+                    >
+                      <Sparkles size={18} />
+                    </span>
+                    <span className="mg-choice-card__title">{section.title}</span>
+                    <span className="mg-choice-card__meta">{section.topics.length} тем</span>
                   </button>
                 ))}
               </div>
@@ -314,9 +327,6 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
 
         {isSandbox && (
           <div className="mg-map__footer">
-            <button type="button" className="mg-map__force" onClick={onOpenFormulas}>
-              Тренажёр формул
-            </button>
             <button type="button" className="mg-reset" onClick={onResetProgress}>
               Сбросить прогресс (тест)
             </button>

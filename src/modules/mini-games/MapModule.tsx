@@ -17,10 +17,6 @@ import { JourneyMapScreen } from './screens/JourneyMapScreen';
 import { SessionRunner, SessionSummary } from './renderers/SessionRunner';
 import { ResultScreen } from './components/ResultScreen';
 
-interface MapModuleProps {
-  onOpenFormulaTrainer: () => void;
-}
-
 type SessionKind = 'level' | 'boss';
 
 interface SessionConfig {
@@ -38,7 +34,7 @@ type Screen =
   | { name: 'session'; config: SessionConfig }
   | { name: 'result'; config: SessionConfig; summary: SessionSummary; bossLost?: boolean };
 
-export const MapModule: React.FC<MapModuleProps> = ({ onOpenFormulaTrainer }) => {
+export const MapModule: React.FC = () => {
   const [route, setRoute] = useState<Screen>({ name: 'journey' });
   const [history, setHistory] = useState<Screen[]>([]);
   const [progress, setProgress] = useState(() => loadUserProgress());
@@ -192,7 +188,6 @@ export const MapModule: React.FC<MapModuleProps> = ({ onOpenFormulaTrainer }) =>
         onStartLevel={startLevel}
         onStartBoss={startBoss}
         onChooseSection={handleChooseSection}
-        onOpenFormulas={onOpenFormulaTrainer}
         onResetProgress={handleReset}
         isSandbox={isSandbox}
       />
