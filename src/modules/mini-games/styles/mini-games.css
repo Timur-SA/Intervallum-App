@@ -32,7 +32,7 @@
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 16px 16px 24px;
+  padding: 0 16px 24px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1635,18 +1635,27 @@
 }
 
 /* Задание «Расстановка сил» внутри общего каркаса */
+.mg-force-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px 10px;
+}
+
 .mg-force-canvas {
   flex: 1;
   min-height: 240px;
   display: flex;
   flex-direction: column;
-  border-radius: 16px;
+  border-radius: 0;
   overflow: hidden;
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .mg-force-feedback {
+  margin: 8px 12px;
   padding: 8px 12px;
   border-radius: 12px;
   background: var(--bg-card);
@@ -1789,7 +1798,7 @@
 /* Sticky-заголовки разделов и карточки выбора */
 .mg-journey__section-head {
   position: sticky;
-  top: -16px;
+  top: 0;
   z-index: 10;
   margin-left: -16px;
   margin-right: -16px;

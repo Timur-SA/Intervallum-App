@@ -105,6 +105,7 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
     <>
       <GameShell
         title="Расстановка сил"
+        bodyClassName="mg-game__body--flush"
         step={step}
         total={total}
         headerRight={headerRight}
@@ -139,17 +140,19 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
           </>
         }
       >
-        <div className="mg-question__meta">
-          <StatusBadge status="neutral" text={section ? section.title : 'Механика'} />
-          <span className="mg-question__meta-text">
-            {topic ? topic.title : ''} · {step + 1} из {total}
-          </span>
-        </div>
+        <div className="mg-force-head">
+          <div className="mg-question__meta">
+            <StatusBadge status="neutral" text={section ? section.title : 'Механика'} />
+            <span className="mg-question__meta-text">
+              {topic ? topic.title : ''} · {step + 1} из {total}
+            </span>
+          </div>
 
-        <p className="mg-question__prompt">{forceTask.title}</p>
-        <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)' }}>
-          {forceTask.condition}
-        </p>
+          <p className="mg-question__prompt">{forceTask.title}</p>
+          <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)' }}>
+            {forceTask.condition}
+          </p>
+        </div>
 
         <div className="mg-force-canvas">
           <ForceCanvas
