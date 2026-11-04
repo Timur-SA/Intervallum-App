@@ -10,6 +10,7 @@ interface GameShellProps {
   streak?: number;
   /** Заменяет счётчик серии (например, таймером босса). */
   headerRight?: ReactNode;
+  bodyClassName?: string;
   children: ReactNode;
   footer: ReactNode;
 }
@@ -24,6 +25,7 @@ export const GameShell: React.FC<GameShellProps> = ({
   total,
   streak,
   headerRight,
+  bodyClassName,
   children,
   footer,
 }) => (
@@ -42,7 +44,7 @@ export const GameShell: React.FC<GameShellProps> = ({
         ))}
     </header>
 
-    <main className="mg-game__body">{children}</main>
+    <main className={`mg-game__body ${bodyClassName ?? ''}`}>{children}</main>
 
     <footer className="mg-game__footer">{footer}</footer>
   </div>

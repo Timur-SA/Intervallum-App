@@ -186,6 +186,15 @@ export const saveUserProgress = (data: UserProgressData): void => {
   }
 };
 
+export const resetUserProgress = (): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+};
+
 export const markForceTaskCompleted = (
   taskId: string,
   vectors?: ForceVectorSave[]

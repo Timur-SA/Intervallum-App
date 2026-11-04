@@ -7,6 +7,7 @@ import '../shared/styles/themeTokens.css';
 import { MapModule } from '../modules/mini-games/MapModule';
 import { NavigationProvider, useNavigation } from './HeaderContext';
 import { SandboxMessengerHeader } from './SandboxMessengerHeader';
+import { DevPanel } from './DevPanel';
 
 export type AppMode = 'map';
 
@@ -174,6 +175,8 @@ export const AppShell: React.FC = () => {
           </div>
         </header>
       )}
+
+      {!isInsideMax && <DevPanel />}
 
       {/* Mobile Stage Frame */}
       <div

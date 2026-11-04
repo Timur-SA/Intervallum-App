@@ -39,6 +39,12 @@ interface FormulaTrainerModuleProps {
   /** Встроенный режим: одна задача внутри общего каркаса уровня. */
   embeddedTask?: PhysicsTask;
   onEmbeddedDone?: (score: number) => void;
+  onEmbeddedChecked?: (result: {
+    correct: boolean;
+    score: number;
+    answerLabel: string;
+    correctLabel: string;
+  }) => void;
 }
 
 export interface FormulaTrainerHandle {
@@ -46,10 +52,10 @@ export interface FormulaTrainerHandle {
 }
 
 export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrainerModuleProps>(
-  ({ onBackToHub, embeddedTask, onEmbeddedDone }, ref) => {
+  ({ onBackToHub, embeddedTask, onEmbeddedDone, onEmbeddedChecked }, ref) => {
   const embedded = Boolean(embeddedTask);
   const [currentTask, setCurrentTask] = useState<PhysicsTask | null>(embeddedTask ?? null);
-  const [embeddedFailed, setEmbeddedFailed] = useState(false);
+  const [answer, setAnswer] = useState<{ symbol: string; value: number; unit?: string } | null>(null);
   const [cards, setCards] = useState<FormulaCard[]>([]);
   const [cardCounter, setCardCounter] = useState(0);
 
@@ -319,6 +325,7 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
         setDragState({ type: null });
         setHoveredCandidate(null);
 
+
         if (targetToken) {
           const targetCardId = parseInt(targetToken.dataset.cardId || '-1');
           const targetSym = targetToken.dataset.symbol || '';
@@ -383,6 +390,26 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
         setDragState({ type: null });
         setHoveredCandidate(null);
 
+        if (elem?.closest('.mg-answer-slot')) {
+          setAnswer({
+            symbol: card.computed!.symbol,
+            value: card.computed!.value,
+            unit: card.computed!.unit,
+          });
+          haptics.notification('success');
+          return;
+        }
+
+
+        if (elem?.closest('.mg-answer-slot')) {
+          setAnswer({
+            symbol: card.computed!.symbol,
+            value: card.computed!.value,
+            unit: card.computed!.unit,
+          });
+          haptics.notification('success');
+          return;
+        }
         if (targetToken) {
           const targetCardId = parseInt(targetToken.dataset.cardId || '-1');
           const targetSym = targetToken.dataset.symbol || '';
@@ -401,20 +428,33 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
   };
 
   const handleCheckClick = () => {
-    if (cards.length === 0) {
-      showToast('Сначала добавьте формулу из законов физики');
-      setIsSheetOpen(true);
+    if (!answer || !currentTask) {
+      showToast('Перетащите результат в слот ответа');
       return;
     }
 
-    const computedList = cards.filter(c => c.computed && c.computed.value !== null);
-    if (computedList.length === 0) {
-      showToast('Выразите искомую величину и подставьте числовые значения в формулу');
+    const expected = currentTask.find;
+    const correct =
+      answer.symbol === expected.symbol &&
+      Math.abs(answer.value - expected.value) / Math.abs(expected.value || 1) < 0.02;
+    const score = correct ? 1 : 0.5;
+
+    if (embedded) {
+      haptics.notification(correct ? 'success' : 'error');
+      onEmbeddedChecked?.({
+        correct,
+        score,
+        answerLabel: `${answer.symbol} = ${answer.value} ${answer.unit ?? ''}`.trim(),
+        correctLabel: `${expected.symbol} = ${expected.value} ${expected.unit ?? ''}`.trim(),
+      });
       return;
     }
 
-    haptics.selection();
-    setSelectionMode(true);
+    setModalState({
+      isOpen: true,
+      isSuccess: correct,
+      result: { symbol: answer.symbol, value: answer.value, unit: answer.unit ?? '' },
+    });
   };
 
   const handleSelectAnswerCard = (card: FormulaCard) => {
@@ -426,18 +466,6 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
       Math.abs(card.computed.value - currentTask.find.value) / Math.abs(currentTask.find.value) < 0.02;
 
     const success = isSymbolMatch && isValueMatch;
-
-    if (embedded) {
-      if (success) {
-        haptics.notification('success');
-        onEmbeddedDone?.(embeddedFailed ? 0.5 : 1);
-      } else {
-        setEmbeddedFailed(true);
-        haptics.notification('error');
-        showToast('Неверно. Проверьте выражение и попробуйте снова');
-      }
-      return;
-    }
 
     if (success) {
       haptics.notification('success');
@@ -542,6 +570,21 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
 
           <CollapsibleProblemPanel task={currentTask} onPointerDownGiven={handlePointerDownGiven} />
 
+          <div className={`mg-answer-slot ${answer ? 'is-filled' : ''}`}>
+            <span className="mg-answer-slot__label">Ответ</span>
+            {answer ? (
+              <span className="given-chip mg-answer-slot__pill">
+                <b>{answer.symbol}</b> ={' '}
+                {Number.isInteger(answer.value)
+                  ? answer.value
+                  : parseFloat(answer.value.toFixed(3))}{' '}
+                {answer.unit}
+              </span>
+            ) : (
+              <span className="mg-answer-slot__hint">Перетащите сюда «Результат»</span>
+            )}
+          </div>
+
           {selectionMode && (
             <div className="tape-prompt-bar visible">
               <span>
@@ -602,7 +645,16 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
             <div className="dock-content">
               <span className="dock-icon">📚</span>
               <span className="dock-label">Законы физики</span>
-              <span className="dock-hint">(нажмите или свайпните вверх)</span>
+              <button
+                type="button"
+                className="dock-add"
+                onClick={event => {
+                  event.stopPropagation();
+                  setIsSheetOpen(true);
+                }}
+              >
+                + Добавить закон
+              </button>
             </div>
           </div>
 
