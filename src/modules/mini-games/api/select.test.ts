@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PracticeProgress } from '../../../shared/storage/progressStore';
 import { selectBossTasks, selectTrain } from './select';
 import { getSectionByTopic } from '../domain/sections';
-import { BOSS_TASKS } from '../domain/progression';
+import { BOSS_TASK_COUNT } from '../domain/progression';
 
 const makeProgress = (overrides: Partial<PracticeProgress> = {}): PracticeProgress => ({
   xpByTopic: {},
@@ -72,17 +72,17 @@ describe('selectBossTasks', () => {
   it('даёт нужное число задач раздела', () => {
     for (const sectionId of ['mechanics', 'thermal', 'electromagnetism'] as const) {
       const tasks = selectBossTasks(sectionId, makeProgress());
-      expect(tasks).toHaveLength(BOSS_TASKS);
+      expect(tasks).toHaveLength(BOSS_TASK_COUNT);
       expect(tasks.every(task => getSectionByTopic(task.topic)?.id === sectionId)).toBe(true);
       expect(tasks.every(task => task.type !== 'cards')).toBe(true);
     }
   });
 
-  it('ставит самые сложные задачи первыми', () => {
+  it('ведёт сложность по возрастанию', () => {
     const tasks = selectBossTasks('mechanics', makeProgress());
     const head = tasks.slice(0, 10);
     for (let i = 1; i < head.length; i += 1) {
-      expect(head[i - 1].difficulty).toBeGreaterThanOrEqual(head[i].difficulty);
+      expect(head[i - 1].difficulty).toBeLessThanOrEqual(head[i].difficulty);
     }
   });
 });

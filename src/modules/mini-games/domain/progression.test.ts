@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PracticeProgress } from '../../../shared/storage/progressStore';
 import {
   bossXpRequired,
+  topicUnlockXp,
   isBossReady,
   isSectionDefeated,
   isSectionUnlocked,
@@ -40,7 +41,7 @@ describe('разделы', () => {
     const section = getSection('thermal')!;
     const xpByTopic: Record<string, number> = {};
     for (const topicId of section.topics) {
-      xpByTopic[topicId] = bossXpRequired(topicId);
+      xpByTopic[topicId] = topicUnlockXp(topicId);
     }
 
     const progress = makeProgress({ unlockedSections: ['thermal'], xpByTopic });
@@ -48,7 +49,7 @@ describe('разделы', () => {
 
     const almost = makeProgress({
       unlockedSections: ['thermal'],
-      xpByTopic: { ...xpByTopic, [section.topics[0]]: bossXpRequired(section.topics[0]) - 1 },
+      xpByTopic: { ...xpByTopic, [section.topics[0]]: topicUnlockXp(section.topics[0]) - 1 },
     });
     expect(isBossReady(almost, 'thermal')).toBe(false);
   });
@@ -56,7 +57,7 @@ describe('разделы', () => {
   it('побеждённый босс больше не открывается', () => {
     const section = getSection('mechanics')!;
     const xpByTopic: Record<string, number> = {};
-    for (const topicId of section.topics) xpByTopic[topicId] = bossXpRequired(topicId);
+    for (const topicId of section.topics) xpByTopic[topicId] = topicUnlockXp(topicId);
 
     const defeated = makeProgress({ xpByTopic, defeatedBosses: ['mechanics'] });
     expect(isBossReady(defeated, 'mechanics')).toBe(false);
@@ -96,7 +97,7 @@ describe('темы', () => {
     const section = getSection('mechanics')!;
     const previous = section.topics[1];
     const next = section.topics[2];
-    const required = bossXpRequired(previous);
+    const required = topicUnlockXp(previous);
 
     expect(
       isTopicUnlocked(makeProgress({ xpByTopic: { [previous]: required - 1 } }), 'mechanics', next),

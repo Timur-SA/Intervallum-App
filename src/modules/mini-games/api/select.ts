@@ -2,7 +2,8 @@ import { PracticeProgress } from '../../../shared/storage/progressStore';
 import { TASK_BANK } from '../data';
 import { AnyTask, PlayableTaskType, SectionId, TopicId } from '../domain/types';
 import { getSectionByTopic } from '../domain/sections';
-import { BOSS_TASKS } from '../domain/progression';
+import { BOSS_TASK_COUNT } from '../domain/progression';
+import { BOSS_TASKS } from '../data/bossTasks';
 import { shuffleBySeed } from '../engine/shuffle';
 
 export interface SelectTrainRequest {
@@ -98,40 +99,14 @@ export const selectTrain = (
   return picked;
 };
 
-/** Самые сложные задачи раздела для дуэли с боссом. */
+/** Отдельные задачи дуэли: сложность растёт по ходу боя. */
 export const selectBossTasks = (
   sectionId: SectionId,
   progress: PracticeProgress,
-  count = BOSS_TASKS,
-): AnyTask[] => {
-  const candidates = TASK_BANK.filter(
-    task => getSectionByTopic(task.topic)?.id === sectionId && task.type !== 'cards',
-  ).map(task => decorateTask(task, progress));
+  count = BOSS_TASK_COUNT,
+): AnyTask[] =>
+  [...(BOSS_TASKS[sectionId] ?? [])]
+    .sort((a, b) => a.difficulty - b.difficulty)
+    .slice(0, count)
+    .map(task => decorateTask(task, progress));
 
-  if (!candidates.length) return [];
-
-  // Для дуэли берём только задачи повышенной сложности, если их хватает.
-  const hardPool = candidates.filter(task => task.difficulty >= 2);
-  const pool = hardPool.length >= count ? hardPool : candidates;
-
-  const sorted = [...pool].sort((a, b) => {
-    if (b.difficulty !== a.difficulty) return b.difficulty - a.difficulty;
-
-    const aScore = progress.taskStats[a.id]?.bestScore ?? -1;
-    const bScore = progress.taskStats[b.id]?.bestScore ?? -1;
-    if (aScore !== bScore) return aScore - bScore;
-
-    return a.id.localeCompare(b.id);
-  });
-
-  if (sorted.length >= count) return sorted.slice(0, count);
-
-  // Если задач меньше, чем нужно, добираем повторами самого сложного пула.
-  const result = [...sorted];
-  let index = 0;
-  while (result.length < count) {
-    result.push(sorted[index % sorted.length]);
-    index += 1;
-  }
-  return result;
-};

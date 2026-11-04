@@ -14,17 +14,21 @@ export const topicMaxXp = (topicId: TopicId): number =>
 export const isTopicComplete = (progress: PracticeProgress, topicId: TopicId): boolean =>
   (progress.xpByTopic[topicId] ?? 0) >= topicMaxXp(topicId);
 
-/** Для босса достаточно 75% опыта на каждом уровне раздела. */
-export const bossXpRequired = (topicId: TopicId): number =>
-  Math.ceil(topicMaxXp(topicId) * 0.75);
+/** Уровень считается «достаточно пройденным» с 80% своего опыта. */
+export const topicUnlockXp = (topicId: TopicId): number =>
+  Math.ceil(topicMaxXp(topicId) * 0.8);
+
+/** Порог босса — сумма 80% по каждому уровню раздела. */
+export const bossXpRequired = (sectionId: SectionId): number => {
+  const section = getSection(sectionId);
+  if (!section) return 0;
+  return section.topics.reduce((sum, topicId) => sum + topicUnlockXp(topicId), 0);
+};
 
 export const isBossReady = (progress: PracticeProgress, sectionId: SectionId): boolean => {
-  const section = getSection(sectionId);
-  if (!section || !isSectionUnlocked(progress, sectionId)) return false;
+  if (!isSectionUnlocked(progress, sectionId)) return false;
   if (isSectionDefeated(progress, sectionId)) return false;
-  return section.topics.every(
-    topicId => (progress.xpByTopic[topicId] ?? 0) >= bossXpRequired(topicId),
-  );
+  return sectionXp(progress, sectionId) >= bossXpRequired(sectionId);
 };
 
 /** Следующий уровень открывается, когда предыдущий добрал до порога босса. */
@@ -33,7 +37,7 @@ export const isBossReady = (progress: PracticeProgress, sectionId: SectionId): b
 export const TRAINING_TASKS = 7;
 
 /** Дуэль с боссом. */
-export const BOSS_TASKS = 20;
+export const BOSS_TASK_COUNT = 20;
 export const BOSS_TIME_SECONDS = 10 * 60;
 export const BOSS_WIN_SCORE = 17;
 
@@ -71,7 +75,7 @@ export const isTopicUnlocked = (
   if (index <= 1) return true;
 
   const previousTopic = section.topics[index - 1];
-  return (progress.xpByTopic[previousTopic] ?? 0) >= bossXpRequired(previousTopic);
+  return (progress.xpByTopic[previousTopic] ?? 0) >= topicUnlockXp(previousTopic);
 };
 
 export const openTopicsCount = (
