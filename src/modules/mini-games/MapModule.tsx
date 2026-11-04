@@ -225,6 +225,9 @@ export const MapModule: React.FC<MapModuleProps> = ({
     );
   }
 
+  const isSandbox =
+    typeof window !== 'undefined' && !(window as any).WebApp?.platform;
+
   if (route.name === 'section') {
     return (
       <div className="mini-games">
@@ -241,9 +244,11 @@ export const MapModule: React.FC<MapModuleProps> = ({
           <button type="button" className="mg-map__force" onClick={onOpenFormulaTrainer}>
             Тренажёр формул
           </button>
-          <button type="button" className="mg-reset" onClick={handleReset}>
-            Сбросить прогресс (тест)
-          </button>
+          {isSandbox && (
+            <button type="button" className="mg-reset" onClick={handleReset}>
+              Сбросить прогресс (тест)
+            </button>
+          )}
         </div>
       </div>
     );
