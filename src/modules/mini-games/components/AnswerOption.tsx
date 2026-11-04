@@ -18,7 +18,7 @@ interface AnswerOptionProps {
 /**
  * Строка варианта ответа на базе CellSimple из MAX UI.
  * Radio/Checkbox отвечают за семантику и доступность, а состояния
- * (выбрано / верно / ошибка) задаются модификаторами ql-option.
+ * (выбрано / верно / ошибка) задаются модификаторами mg-option.
  */
 export const AnswerOption: React.FC<AnswerOptionProps> = ({
   name,
@@ -31,29 +31,19 @@ export const AnswerOption: React.FC<AnswerOptionProps> = ({
   onSelect,
 }) => {
   const className = [
-    'ql-option',
-    selected ? 'ql-option--selected' : '',
-    mark === 'correct' ? 'ql-option--correct' : '',
-    mark === 'wrong' ? 'ql-option--wrong' : '',
-    locked ? 'ql-option--locked' : '',
+    'mg-option',
+    selected ? 'mg-option--selected' : '',
+    mark === 'correct' ? 'mg-option--correct' : '',
+    mark === 'wrong' ? 'mg-option--wrong' : '',
+    locked ? 'mg-option--locked' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   const control = multiple ? (
-    <Checkbox
-      name={name}
-      value={value}
-      checked={selected}
-      onChange={onSelect}
-    />
+    <Checkbox name={name} value={value} checked={selected} onChange={onSelect} />
   ) : (
-    <Radio
-      name={name}
-      value={value}
-      checked={selected}
-      onChange={onSelect}
-    />
+    <Radio name={name} value={value} checked={selected} onChange={onSelect} />
   );
 
   return (

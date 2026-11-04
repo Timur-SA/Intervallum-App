@@ -1,6 +1,6 @@
 /**
  * Unified Progress & Session persistence store
- * Awards 1 / 2 / 3 stars based on task difficulty
+ * Force lab и тренажёр формул награждают звёздами, мини-игры — опытом по темам.
  */
 
 const STORAGE_KEY = 'intervallum:progress:v2';
@@ -13,10 +13,13 @@ export interface ForceVectorSave {
   dy: number;
 }
 
-export interface QuizLabProgress {
-  completedGameIds: string[];
-  bestStars: Record<string, number>;
-  stars: number;
+/** Прогресс мини-игр: опыт по темам трека 9. */
+export interface PracticeProgress {
+  xpByTopic: Record<string, number>;
+  /** Типы мини-игр, которые пользователь уже проходил. */
+  exploredTypes: string[];
+  /** Лучшая доля верного ответа по типу задачи, 0..1. */
+  bestScoreByType: Record<string, number>;
 }
 
 export interface UserProgressData {
@@ -29,7 +32,7 @@ export interface UserProgressData {
     completedTaskIds: string[];
     stars: number;
   };
-  quizLab: QuizLabProgress;
+  practice: PracticeProgress;
 }
 
 export const FORCE_DIFFICULTIES: Record<string, number> = {
@@ -56,6 +59,9 @@ export const calcForceStars = (taskIds: string[]): number =>
 export const calcFormulaStars = (taskIds: string[]): number =>
   taskIds.reduce((sum, id) => sum + (FORMULA_DIFFICULTIES[id] || 1), 0);
 
+export const totalXp = (practice: PracticeProgress): number =>
+  Object.values(practice.xpByTopic).reduce((sum, value) => sum + value, 0);
+
 const createDefaultProgress = (): UserProgressData => ({
   forceLab: {
     completedTaskIds: [],
@@ -66,12 +72,24 @@ const createDefaultProgress = (): UserProgressData => ({
     completedTaskIds: [],
     stars: 0,
   },
-  quizLab: {
-    completedGameIds: [],
-    bestStars: {},
-    stars: 0,
+  practice: {
+    xpByTopic: {},
+    exploredTypes: [],
+    bestScoreByType: {},
   },
 });
+
+const numericRecord = (value: unknown): Record<string, number> => {
+  if (!value || typeof value !== 'object') return {};
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).filter(
+      (entry): entry is [string, number] => typeof entry[1] === 'number',
+    ),
+  );
+};
+
+const stringArray = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 
 export const loadUserProgress = (): UserProgressData => {
   const fallback = createDefaultProgress();
@@ -81,25 +99,23 @@ export const loadUserProgress = (): UserProgressData => {
     if (!raw) return fallback;
     const parsed = JSON.parse(raw);
 
-    const forceCompleted: string[] = Array.isArray(parsed?.forceLab?.completedTaskIds)
-      ? parsed.forceLab.completedTaskIds
-      : [];
-    const formulaCompleted: string[] = Array.isArray(parsed?.formulaTrainer?.completedTaskIds)
-      ? parsed.formulaTrainer.completedTaskIds
-      : [];
+    const forceCompleted = stringArray(parsed?.forceLab?.completedTaskIds);
+    const formulaCompleted = stringArray(parsed?.formulaTrainer?.completedTaskIds);
 
-    // Обратная совместимость: у старых сохранений нет блока quizLab
-    const quizCompleted: string[] = Array.isArray(parsed?.quizLab?.completedGameIds)
-      ? parsed.quizLab.completedGameIds
-      : [];
-    const quizBestStars: Record<string, number> =
-      parsed?.quizLab?.bestStars && typeof parsed.quizLab.bestStars === 'object'
-        ? Object.fromEntries(
-            Object.entries(parsed.quizLab.bestStars).filter(
-              (entry): entry is [string, number] => typeof entry[1] === 'number',
-            ),
-          )
-        : {};
+    const practice: PracticeProgress = {
+      xpByTopic: numericRecord(parsed?.practice?.xpByTopic),
+      exploredTypes: stringArray(parsed?.practice?.exploredTypes),
+      bestScoreByType: numericRecord(parsed?.practice?.bestScoreByType),
+    };
+
+    // Совместимость с черновиком quiz-lab: звёзды 0..3 переводим в долю 0..1.
+    if (!parsed?.practice && parsed?.quizLab) {
+      const legacyStars = numericRecord(parsed.quizLab.bestStars);
+      practice.bestScoreByType = Object.fromEntries(
+        Object.entries(legacyStars).map(([type, stars]) => [type, stars / 3]),
+      );
+      practice.exploredTypes = stringArray(parsed.quizLab.completedGameIds);
+    }
 
     return {
       forceLab: {
@@ -112,11 +128,7 @@ export const loadUserProgress = (): UserProgressData => {
         completedTaskIds: formulaCompleted,
         stars: calcFormulaStars(formulaCompleted),
       },
-      quizLab: {
-        completedGameIds: quizCompleted,
-        bestStars: quizBestStars,
-        stars: Object.values(quizBestStars).reduce((sum, value) => sum + value, 0),
-      },
+      practice,
     };
   } catch {
     return fallback;
@@ -158,23 +170,30 @@ export const markFormulaTaskCompleted = (taskId: string): UserProgressData => {
   return current;
 };
 
-export const markQuizGameCompleted = (
-  gameId: string,
-  stars: number,
-): UserProgressData => {
+/**
+ * Записывает результат задания мини-игры: опыт по теме и лучшую долю по типу.
+ * В будущем эти данные будет считать Intervallum-Core через v2/grade.
+ */
+export const recordPracticeResult = (params: {
+  taskType: string;
+  topicId: string;
+  xp: number;
+  score: number;
+}): UserProgressData => {
   const current = loadUserProgress();
+  const { taskType, topicId, xp, score } = params;
 
-  if (!current.quizLab.completedGameIds.includes(gameId)) {
-    current.quizLab.completedGameIds.push(gameId);
+  if (xp > 0) {
+    current.practice.xpByTopic[topicId] = (current.practice.xpByTopic[topicId] ?? 0) + xp;
   }
 
-  current.quizLab.bestStars[gameId] = Math.max(
-    current.quizLab.bestStars[gameId] ?? 0,
-    Math.max(0, Math.min(3, Math.round(stars))),
-  );
-  current.quizLab.stars = Object.values(current.quizLab.bestStars).reduce(
-    (sum, value) => sum + value,
-    0,
+  if (!current.practice.exploredTypes.includes(taskType)) {
+    current.practice.exploredTypes.push(taskType);
+  }
+
+  current.practice.bestScoreByType[taskType] = Math.max(
+    current.practice.bestScoreByType[taskType] ?? 0,
+    Math.max(0, Math.min(1, score)),
   );
 
   saveUserProgress(current);
