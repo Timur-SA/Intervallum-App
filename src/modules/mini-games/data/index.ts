@@ -29,7 +29,7 @@ export const MINI_GAMES: MiniGameMeta[] = [
     subtitle: 'Один верный вариант',
     description: 'Выберите верное словосочетание или численный ответ из предложенных.',
     color: '#0ea5e9',
-    count: SINGLE_TASKS.length,
+    count: Math.min(SINGLE_TASKS.length, 10),
   },
   {
     type: 'multi',
@@ -37,7 +37,7 @@ export const MINI_GAMES: MiniGameMeta[] = [
     subtitle: 'Несколько верных утверждений',
     description: 'Отметьте все верные варианты. Штраф за пропущенные и лишние.',
     color: '#8b5cf6',
-    count: MULTI_TASKS.length,
+    count: Math.min(MULTI_TASKS.length, 10),
   },
   {
     type: 'matching',
@@ -45,7 +45,7 @@ export const MINI_GAMES: MiniGameMeta[] = [
     subtitle: 'Пары «явление — ответ»',
     description: 'Соотнесите ситуации и явления слева с вариантами ответа справа.',
     color: '#10b981',
-    count: MATCHING_TASKS.length,
+    count: Math.min(MATCHING_TASKS.length, 10),
   },
   {
     type: 'cards',
@@ -53,7 +53,7 @@ export const MINI_GAMES: MiniGameMeta[] = [
     subtitle: 'Теория с самооценкой',
     description: 'Вопрос и ответ. После ответа оцените, насколько уверенно вы его знаете.',
     color: '#f59e0b',
-    count: CARDS.length,
+    count: Math.min(CARDS.length, 10),
   },
 ];
 

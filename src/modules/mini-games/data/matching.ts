@@ -21,6 +21,21 @@ export const MATCHING_TASKS: MatchingTask[] = [
       'A = Fs — работа, N = A/t — мощность, F = mg — сила тяжести, p = mv — импульс тела.',
   },
   {
+    id: 'match-units',
+    type: 'matching',
+    topic: 'work-power',
+    difficulty: 1,
+    prompt: 'Установите соответствие между физической величиной и единицей её измерения в СИ.',
+    pairs: [
+      { id: 'force', left: 'Сила', right: 'Ньютон (Н)' },
+      { id: 'work', left: 'Работа', right: 'Джоуль (Дж)' },
+      { id: 'power', left: 'Мощность', right: 'Ватт (Вт)' },
+      { id: 'pressure', left: 'Давление', right: 'Паскаль (Па)' },
+    ],
+    explanation:
+      'Сила измеряется в ньютонах, работа — в джоулях, мощность — в ваттах, давление — в паскалях.',
+  },
+  {
     id: 'match-aggregate',
     type: 'matching',
     topic: 'aggregate-states',
@@ -34,6 +49,21 @@ export const MATCHING_TASKS: MatchingTask[] = [
     ],
     explanation:
       'Плавление — переход из твёрдого состояния в жидкое, кристаллизация — обратный процесс. Парообразование и конденсация — переходы между жидкостью и газом.',
+  },
+  {
+    id: 'match-heat-formulas',
+    type: 'matching',
+    topic: 'fuel-engines',
+    difficulty: 2,
+    prompt: 'Установите соответствие между формулой и тепловым процессом.',
+    pairs: [
+      { id: 'heating', left: 'Q = cmΔt', right: 'Нагревание' },
+      { id: 'melting', left: 'Q = λm', right: 'Плавление' },
+      { id: 'vaporization', left: 'Q = Lm', right: 'Парообразование' },
+      { id: 'fuel', left: 'Q = qm', right: 'Сгорание топлива' },
+    ],
+    explanation:
+      'Q = cmΔt — нагревание, Q = λm — плавление, Q = Lm — парообразование, Q = qm — сгорание топлива.',
   },
   {
     id: 'match-devices',

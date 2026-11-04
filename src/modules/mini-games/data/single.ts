@@ -1,8 +1,8 @@
 import { SingleChoiceTask } from '../domain/types';
 
 /**
- * Задания с одним верным ответом.
- * Формулировки соответствуют типовым заданиям ОГЭ по физике трека 9.
+ * Задания с одним верным ответом — по одному на каждую тему трека 9.
+ * Формулировки соответствуют типовым заданиям ОГЭ по физике.
  */
 export const SINGLE_TASKS: SingleChoiceTask[] = [
   {
@@ -74,6 +74,39 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
     hint: 'F = mg',
   },
   {
+    id: 'single-momentum',
+    type: 'single',
+    topic: 'momentum',
+    difficulty: 1,
+    prompt: 'Тело массой 2 кг движется со скоростью 3 м/с. Чему равен импульс тела?',
+    options: [
+      { id: 'a', text: '1,5 кг·м/с' },
+      { id: 'b', text: '5 кг·м/с' },
+      { id: 'c', text: '6 кг·м/с' },
+      { id: 'd', text: '12 кг·м/с' },
+    ],
+    correctOptionId: 'c',
+    explanation: 'Импульс тела равен произведению массы на скорость: p = mv = 2 · 3 = 6 кг·м/с.',
+    hint: 'p = mv',
+  },
+  {
+    id: 'single-mechanical-energy',
+    type: 'single',
+    topic: 'mechanical-energy',
+    difficulty: 1,
+    prompt:
+      'Тело массой 2 кг поднято на высоту 5 м. Чему равна его потенциальная энергия? Ускорение свободного падения примите равным 10 Н/кг.',
+    options: [
+      { id: 'a', text: '10 Дж' },
+      { id: 'b', text: '25 Дж' },
+      { id: 'c', text: '100 Дж' },
+      { id: 'd', text: '1000 Дж' },
+    ],
+    correctOptionId: 'c',
+    explanation: 'Потенциальная энергия в поле тяжести: Eп = mgh = 2 · 10 · 5 = 100 Дж.',
+    hint: 'Eп = mgh',
+  },
+  {
     id: 'single-work',
     type: 'single',
     topic: 'work-power',
@@ -123,6 +156,128 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
     hint: 'Q = cmΔt',
   },
   {
+    id: 'single-aggregate-states',
+    type: 'single',
+    topic: 'aggregate-states',
+    difficulty: 1,
+    prompt: 'Лёд при 0 °C плавится. Что происходит с его температурой во время плавления?',
+    options: [
+      { id: 'a', text: 'Повышается' },
+      { id: 'b', text: 'Понижается' },
+      { id: 'c', text: 'Остаётся равной 0 °C' },
+      { id: 'd', text: 'Зависит от массы льда' },
+    ],
+    correctOptionId: 'c',
+    explanation:
+      'При плавлении кристаллического тела температура остаётся постоянной: подводимая энергия идёт на разрушение кристаллической решётки.',
+    hint: 'Куда уходит энергия, если температура не меняется?',
+  },
+  {
+    id: 'single-heat-balance',
+    type: 'single',
+    topic: 'heat-balance',
+    difficulty: 2,
+    prompt:
+      'Смешали 1 кг воды при 60 °C и 1 кг воды при 20 °C. Потерями теплоты пренебречь. Какой будет температура смеси?',
+    options: [
+      { id: 'a', text: '30 °C' },
+      { id: 'b', text: '40 °C' },
+      { id: 'c', text: '50 °C' },
+      { id: 'd', text: '80 °C' },
+    ],
+    correctOptionId: 'b',
+    explanation:
+      'Массы и теплоёмкости одинаковы, поэтому горячая вода отдаёт столько же теплоты, сколько холодная получает. Температура смеси — средняя: (60 + 20) / 2 = 40 °C.',
+    hint: 'Qотд = Qпол',
+  },
+  {
+    id: 'single-thermal-energy',
+    type: 'single',
+    topic: 'thermal-energy',
+    difficulty: 3,
+    prompt:
+      'Газ получил 300 Дж теплоты и совершил работу 100 Дж. Как изменилась его внутренняя энергия?',
+    options: [
+      { id: 'a', text: 'Увеличилась на 200 Дж' },
+      { id: 'b', text: 'Увеличилась на 400 Дж' },
+      { id: 'c', text: 'Уменьшилась на 200 Дж' },
+      { id: 'd', text: 'Не изменилась' },
+    ],
+    correctOptionId: 'a',
+    explanation:
+      'Первый закон термодинамики: Q = ΔU + A. Значит ΔU = Q − A = 300 − 100 = 200 Дж — энергия увеличилась.',
+    hint: 'Q = ΔU + A',
+  },
+  {
+    id: 'single-fuel-engines',
+    type: 'single',
+    topic: 'fuel-engines',
+    difficulty: 2,
+    prompt:
+      'Тепловой двигатель получил от нагревателя 500 кДж и совершил полезную работу 150 кДж. Чему равен КПД двигателя?',
+    options: [
+      { id: 'a', text: '15%' },
+      { id: 'b', text: '30%' },
+      { id: 'c', text: '70%' },
+      { id: 'd', text: '150%' },
+    ],
+    correctOptionId: 'b',
+    explanation: 'КПД равен отношению полезной работы к полученной теплоте: 150 / 500 = 0,3, то есть 30%.',
+    hint: 'η = Aп / Qн',
+  },
+  {
+    id: 'single-coulomb',
+    type: 'single',
+    topic: 'coulomb',
+    difficulty: 2,
+    prompt:
+      'Как изменится сила взаимодействия двух точечных зарядов, если расстояние между ними увеличить в 2 раза?',
+    options: [
+      { id: 'a', text: 'Увеличится в 2 раза' },
+      { id: 'b', text: 'Уменьшится в 2 раза' },
+      { id: 'c', text: 'Увеличится в 4 раза' },
+      { id: 'd', text: 'Уменьшится в 4 раза' },
+    ],
+    correctOptionId: 'd',
+    explanation: 'По закону Кулона сила обратно пропорциональна квадрату расстояния: при росте r в 2 раза сила падает в 4 раза.',
+    hint: 'F ~ 1/r²',
+  },
+  {
+    id: 'single-charge-conservation',
+    type: 'single',
+    topic: 'charge-conservation',
+    difficulty: 2,
+    prompt:
+      'Два одинаковых металлических шарика имеют заряды +q и −q. Шарики соприкоснулись и разошлись. Каков заряд каждого шарика?',
+    options: [
+      { id: 'a', text: '+q' },
+      { id: 'b', text: '−q' },
+      { id: 'c', text: '0' },
+      { id: 'd', text: '+2q' },
+    ],
+    correctOptionId: 'c',
+    explanation:
+      'Суммарный заряд шариков равен нулю. При соприкосновении он делится поровну, поэтому каждый шарик остаётся нейтральным.',
+    hint: 'Суммарный заряд сохраняется и делится поровну.',
+  },
+  {
+    id: 'single-resistance',
+    type: 'single',
+    topic: 'resistance',
+    difficulty: 2,
+    prompt:
+      'Как изменится сопротивление однородного провода, если его длину увеличить в 2 раза, а площадь поперечного сечения оставить прежней?',
+    options: [
+      { id: 'a', text: 'Уменьшится в 2 раза' },
+      { id: 'b', text: 'Не изменится' },
+      { id: 'c', text: 'Увеличится в 2 раза' },
+      { id: 'd', text: 'Увеличится в 4 раза' },
+    ],
+    correctOptionId: 'c',
+    explanation: 'Сопротивление прямо пропорционально длине: R = ρl / S. При удвоении длины сопротивление удвоится.',
+    hint: 'R = ρl / S',
+  },
+  {
     id: 'single-ohm',
     type: 'single',
     topic: 'ohm',
@@ -154,5 +309,22 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
     correctOptionId: 'b',
     explanation: 'По закону Джоуля — Ленца Q = I²Rt = 3² · 2 · 10 = 180 Дж.',
     hint: 'Q = I²Rt',
+  },
+  {
+    id: 'single-ampere',
+    type: 'single',
+    topic: 'ampere',
+    difficulty: 3,
+    prompt:
+      'Проводник длиной 0,5 м с током 2 А находится в магнитном поле с индукцией 0,4 Тл перпендикулярно линиям индукции. Чему равна сила Ампера?',
+    options: [
+      { id: 'a', text: '0,1 Н' },
+      { id: 'b', text: '0,4 Н' },
+      { id: 'c', text: '0,8 Н' },
+      { id: 'd', text: '4 Н' },
+    ],
+    correctOptionId: 'b',
+    explanation: 'Сила Ампера: F = BIl sin α = 0,4 · 2 · 0,5 · 1 = 0,4 Н.',
+    hint: 'F = BIl sin α',
   },
 ];

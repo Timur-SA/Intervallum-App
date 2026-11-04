@@ -15,6 +15,15 @@ export const CARDS: TheoryCard[] = [
     formula: 's = vt',
   },
   {
+    id: 'card-relativity',
+    type: 'cards',
+    topic: 'relativity',
+    difficulty: 2,
+    question: 'Что означает относительность движения?',
+    answer:
+      'Движение и его характеристики зависят от выбранной системы отсчёта: одно и то же тело может покоиться в одной системе и двигаться в другой.',
+  },
+  {
     id: 'card-acceleration',
     type: 'cards',
     topic: 'accelerated-motion',
@@ -112,6 +121,55 @@ export const CARDS: TheoryCard[] = [
     formula: 'Qотд = Qпол',
   },
   {
+    id: 'card-thermal-energy',
+    type: 'cards',
+    topic: 'thermal-energy',
+    difficulty: 3,
+    question: 'Как формулируется первый закон термодинамики?',
+    answer:
+      'Полученная телом теплота идёт на изменение его внутренней энергии и на совершение работы против внешних сил.',
+    formula: 'Q = ΔU + A',
+  },
+  {
+    id: 'card-fuel-engines',
+    type: 'cards',
+    topic: 'fuel-engines',
+    difficulty: 2,
+    question: 'Как вычисляют КПД теплового двигателя?',
+    answer:
+      'КПД равен отношению полезной работы к количеству теплоты, полученному от нагревателя. Он всегда меньше 100%.',
+    formula: 'η = Aп / Qн',
+  },
+  {
+    id: 'card-coulomb',
+    type: 'cards',
+    topic: 'coulomb',
+    difficulty: 2,
+    question: 'Сформулируйте закон Кулона.',
+    answer:
+      'Сила взаимодействия двух точечных зарядов прямо пропорциональна произведению модулей зарядов и обратно пропорциональна квадрату расстояния между ними.',
+    formula: 'F = k|q₁||q₂| / r²',
+  },
+  {
+    id: 'card-charge-conservation',
+    type: 'cards',
+    topic: 'charge-conservation',
+    difficulty: 2,
+    question: 'В чём состоит закон сохранения электрического заряда?',
+    answer:
+      'Алгебраическая сумма зарядов замкнутой системы остаётся постоянной при любых процессах внутри системы.',
+  },
+  {
+    id: 'card-resistance',
+    type: 'cards',
+    topic: 'resistance',
+    difficulty: 2,
+    question: 'От чего зависит сопротивление проводника?',
+    answer:
+      'От материала проводника, его длины и площади поперечного сечения. Температура также влияет на сопротивление.',
+    formula: 'R = ρl / S',
+  },
+  {
     id: 'card-ohm',
     type: 'cards',
     topic: 'ohm',
@@ -132,13 +190,13 @@ export const CARDS: TheoryCard[] = [
     formula: 'Q = I²Rt',
   },
   {
-    id: 'card-resistance',
+    id: 'card-ampere',
     type: 'cards',
-    topic: 'resistance',
-    difficulty: 2,
-    question: 'От чего зависит сопротивление проводника?',
+    topic: 'ampere',
+    difficulty: 3,
+    question: 'Что такое сила Ампера и по какой формуле её вычисляют?',
     answer:
-      'От материала проводника, его длины и площади поперечного сечения. Температура также влияет на сопротивление.',
-    formula: 'R = ρl / S',
+      'Сила, действующая на проводник с током в магнитном поле. Максимальна, когда проводник перпендикулярен линиям индукции.',
+    formula: 'F = BIl sin α',
   },
 ];

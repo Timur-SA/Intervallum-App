@@ -662,3 +662,257 @@
     animation: none !important;
   }
 }
+
+/* ------------------------------------------------------------- Таймер босса */
+
+.mg-timer {
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding: 3px 9px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.mg-timer--low {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+/* ------------------------------------------------------------- Чипы выбора */
+
+.mg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.mg-chip--active {
+  background: var(--accent-bg);
+  border-color: var(--border-accent);
+  color: var(--accent);
+}
+
+.mg-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ------------------------------------------------------------- Босс */
+
+.mg-boss-card,
+.mg-boss-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.mg-boss-card--defeated {
+  border-color: rgba(52, 211, 153, 0.4);
+  background: var(--success-bg);
+}
+
+.mg-boss-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mg-boss-card__avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.mg-boss-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mg-boss-card__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mg-boss-card__item {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.mg-boss-card__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.mg-xpbar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+.mg-xpbar__fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 220ms ease;
+}
+
+.mg-row__icon--small {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------- Теория */
+
+.mg-theory {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mg-theory__head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.mg-theory__card {
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mg-theory__question {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.mg-theory__answer {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.mg-theory__formula {
+  align-self: flex-start;
+  padding: 5px 12px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  border: 1px solid var(--border-accent);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mg-theory__empty {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------- Результат */
+
+.mg-result__badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.mg-result__stars-earned {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mg-result__hint {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.mg-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.mg-next-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+}
+
+.mg-next-section__title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}

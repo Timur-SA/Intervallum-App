@@ -8,12 +8,14 @@ interface GameShellProps {
   total: number;
   /** Если не передано — счётчик серии скрыт. */
   streak?: number;
+  /** Заменяет счётчик серии (например, таймером босса). */
+  headerRight?: ReactNode;
   children: ReactNode;
   footer: ReactNode;
 }
 
 /**
- * Общий каркас мини-игры: прогресс сверху, прокручиваемое тело и фиксированный футер.
+ * Общий каркас задания: прогресс сверху, прокручиваемое тело и фиксированный футер.
  * Повторяет паттерн Duolingo — действие всегда под большим пальцем.
  */
 export const GameShell: React.FC<GameShellProps> = ({
@@ -21,22 +23,23 @@ export const GameShell: React.FC<GameShellProps> = ({
   step,
   total,
   streak,
+  headerRight,
   children,
   footer,
 }) => (
   <div className="mg-game">
     <header className="mg-game__header" aria-label={title}>
-
       <div className="mg-game__progress" style={{ flex: 1, minWidth: 0 }}>
         <Steps className="mg-steps" count={total} progress={step} />
       </div>
 
-      {streak !== undefined && (
-        <div className="mg-game__streak" aria-label={`Серия: ${streak}`}>
-          <Flame size={15} />
-          <span>{streak}</span>
-        </div>
-      )}
+      {headerRight ??
+        (streak !== undefined && (
+          <div className="mg-game__streak" aria-label={`Серия: ${streak}`}>
+            <Flame size={15} />
+            <span>{streak}</span>
+          </div>
+        ))}
     </header>
 
     <main className="mg-game__body">{children}</main>

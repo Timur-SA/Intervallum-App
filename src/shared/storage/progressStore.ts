@@ -1,6 +1,6 @@
 /**
  * Unified Progress & Session persistence store
- * Force lab и тренажёр формул награждают звёздами, мини-игры — опытом по темам.
+ * Force lab и тренажёр формул награждают звёздами, практика ОГЭ — опытом и звёздами.
  */
 
 const STORAGE_KEY = 'intervallum:progress:v2';
@@ -13,13 +13,30 @@ export interface ForceVectorSave {
   dy: number;
 }
 
-/** Прогресс мини-игр: опыт по темам трека 9. */
+export interface TaskStat {
+  attempts: number;
+  bestScore: number;
+}
+
+/** Прогресс трека ОГЭ: опыт по темам, звёзды, боссы и предметы. */
 export interface PracticeProgress {
   xpByTopic: Record<string, number>;
   /** Типы мини-игр, которые пользователь уже проходил. */
   exploredTypes: string[];
   /** Лучшая доля верного ответа по типу задачи, 0..1. */
   bestScoreByType: Record<string, number>;
+  /** История ответов по задачам: попытки и лучший результат. */
+  taskStats: Record<string, TaskStat>;
+  /** Всего звёзд за сложные и новые задачи. */
+  stars: number;
+  /** Звёзды по разделам — из них открывается босс. */
+  starsBySection: Record<string, number>;
+  /** Побеждённые боссы (id разделов). */
+  defeatedBosses: string[];
+  /** Дополнительно открытые разделы. */
+  unlockedSections: string[];
+  /** Полученные предметы боссов. */
+  items: string[];
 }
 
 export interface UserProgressData {
@@ -62,6 +79,18 @@ export const calcFormulaStars = (taskIds: string[]): number =>
 export const totalXp = (practice: PracticeProgress): number =>
   Object.values(practice.xpByTopic).reduce((sum, value) => sum + value, 0);
 
+const createDefaultPractice = (): PracticeProgress => ({
+  xpByTopic: {},
+  exploredTypes: [],
+  bestScoreByType: {},
+  taskStats: {},
+  stars: 0,
+  starsBySection: {},
+  defeatedBosses: [],
+  unlockedSections: [],
+  items: [],
+});
+
 const createDefaultProgress = (): UserProgressData => ({
   forceLab: {
     completedTaskIds: [],
@@ -72,11 +101,7 @@ const createDefaultProgress = (): UserProgressData => ({
     completedTaskIds: [],
     stars: 0,
   },
-  practice: {
-    xpByTopic: {},
-    exploredTypes: [],
-    bestScoreByType: {},
-  },
+  practice: createDefaultPractice(),
 });
 
 const numericRecord = (value: unknown): Record<string, number> => {
@@ -90,6 +115,21 @@ const numericRecord = (value: unknown): Record<string, number> => {
 
 const stringArray = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+
+const taskStatsRecord = (value: unknown): Record<string, TaskStat> => {
+  if (!value || typeof value !== 'object') return {};
+
+  const result: Record<string, TaskStat> = {};
+  for (const [taskId, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (!raw || typeof raw !== 'object') continue;
+    const stat = raw as { attempts?: unknown; bestScore?: unknown };
+    result[taskId] = {
+      attempts: typeof stat.attempts === 'number' ? stat.attempts : 0,
+      bestScore: typeof stat.bestScore === 'number' ? stat.bestScore : 0,
+    };
+  }
+  return result;
+};
 
 export const loadUserProgress = (): UserProgressData => {
   const fallback = createDefaultProgress();
@@ -106,6 +146,12 @@ export const loadUserProgress = (): UserProgressData => {
       xpByTopic: numericRecord(parsed?.practice?.xpByTopic),
       exploredTypes: stringArray(parsed?.practice?.exploredTypes),
       bestScoreByType: numericRecord(parsed?.practice?.bestScoreByType),
+      taskStats: taskStatsRecord(parsed?.practice?.taskStats),
+      stars: typeof parsed?.practice?.stars === 'number' ? parsed.practice.stars : 0,
+      starsBySection: numericRecord(parsed?.practice?.starsBySection),
+      defeatedBosses: stringArray(parsed?.practice?.defeatedBosses),
+      unlockedSections: stringArray(parsed?.practice?.unlockedSections),
+      items: stringArray(parsed?.practice?.items),
     };
 
     // Совместимость с черновиком quiz-lab: звёзды 0..3 переводим в долю 0..1.
@@ -171,17 +217,21 @@ export const markFormulaTaskCompleted = (taskId: string): UserProgressData => {
 };
 
 /**
- * Записывает результат задания мини-игры: опыт по теме и лучшую долю по типу.
- * В будущем эти данные будет считать Intervallum-Core через v2/grade.
+ * Записывает результат задания: опыт по теме, статистику задачи,
+ * лучшую долю по типу и звёзды за сложные/новые задачи.
  */
-export const recordPracticeResult = (params: {
+export const recordTaskResult = (params: {
+  taskId: string;
   taskType: string;
   topicId: string;
+  sectionId: string;
   xp: number;
   score: number;
+  stars?: number;
 }): UserProgressData => {
   const current = loadUserProgress();
-  const { taskType, topicId, xp, score } = params;
+  const { taskId, taskType, topicId, sectionId, xp, score } = params;
+  const stars = Math.max(0, params.stars ?? 0);
 
   if (xp > 0) {
     current.practice.xpByTopic[topicId] = (current.practice.xpByTopic[topicId] ?? 0) + xp;
@@ -195,6 +245,55 @@ export const recordPracticeResult = (params: {
     current.practice.bestScoreByType[taskType] ?? 0,
     Math.max(0, Math.min(1, score)),
   );
+
+  const previous = current.practice.taskStats[taskId];
+  current.practice.taskStats[taskId] = {
+    attempts: (previous?.attempts ?? 0) + 1,
+    bestScore: Math.max(previous?.bestScore ?? 0, Math.max(0, Math.min(1, score))),
+  };
+
+  if (stars > 0) {
+    current.practice.stars += stars;
+    current.practice.starsBySection[sectionId] =
+      (current.practice.starsBySection[sectionId] ?? 0) + stars;
+  }
+
+  saveUserProgress(current);
+  return current;
+};
+
+/** Открывает раздел после победы над боссом. */
+export const unlockSection = (sectionId: string): UserProgressData => {
+  const current = loadUserProgress();
+  if (!current.practice.unlockedSections.includes(sectionId)) {
+    current.practice.unlockedSections.push(sectionId);
+  }
+  saveUserProgress(current);
+  return current;
+};
+
+/** Победа над боссом: предмет и, при необходимости, открытие следующего раздела. */
+export const defeatBoss = (params: {
+  sectionId: string;
+  itemId: string;
+  unlockSectionId?: string | null;
+}): UserProgressData => {
+  const current = loadUserProgress();
+
+  if (!current.practice.defeatedBosses.includes(params.sectionId)) {
+    current.practice.defeatedBosses.push(params.sectionId);
+  }
+
+  if (!current.practice.items.includes(params.itemId)) {
+    current.practice.items.push(params.itemId);
+  }
+
+  if (
+    params.unlockSectionId &&
+    !current.practice.unlockedSections.includes(params.unlockSectionId)
+  ) {
+    current.practice.unlockedSections.push(params.unlockSectionId);
+  }
 
   saveUserProgress(current);
   return current;

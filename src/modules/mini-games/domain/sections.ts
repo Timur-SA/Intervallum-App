@@ -10,6 +10,7 @@ export const SECTIONS: Section[] = [
     title: 'Механика',
     boss: 'Ньютон',
     item: 'Маятник Ньютона',
+    itemId: 'newton-pendulum',
     color: '#0ea5e9',
     topics: [
       'uniform-motion',
@@ -27,6 +28,7 @@ export const SECTIONS: Section[] = [
     title: 'Тепловые явления',
     boss: 'лорд Кельвин',
     item: 'Термометр',
+    itemId: 'thermometer',
     color: '#f59e0b',
     topics: [
       'heat-amount',
@@ -41,6 +43,7 @@ export const SECTIONS: Section[] = [
     title: 'Электромагнитные явления',
     boss: 'Тесла',
     item: 'Тесла-шар',
+    itemId: 'tesla-ball',
     color: '#8b5cf6',
     topics: ['coulomb', 'charge-conservation', 'resistance', 'ohm', 'joule-lenz', 'ampere'],
   },

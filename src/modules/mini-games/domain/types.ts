@@ -52,6 +52,7 @@ export interface Section {
   title: string;
   boss: string;
   item: string;
+  itemId: string;
   color: string;
   topics: TopicId[];
 }

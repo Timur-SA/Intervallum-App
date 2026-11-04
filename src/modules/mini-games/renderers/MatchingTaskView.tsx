@@ -2,26 +2,21 @@ import React, { useMemo, useState } from 'react';
 import { Button, StatusBadge } from '@maxhub/max-ui';
 import { miniGamesApi } from '../api';
 import { GradeResponse } from '../api/contracts';
-import { MATCHING_TASKS } from '../data/matching';
-import { GameSummary } from '../domain/types';
+import { MatchingTask } from '../domain/types';
 import { getSectionByTopic, getTopic } from '../domain/sections';
 import { shuffleBySeed } from '../engine/shuffle';
 import { haptics } from '../../../shared/motion/haptics';
-import { recordPracticeResult } from '../../../shared/storage/progressStore';
 import { GameShell } from '../components/GameShell';
 import { FeedbackPanel } from '../components/FeedbackPanel';
+import { TaskViewProps, sumXp } from './taskView';
 
-interface GameProps {
-  onFinish: (summary: GameSummary) => void;
-}
-
-const sumXp = (xp: Record<string, number | undefined>): number =>
-  Object.values(xp).reduce((sum: number, value) => sum + (value ?? 0), 0);
-
-export const MatchingGame: React.FC<GameProps> = ({ onFinish }) => {
-  const total = MATCHING_TASKS.length;
-
-  const [index, setIndex] = useState(0);
+export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
+  task,
+  step,
+  total,
+  headerRight,
+  onDone,
+}) => {
   const [leftSelected, setLeftSelected] = useState<string | null>(null);
   const [links, setLinks] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState(false);
@@ -30,13 +25,9 @@ export const MatchingGame: React.FC<GameProps> = ({ onFinish }) => {
   const [errors, setErrors] = useState(0);
   const [grade, setGrade] = useState<GradeResponse | null>(null);
   const [busy, setBusy] = useState(false);
-  const [correctSum, setCorrectSum] = useState(0);
-  const [xp, setXp] = useState(0);
 
-  const task = MATCHING_TASKS[index];
   const topic = getTopic(task.topic);
   const section = getSectionByTopic(task.topic);
-  const isLast = index + 1 >= total;
 
   const rightItems = useMemo(() => shuffleBySeed(task.pairs, task.id), [task]);
   const allLinked = Object.keys(links).length === task.pairs.length;
@@ -94,15 +85,6 @@ export const MatchingGame: React.FC<GameProps> = ({ onFinish }) => {
       });
       setBusy(false);
       setGrade(result);
-      setCorrectSum(previous => previous + result.score);
-      setXp(previous => previous + sumXp(result.xpByTopic));
-
-      recordPracticeResult({
-        taskType: 'matching',
-        topicId: task.topic,
-        xp: sumXp(result.xpByTopic),
-        score: result.score,
-      });
     }
 
     if (!wrong.length) {
@@ -115,42 +97,15 @@ export const MatchingGame: React.FC<GameProps> = ({ onFinish }) => {
     haptics.notification('error');
   };
 
-  const handleContinue = () => {
-    if (!solved) return;
-
-    const nextCorrect = correctSum;
-
-    if (isLast) {
-      onFinish({
-        type: 'matching',
-        tasks: total,
-        score: nextCorrect / total,
-        correct: nextCorrect,
-        xp,
-        bestStreak: 0,
-      });
-      return;
-    }
-
-    haptics.selection();
-    setIndex(index + 1);
-    setLeftSelected(null);
-    setLinks({});
-    setChecked(false);
-    setWrongIds([]);
-    setErrors(0);
-    setSolved(false);
-    setGrade(null);
-  };
-
   const rightOwner = (rightId: string) =>
     Object.entries(links).find(([, linkedRight]) => linkedRight === rightId)?.[0];
 
   return (
     <GameShell
       title="Соответствие"
-      step={index}
+      step={step}
       total={total}
+      headerRight={headerRight}
       footer={
         <>
           {checked && solved && (
@@ -159,7 +114,9 @@ export const MatchingGame: React.FC<GameProps> = ({ onFinish }) => {
               title="Все пары верны!"
               explanation={
                 grade && grade.score < 1
-                  ? `${task.explanation} Первая попытка была неверной, поэтому засчитано ${Math.round(grade.score * 100)}%.`
+                  ? `${task.explanation} Первая попытка была неверной, поэтому засчитано ${Math.round(
+                      grade.score * 100,
+                    )}%.`
                   : task.explanation
               }
               xp={grade ? sumXp(grade.xpByTopic) : 0}
@@ -180,16 +137,10 @@ export const MatchingGame: React.FC<GameProps> = ({ onFinish }) => {
             stretched
             loading={busy}
             disabled={!solved && !allLinked}
-            onClick={solved ? handleContinue : handleCheck}
+            onClick={() => (solved && grade ? onDone(grade) : handleCheck())}
             style={{ marginTop: checked ? 12 : 0 }}
           >
-            {solved
-              ? isLast
-                ? 'Завершить'
-                : 'Продолжить'
-              : checked
-                ? 'Проверить ещё раз'
-                : 'Проверить'}
+            {solved ? 'Продолжить' : checked ? 'Проверить ещё раз' : 'Проверить'}
           </Button>
         </>
       }
@@ -197,14 +148,14 @@ export const MatchingGame: React.FC<GameProps> = ({ onFinish }) => {
       <div className="mg-question__meta">
         <StatusBadge status="neutral" text={section ? section.title : 'Физика'} />
         <span className="mg-question__meta-text">
-          {topic ? topic.title : ''} · {index + 1} из {total}
+          {topic ? topic.title : ''} · {step + 1} из {total}
         </span>
       </div>
 
       <p className="mg-question__prompt">{task.prompt}</p>
       <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-muted)' }}>
         Нажмите на элемент слева, затем на подходящий элемент справа
-        {errors > 0 ? ` · ошибок за раунд: ${errors}` : ''}
+        {errors > 0 ? ` · ошибок: ${errors}` : ''}
       </p>
 
       <div className="mg-match">

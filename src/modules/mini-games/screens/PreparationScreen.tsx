@@ -1,20 +1,34 @@
 import React from 'react';
 import { CellSimple } from '@maxhub/max-ui';
-import { ChevronRight, GraduationCap, Infinity as InfinityIcon, Lock, Swords, Target, Timer } from 'lucide-react';
+import {
+  ChevronRight,
+  GraduationCap,
+  Infinity as InfinityIcon,
+  Lock,
+  Swords,
+  Target,
+  Timer,
+} from 'lucide-react';
 import { PracticeProgress, totalXp } from '../../../shared/storage/progressStore';
-import { TRACKS } from '../domain/sections';
 import { MINI_GAMES, TOTAL_PLAYABLE_TASKS } from '../data';
 import { plural, tasksLabel } from '../engine/plural';
+import { TRACKS } from '../domain/sections';
 import { haptics } from '../../../shared/motion/haptics';
 
 interface PreparationScreenProps {
   progress: PracticeProgress;
   onOpenMiniGames: () => void;
+  onOpenCourse: () => void;
+  onOpenTraining: () => void;
+  onOpenBosses: () => void;
 }
 
 export const PreparationScreen: React.FC<PreparationScreenProps> = ({
   progress,
   onOpenMiniGames,
+  onOpenCourse,
+  onOpenTraining,
+  onOpenBosses,
 }) => (
   <div className="mg-screen">
     <div className="mg-scroll">
@@ -45,27 +59,12 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({
       <div className="mg-list">
         <CellSimple
           as="button"
-          className="mg-row mg-row--accent"
+          className="mg-row"
           height="normal"
           onClick={() => {
             haptics.impact('medium');
-            onOpenMiniGames();
+            onOpenCourse();
           }}
-          overline="Практика"
-          title="Мини-игры"
-          subtitle={`${MINI_GAMES.length} ${plural(MINI_GAMES.length, ['тип', 'типа', 'типов'])} задач · ${tasksLabel(TOTAL_PLAYABLE_TASKS)}`}
-          before={
-            <span className="mg-row__icon" style={{ backgroundColor: '#10b981' }} aria-hidden>
-              <Target size={20} />
-            </span>
-          }
-          after={<ChevronRight size={18} color="var(--text-muted)" />}
-        />
-
-        <CellSimple
-          className="mg-row"
-          height="normal"
-          disabled
           overline="Теория"
           title="Курс"
           subtitle="3 раздела · 19 тем"
@@ -74,28 +73,36 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({
               <GraduationCap size={20} />
             </span>
           }
-          after={<span className="mg-row__badge">Скоро</span>}
+          after={<ChevronRight size={18} color="var(--text-muted)" />}
         />
 
         <CellSimple
+          as="button"
           className="mg-row"
           height="normal"
-          disabled
+          onClick={() => {
+            haptics.impact('medium');
+            onOpenTraining();
+          }}
           overline="Сессия"
           title="Тренировка"
-          subtitle="5–10 задач на разные темы"
+          subtitle="7 задач на разные темы · звёзды за сложные"
           before={
             <span className="mg-row__icon" style={{ backgroundColor: '#8b5cf6' }} aria-hidden>
               <Timer size={20} />
             </span>
           }
-          after={<span className="mg-row__badge">Скоро</span>}
+          after={<ChevronRight size={18} color="var(--text-muted)" />}
         />
 
         <CellSimple
+          as="button"
           className="mg-row"
           height="normal"
-          disabled
+          onClick={() => {
+            haptics.impact('medium');
+            onOpenBosses();
+          }}
           overline="Дуэль"
           title="Босс"
           subtitle="Ньютон, Кельвин, Тесла"
@@ -104,7 +111,30 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({
               <Swords size={20} />
             </span>
           }
-          after={<span className="mg-row__badge">Скоро</span>}
+          after={<ChevronRight size={18} color="var(--text-muted)" />}
+        />
+
+        <CellSimple
+          as="button"
+          className="mg-row mg-row--accent"
+          height="normal"
+          onClick={() => {
+            haptics.impact('medium');
+            onOpenMiniGames();
+          }}
+          overline="Практика"
+          title="Мини-игры"
+          subtitle={`${MINI_GAMES.length} ${plural(MINI_GAMES.length, [
+            'тип',
+            'типа',
+            'типов',
+          ])} задач · ${tasksLabel(TOTAL_PLAYABLE_TASKS)}`}
+          before={
+            <span className="mg-row__icon" style={{ backgroundColor: '#10b981' }} aria-hidden>
+              <Target size={20} />
+            </span>
+          }
+          after={<ChevronRight size={18} color="var(--text-muted)" />}
         />
 
         <CellSimple
