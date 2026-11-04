@@ -1,0 +1,1934 @@
+/* ==========================================================================
+   Mini-games — практика по типам заданий ОГЭ
+   MAX UI + токены Intervallum
+   ========================================================================== */
+
+.mini-games {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background-color: var(--bg-app);
+
+  /* MAX UI не знает про токены Intervallum — выравниваем палитру внутри модуля */
+  --background-card: var(--bg-card);
+  --background-secondary: var(--bg-surface);
+  --background-surface: var(--bg-surface);
+}
+
+/* ------------------------------------------------------------- Экраны */
+
+.mg-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mg-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mg-screen__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mg-screen__title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--text-primary);
+}
+
+.mg-screen__subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.mg-xp {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.mg-xp__value {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mg-xp__unit {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+/* ------------------------------------------------------------- Треки */
+
+.mg-tracks {
+  display: flex;
+  gap: 8px;
+}
+
+.mg-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.mg-track--active {
+  background: var(--accent-bg);
+  border-color: var(--border-accent);
+  color: var(--accent);
+}
+
+.mg-track--locked {
+  opacity: 0.6;
+}
+
+/* ------------------------------------------------------------- Список */
+
+.mg-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mg-row {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.mg-row:active {
+  transform: scale(0.99);
+}
+
+.mg-row--accent {
+  border-color: var(--border-accent);
+}
+
+.mg-row:disabled,
+.mg-row[disabled] {
+  cursor: default;
+}
+
+.mg-row__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.mg-row__score {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--success);
+}
+
+.mg-row__badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.mg-row--struck {
+  opacity: 0.65;
+}
+
+.mg-note {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------- Каркас игры */
+
+.mg-game {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mg-game__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.mg-steps {
+  padding: 0 !important;
+  gap: 5px !important;
+}
+
+.mg-game__streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.mg-game__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mg-game__footer {
+  flex-shrink: 0;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+}
+
+/* ------------------------------------------------------------- Вопрос */
+
+.mg-question__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mg-question__meta-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.mg-question__prompt {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mg-question__hint-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: -2px;
+}
+
+/* ------------------------------------------------------------- Опции */
+
+.mg-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mg-option {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, transform 120ms ease;
+  overflow: hidden;
+}
+
+.mg-option:active {
+  transform: scale(0.99);
+}
+
+.mg-option.mg-option--selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.mg-option.mg-option--correct {
+  border-color: var(--success);
+  background: var(--success-bg);
+}
+
+.mg-option.mg-option--wrong {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.mg-option.mg-option--locked {
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------- Соответствие */
+
+.mg-match {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 30px;
+}
+
+.mg-match__threads {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  overflow: visible;
+}
+
+.mg-match__col {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mg-match__col-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.mg-tile {
+  height: auto !important;
+  min-height: 62px !important;
+  padding: 10px !important;
+  white-space: normal !important;
+  text-align: left !important;
+  border-radius: 14px !important;
+  font-size: 12.5px !important;
+  line-height: 1.3 !important;
+}
+
+.mg-tile--taken {
+  opacity: 0.5;
+}
+
+.mg-tile--selected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.mg-tile--correct {
+  outline: 2px solid var(--success);
+  outline-offset: -2px;
+}
+
+.mg-tile--wrong {
+  outline: 2px solid var(--danger);
+  outline-offset: -2px;
+}
+
+.mg-tile__content {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.3 !important;
+}
+
+.mg-tile__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  width: 100%;
+}
+
+.mg-tile__link {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: normal;
+  line-height: 1.2;
+}
+
+/* ------------------------------------------------------------- Карточки */
+
+.mg-cards__counter {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.mg-cards__grades {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.mg-flash {
+  perspective: 1200px;
+  height: clamp(240px, 40vh, 340px);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mg-flash__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.mg-flash.is-flipped .mg-flash__inner {
+  transform: rotateY(180deg);
+}
+
+.mg-flash__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--bg-card);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 22px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.mg-flash__face--back {
+  transform: rotateY(180deg);
+  justify-content: flex-start;
+  justify-content: safe center;
+  overflow-y: auto;
+}
+
+.mg-flash__deck {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+}
+
+.mg-flash__question {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.mg-flash__answer {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.mg-flash__formula {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--border-accent);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.mg-flash__tap {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ------------------------------------------------------------- Фидбек */
+
+.mg-feedback {
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 14px;
+  animation: mg-slide-up 220ms ease-out;
+}
+
+.mg-feedback--correct {
+  background: var(--success-bg);
+  border-color: rgba(52, 211, 153, 0.4);
+}
+
+.mg-feedback--partial {
+  background: var(--warning-bg);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.mg-feedback--wrong {
+  background: var(--danger-bg);
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+.mg-feedback__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mg-feedback--correct .mg-feedback__title {
+  color: var(--success);
+}
+
+.mg-feedback--partial .mg-feedback__title {
+  color: var(--warning);
+}
+
+.mg-feedback--wrong .mg-feedback__title {
+  color: var(--danger);
+}
+
+.mg-feedback__text {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.mg-feedback__answer {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
+/* ------------------------------------------------------------- Результат */
+
+.mg-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  padding: 28px 24px calc(28px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  overflow-y: auto;
+}
+
+.mg-result__badge {
+  width: 76px;
+  height: 76px;
+  border-radius: 26px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.mg-result__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mg-result__subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+
+.mg-result__stats {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.mg-result__stat {
+  flex: 1;
+  padding: 12px 8px;
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mg-result__stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mg-result__stat-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.mg-result__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: 18px;
+}
+
+/* ------------------------------------------------------------- Анимации */
+
+@keyframes mg-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mg-option,
+  .mg-row,
+  .mg-flash__inner,
+  .mg-feedback {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ------------------------------------------------------------- Таймер босса */
+
+.mg-timer {
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding: 3px 9px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.mg-timer--low {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+/* ------------------------------------------------------------- Чипы выбора */
+
+.mg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.mg-chip--active {
+  background: var(--accent-bg);
+  border-color: var(--border-accent);
+  color: var(--accent);
+}
+
+.mg-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ------------------------------------------------------------- Босс */
+
+.mg-boss-card,
+.mg-boss-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.mg-boss-card--defeated {
+  border-color: rgba(52, 211, 153, 0.4);
+  background: var(--success-bg);
+}
+
+.mg-boss-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mg-boss-card__avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.mg-boss-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mg-boss-card__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mg-boss-card__item {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.mg-boss-card__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.mg-xpbar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+.mg-xpbar__fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 220ms ease;
+}
+
+.mg-row__icon--small {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------- Теория */
+
+.mg-theory {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mg-theory__head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.mg-theory__card {
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mg-theory__question {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.mg-theory__answer {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.mg-theory__details {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.mg-theory__formula {
+  align-self: flex-start;
+  padding: 5px 12px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  border: 1px solid var(--border-accent);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mg-theory__empty {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------- Результат */
+
+.mg-result__badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.mg-result__stars-earned {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mg-result__hint {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.mg-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.mg-next-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+}
+
+.mg-next-section__title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ------------------------------------------------------------- Прогресс темы */
+
+.mg-topic-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.mg-topic-progress--wide {
+  gap: 10px;
+  padding: 10px 0 0;
+}
+
+.mg-topic-progress__bar {
+  flex: 1;
+  max-width: 150px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+.mg-topic-progress--wide .mg-topic-progress__bar {
+  max-width: none;
+  height: 6px;
+}
+
+.mg-topic-progress__fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 220ms ease;
+}
+
+.mg-topic-progress__value {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.mg-topic-progress__caption {
+  margin: -4px 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* ------------------------------------------------------------- Карта */
+
+.mg-map__section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mg-map__section--collapsed {
+  padding: 12px 14px;
+  opacity: 0.8;
+}
+
+.mg-map__section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mg-map__section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.mg-map__section-title {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mg-map__section-xp {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.mg-map__path {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mg-map__path::before {
+  content: '';
+  position: absolute;
+  left: 27px;
+  top: 28px;
+  bottom: 28px;
+  width: 2px;
+  background: var(--border);
+}
+
+.mg-level-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+}
+
+.mg-level-row__rail {
+  position: relative;
+  width: 56px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.mg-level {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.mg-level:disabled {
+  cursor: default;
+}
+
+.mg-level__ring {
+  position: absolute;
+  inset: 0;
+  width: 56px;
+  height: 56px;
+}
+
+.mg-level__track {
+  fill: none;
+  stroke: var(--bg-surface);
+  stroke-width: 4;
+}
+
+.mg-level__fill {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 320ms ease;
+}
+
+.mg-level__inner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid var(--border);
+}
+
+.mg-level--complete .mg-level__inner {
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: rgba(52, 211, 153, 0.4);
+}
+
+.mg-level--ready .mg-level__inner {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-color: var(--border-accent);
+}
+
+.mg-level--locked {
+  opacity: 0.55;
+}
+
+.mg-level--special .mg-level__inner {
+  background: var(--bg-card);
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.mg-level--boss .mg-level__inner {
+  width: 48px;
+  height: 48px;
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.mg-level-row__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mg-level-row__title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mg-level-row__state {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.mg-level-row--boss {
+  margin-top: 4px;
+}
+
+/* ------------------------------------------------------------- Уровень */
+
+.mg-task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.mg-task-row__icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+.mg-task-row__label {
+  flex: 1;
+  font-size: 12.5px;
+  color: var(--text-primary);
+}
+
+.mg-task-row__xp {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+/* ------------------------------------------------------------- Нитки */
+
+.mg-tile {
+  touch-action: pan-y;
+}
+
+.mg-thread {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: mg-thread-draw 320ms ease-out forwards;
+}
+
+.mg-thread__dot {
+  animation: mg-thread-dot 140ms ease-out both;
+  animation-delay: 240ms;
+}
+
+.mg-thread--temp {
+  stroke-dasharray: 6 6;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+@keyframes mg-thread-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes mg-thread-dot {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------- Карта разделов */
+
+.mg-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mg-section-node {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 14px;
+  border-radius: 22px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mg-section-node--unknown {
+  opacity: 0.65;
+}
+
+.mg-section-node--selectable {
+  border-color: var(--border-accent);
+  opacity: 1;
+  animation: mg-pulse 1.8s ease-in-out infinite;
+}
+
+.mg-section-node__circle {
+  position: relative;
+  grid-row: span 2;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 3px solid var(--border-strong);
+  display: grid;
+  place-items: center;
+}
+
+.mg-section-node--done .mg-section-node__circle {
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.18);
+}
+
+.mg-section-node__ring {
+  position: absolute;
+  inset: -3px;
+  width: 96px;
+  height: 96px;
+}
+
+.mg-section-node__track {
+  fill: none;
+  stroke: var(--bg-surface);
+  stroke-width: 3;
+}
+
+.mg-section-node__fill {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 300ms ease;
+}
+
+.mg-section-node__question {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.mg-section-node__label {
+  align-self: end;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mg-section-node__meta {
+  align-self: start;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.mg-section-node__chevron {
+  grid-row: span 2;
+}
+
+@keyframes mg-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.14);
+  }
+}
+
+/* ------------------------------------------------------------- Карта раздела */
+
+.mg-path {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0 24px;
+}
+
+.mg-path__row {
+  display: flex;
+}
+
+.mg-path__row--left {
+  justify-content: flex-start;
+  padding-left: 12%;
+}
+
+.mg-path__row--right {
+  justify-content: flex-end;
+  padding-right: 12%;
+}
+
+.mg-path__row--center {
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.mg-path__node-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 26px;
+}
+
+.mg-node {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.mg-node:disabled {
+  cursor: default;
+}
+
+.mg-node__ring {
+  position: absolute;
+  inset: 0;
+}
+
+.mg-node__track {
+  fill: none;
+  stroke: var(--bg-surface);
+  stroke-width: 4;
+}
+
+.mg-node__fill {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 300ms ease;
+}
+
+.mg-node__inner {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.mg-node--done .mg-node__inner {
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: rgba(52, 211, 153, 0.4);
+}
+
+.mg-node--current .mg-node__inner {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-color: var(--border-accent);
+}
+
+.mg-node--locked {
+  opacity: 0.5;
+}
+
+.mg-node--boss {
+  width: 96px;
+  height: 96px;
+}
+
+.mg-node__inner--boss {
+  width: 76px;
+  height: 76px;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.mg-node--boss-ready .mg-node__inner--boss {
+  animation: mg-pulse 1.8s ease-in-out infinite;
+}
+
+.mg-node--boss-done .mg-node__inner--boss {
+  color: var(--success);
+  background: var(--success-bg);
+}
+
+.mg-path__caption {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  max-width: 150px;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.mg-path__caption--center {
+  max-width: 220px;
+}
+
+.mg-path__start {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 12px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.mg-path__hint {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 190px;
+}
+
+/* ------------------------------------------------------------- Модалка уровня */
+
+.mg-level-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 8px;
+}
+
+.mg-level-sheet__meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mg-level-sheet__stats {
+  display: flex;
+  gap: 10px;
+}
+
+.mg-level-sheet__stat {
+  flex: 1;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+}
+
+.mg-level-sheet__value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mg-level-sheet__label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------- Победа и футер карты */
+
+.mg-victory {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.mg-victory__flame {
+  width: 84px;
+  height: 84px;
+  border-radius: 28px;
+  display: grid;
+  place-items: center;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.mg-btn-primary {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------- Дорожка */
+
+.mg-path {
+  position: relative;
+}
+
+.mg-path__road {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+.mg-path__road path {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 2 12;
+}
+
+.mg-path__row {
+  position: relative;
+  z-index: 1;
+}
+
+/* Sticky-шапка карты раздела */
+.mg-screen__head--fixed {
+  position: relative;
+  z-index: 30;
+  flex-shrink: 0;
+  padding: 16px 16px 10px;
+  background: var(--bg-app);
+  border-bottom: 1px solid var(--border);
+}
+
+.mg-path__row--chaos {
+  justify-content: center;
+}
+
+/* Карусель теории */
+.mg-theory-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mg-theory-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.mg-theory-nav__btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.mg-theory-nav__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.mg-theory-nav__count {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Задание «Расстановка сил» внутри общего каркаса */
+.mg-force-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px 10px;
+}
+
+.mg-force-canvas {
+  flex: 1;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  overflow: hidden;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.mg-force-feedback {
+  margin: 8px 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.mg-force-feedback.is-pass {
+  color: var(--success);
+  border-color: rgba(52, 211, 153, 0.4);
+  background: var(--success-bg);
+}
+
+.mg-force-feedback.is-fail {
+  color: var(--danger);
+  border-color: rgba(248, 113, 113, 0.4);
+  background: var(--danger-bg);
+}
+
+/* ------------------------------------------------------------- Единая карта */
+
+.mg-journey {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 12px;
+}
+
+.mg-journey__section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mg-journey__section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  cursor: pointer;
+  text-align: left;
+}
+
+.mg-journey__section-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.mg-journey__section-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mg-journey__section-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.mg-journey__cutoff {
+  margin: 6px 8px;
+  padding: 12px 16px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 14px;
+  text-align: center;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.mg-journey__choose {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+}
+
+.mg-journey__choose-title {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mg-journey__choose-row {
+  display: flex;
+  gap: 20px;
+}
+
+.mg-section-node__circle--choice {
+  width: 76px;
+  height: 76px;
+  cursor: pointer;
+  background: var(--bg-card);
+}
+
+/* Анимация листания теории */
+.mg-theory__card--next {
+  animation: mg-slide-left 240ms ease-out;
+}
+
+.mg-theory__card--prev {
+  animation: mg-slide-right 240ms ease-out;
+}
+
+@keyframes mg-slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mg-slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Sticky-заголовки разделов и карточки выбора */
+.mg-journey__section-head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-left: -16px;
+  margin-right: -16px;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  padding: 10px 16px;
+}
+
+.mg-journey__choose-row {
+  flex-direction: column;
+  width: 100%;
+}
+
+.mg-choice-card {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border-accent);
+  background: var(--bg-card);
+  cursor: pointer;
+  text-align: left;
+}
+
+.mg-choice-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+.mg-choice-card__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mg-choice-card__meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Формулы внутри общего каркаса */
+.mg-interactive {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mg-interactive > div {
+  height: 100%;
+}
+
+/* Формулы: edge-to-edge и слот ответа */
+.mg-game__body--flush {
+  padding: 0 !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+}
+
+.mg-interactive__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 10px;
+}
+
+.mg-interactive {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mg-interactive > div {
+  height: 100%;
+}
+
+.mg-answer-slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  min-height: 58px;
+}
+
+.mg-answer-slot__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.mg-answer-slot__drop {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 4px 10px;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: 12px;
+  background: var(--bg-surface);
+}
+
+.mg-answer-slot__drop.is-filled {
+  border-style: solid;
+  border-color: var(--success);
+  background: var(--success-bg);
+}
+
+.mg-answer-slot__hint {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.out-pill {
+  cursor: grab;
+  touch-action: none;
+}

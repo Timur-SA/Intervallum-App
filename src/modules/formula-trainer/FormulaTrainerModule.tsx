@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Typography, Button } from '@maxhub/max-ui';
 import { PhysicsTask, FormulaCard, PhysicalLaw, ComputedResult } from './types/physics';
 import { PHYSICS_TASKS } from './data/tasksDb';
@@ -36,10 +36,26 @@ interface DragState {
 
 interface FormulaTrainerModuleProps {
   onBackToHub: () => void;
+  /** Встроенный режим: одна задача внутри общего каркаса уровня. */
+  embeddedTask?: PhysicsTask;
+  onEmbeddedDone?: (score: number) => void;
+  onEmbeddedChecked?: (result: {
+    correct: boolean;
+    score: number;
+    answerLabel: string;
+    correctLabel: string;
+  }) => void;
 }
 
-export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBackToHub }) => {
-  const [currentTask, setCurrentTask] = useState<PhysicsTask | null>(null);
+export interface FormulaTrainerHandle {
+  check: () => void;
+}
+
+export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrainerModuleProps>(
+  ({ onBackToHub, embeddedTask, onEmbeddedDone, onEmbeddedChecked }, ref) => {
+  const embedded = Boolean(embeddedTask);
+  const [currentTask, setCurrentTask] = useState<PhysicsTask | null>(embeddedTask ?? null);
+  const [answer, setAnswer] = useState<{ symbol: string; value: number; unit?: string } | null>(null);
   const [cards, setCards] = useState<FormulaCard[]>([]);
   const [cardCounter, setCardCounter] = useState(0);
 
@@ -309,6 +325,7 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
         setDragState({ type: null });
         setHoveredCandidate(null);
 
+
         if (targetToken) {
           const targetCardId = parseInt(targetToken.dataset.cardId || '-1');
           const targetSym = targetToken.dataset.symbol || '';
@@ -373,6 +390,26 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
         setDragState({ type: null });
         setHoveredCandidate(null);
 
+        if (elem?.closest('.mg-answer-slot')) {
+          setAnswer({
+            symbol: card.computed!.symbol,
+            value: card.computed!.value,
+            unit: card.computed!.unit,
+          });
+          haptics.notification('success');
+          return;
+        }
+
+
+        if (elem?.closest('.mg-answer-slot')) {
+          setAnswer({
+            symbol: card.computed!.symbol,
+            value: card.computed!.value,
+            unit: card.computed!.unit,
+          });
+          haptics.notification('success');
+          return;
+        }
         if (targetToken) {
           const targetCardId = parseInt(targetToken.dataset.cardId || '-1');
           const targetSym = targetToken.dataset.symbol || '';
@@ -391,20 +428,33 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
   };
 
   const handleCheckClick = () => {
-    if (cards.length === 0) {
-      showToast('Сначала добавьте формулу из законов физики');
-      setIsSheetOpen(true);
+    if (!answer || !currentTask) {
+      showToast('Перетащите результат в слот ответа');
       return;
     }
 
-    const computedList = cards.filter(c => c.computed && c.computed.value !== null);
-    if (computedList.length === 0) {
-      showToast('Выразите искомую величину и подставьте числовые значения в формулу');
+    const expected = currentTask.find;
+    const correct =
+      answer.symbol === expected.symbol &&
+      Math.abs(answer.value - expected.value) / Math.abs(expected.value || 1) < 0.02;
+    const score = correct ? 1 : 0.5;
+
+    if (embedded) {
+      haptics.notification(correct ? 'success' : 'error');
+      onEmbeddedChecked?.({
+        correct,
+        score,
+        answerLabel: `${answer.symbol} = ${answer.value} ${answer.unit ?? ''}`.trim(),
+        correctLabel: `${expected.symbol} = ${expected.value} ${expected.unit ?? ''}`.trim(),
+      });
       return;
     }
 
-    haptics.selection();
-    setSelectionMode(true);
+    setModalState({
+      isOpen: true,
+      isSuccess: correct,
+      result: { symbol: answer.symbol, value: answer.value, unit: answer.unit ?? '' },
+    });
   };
 
   const handleSelectAnswerCard = (card: FormulaCard) => {
@@ -442,14 +492,17 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
   const { setNavigationConfig } = useNavigation();
   const hasComputedResults = cards.some(c => c.computed && c.computed.value !== null);
 
+  useImperativeHandle(ref, () => ({ check: handleCheckClick }));
+
   // Inform host messenger BackButton
   useEffect(() => {
+    if (embedded) return;
     if (!currentTask) {
       setNavigationConfig({ canGoBack: true, onBack: onBackToHub });
     } else {
       setNavigationConfig({ canGoBack: true, onBack: () => setCurrentTask(null) });
     }
-  }, [currentTask, onBackToHub, setNavigationConfig]);
+  }, [currentTask, onBackToHub, setNavigationConfig, embedded]);
 
   return (
     <div
@@ -487,6 +540,7 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
       ) : (
         <div className="app-screen-solver" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {/* Solver In-App Header */}
+          {!embedded && (
           <div className="inapp-header">
             <span
               style={{
@@ -512,8 +566,26 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
               Проверить
             </Button>
           </div>
+          )}
 
           <CollapsibleProblemPanel task={currentTask} onPointerDownGiven={handlePointerDownGiven} />
+
+          <div className="mg-answer-slot">
+            <span className="mg-answer-slot__label">Ответ:</span>
+            <div className={`mg-answer-slot__drop ${answer ? 'is-filled' : ''}`}>
+              {answer ? (
+                <span className="given-chip mg-answer-slot__pill">
+                  <b>{answer.symbol}</b> ={' '}
+                  {Number.isInteger(answer.value)
+                    ? answer.value
+                    : parseFloat(answer.value.toFixed(3))}{' '}
+                  {answer.unit}
+                </span>
+              ) : (
+                <span className="mg-answer-slot__hint">Перетащите сюда величину</span>
+              )}
+            </div>
+          </div>
 
           {selectionMode && (
             <div className="tape-prompt-bar visible">
@@ -575,7 +647,6 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
             <div className="dock-content">
               <span className="dock-icon">📚</span>
               <span className="dock-label">Законы физики</span>
-              <span className="dock-hint">(нажмите или свайпните вверх)</span>
             </div>
           </div>
 
@@ -649,4 +720,7 @@ export const FormulaTrainerModule: React.FC<FormulaTrainerModuleProps> = ({ onBa
       {toast && <div className="max-toast show">{toast}</div>}
     </div>
   );
-};
+  },
+);
+
+FormulaTrainerModule.displayName = 'FormulaTrainerModule';

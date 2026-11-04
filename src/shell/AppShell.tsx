@@ -4,14 +4,12 @@ import '@maxhub/max-ui/dist/styles.css';
 import '../modules/formula-trainer/styles/index.css';
 import '../shared/styles/themeTokens.css';
 
-import { MainHub } from './MainHub';
-import { ForceLabModule } from '../modules/force-lab/ForceLabModule';
-import { FormulaTrainerModule } from '../modules/formula-trainer/FormulaTrainerModule';
-import { loadUserProgress, UserProgressData } from '../shared/storage/progressStore';
+import { MapModule } from '../modules/mini-games/MapModule';
 import { NavigationProvider, useNavigation } from './HeaderContext';
 import { SandboxMessengerHeader } from './SandboxMessengerHeader';
+import { DevPanel } from './DevPanel';
 
-export type AppMode = 'hub' | 'force-lab' | 'formula-trainer';
+export type AppMode = 'map';
 
 /**
  * Synchronizes Telegram / MAX client native BackButton with the active Navigation state
@@ -54,10 +52,9 @@ const SandboxMessengerBarContainer: React.FC<{ platform: 'ios' | 'android' }> = 
 };
 
 export const AppShell: React.FC = () => {
-  const [currentMode, setCurrentMode] = useState<AppMode>('hub');
+  const [currentMode, setCurrentMode] = useState<AppMode>('map');
   const [platform, setPlatform] = useState<'ios' | 'android'>('ios');
   const [colorScheme, setColorScheme] = useState<'dark' | 'light'>('dark');
-  const [progress, setProgress] = useState<UserProgressData>(loadUserProgress());
 
   const isInsideMax =
     typeof window !== 'undefined' && Boolean((window as any).WebApp?.platform);
@@ -75,13 +72,8 @@ export const AppShell: React.FC = () => {
     }
   }, []);
 
-  const handleSelectMode = (mode: 'force-lab' | 'formula-trainer') => {
-    setCurrentMode(mode);
-  };
-
   const handleBackToHub = () => {
-    setCurrentMode('hub');
-    setProgress(loadUserProgress());
+    setCurrentMode('map');
   };
 
   return (
@@ -184,6 +176,8 @@ export const AppShell: React.FC = () => {
         </header>
       )}
 
+      {!isInsideMax && <DevPanel />}
+
       {/* Mobile Stage Frame */}
       <div
         style={{
@@ -209,6 +203,9 @@ export const AppShell: React.FC = () => {
             flexDirection: 'column',
             overflow: 'hidden',
             position: 'relative',
+            // Делает корпус содержащим блоком для position: fixed,
+            // чтобы шторки MAX UI не выходили за пределы «телефона» в песочнице
+            transform: 'translateZ(0)',
           }}
         >
           <MaxUI platform={platform} colorScheme={colorScheme} resetBody={false}>
@@ -269,16 +266,8 @@ export const AppShell: React.FC = () => {
                     overflow: 'hidden',
                   }}
                 >
-                  {currentMode === 'hub' && (
-                    <MainHub progress={progress} onSelectMode={handleSelectMode} />
-                  )}
-
-                  {currentMode === 'force-lab' && (
-                    <ForceLabModule onBackToHub={handleBackToHub} />
-                  )}
-
-                  {currentMode === 'formula-trainer' && (
-                    <FormulaTrainerModule onBackToHub={handleBackToHub} />
+                  {currentMode === 'map' && (
+                    <MapModule />
                   )}
                 </div>
               </div>

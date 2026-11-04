@@ -250,23 +250,15 @@ export const FormulaCardItem: React.FC<FormulaCardItemProps> = ({
         : parseFloat(card.computed.value.toFixed(3));
 
       return (
-        <div
-          className={`card-out-cell out-success ${selectionMode ? 'selectable' : ''}`}
-          onClick={() => {
-            if (selectionMode) onSelectAnswerCard(card);
-          }}
-        >
+        <div className="card-out-cell out-success">
           <div className="out-badge">
-            <span className="out-tag">[Out]:</span>
-            <span className="out-equation">
-              <b>{card.computed.symbol}</b> = <mark>{formatted}</mark> {card.computed.unit}
-            </span>
+            <span className="out-tag">Результат:</span>
             <span
-              className="out-drag-handle"
-              title="Перетяните это значение в другую формулу"
+              className="given-chip out-pill"
+              title="Перетащите результат в слот ответа"
               onPointerDown={(e) => onPointerDownOut(e, card)}
             >
-              ⠿
+              <b>{card.computed.symbol}</b> = {formatted} {card.computed.unit}
             </span>
           </div>
         </div>

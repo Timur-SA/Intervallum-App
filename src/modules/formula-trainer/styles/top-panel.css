@@ -172,3 +172,10 @@
   font-size: 13px;
   color: #ffbf66;
 }
+
+/* Пилюли условия — источники перетаскивания */
+.given-chip {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
