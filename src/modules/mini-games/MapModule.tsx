@@ -129,15 +129,6 @@ export const MapModule: React.FC = () => {
     setRoute({ name: 'journey' });
   };
 
-  const handleReset = () => {
-    localStorage.removeItem('intervallum:progress:v2');
-    setProgress(loadUserProgress());
-    setHistory([]);
-    setRoute({ name: 'journey' });
-  };
-
-  const isSandbox = typeof window !== 'undefined' && !(window as any).WebApp?.platform;
-
   if (route.name === 'session') {
     return (
       <div className="mini-games">
@@ -188,8 +179,6 @@ export const MapModule: React.FC = () => {
         onStartLevel={startLevel}
         onStartBoss={startBoss}
         onChooseSection={handleChooseSection}
-        onResetProgress={handleReset}
-        isSandbox={isSandbox}
       />
     </div>
   );

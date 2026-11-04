@@ -32,8 +32,6 @@ interface JourneyMapScreenProps {
   onStartLevel: (sectionId: SectionId, topicId: TopicId) => void;
   onStartBoss: (sectionId: SectionId) => void;
   onChooseSection: (sectionId: SectionId) => void;
-  onResetProgress: () => void;
-  isSandbox: boolean;
 }
 
 const Ring: React.FC<{ value: number; max: number; size: number; color: string; done?: boolean }> = ({
@@ -69,8 +67,6 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
   onStartLevel,
   onStartBoss,
   onChooseSection,
-  onResetProgress,
-  isSandbox,
 }) => {
   const [collapsedOverrides, setCollapsedOverrides] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<{ sectionId: SectionId; topicId: TopicId } | null>(null);
@@ -325,13 +321,6 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
           )}
         </div>
 
-        {isSandbox && (
-          <div className="mg-map__footer">
-            <button type="button" className="mg-reset" onClick={onResetProgress}>
-              Сбросить прогресс (тест)
-            </button>
-          </div>
-        )}
       </div>
 
       <BottomSheet
