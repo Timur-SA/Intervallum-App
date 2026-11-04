@@ -9,7 +9,7 @@ import { haptics } from '../../../shared/motion/haptics';
 import { GameShell } from '../components/GameShell';
 import { AnswerOption } from '../components/AnswerOption';
 import { FeedbackPanel } from '../components/FeedbackPanel';
-import { TaskViewProps, sumXp } from './taskView';
+import { TaskViewProps } from './taskView';
 
 export const MultiTaskView: React.FC<TaskViewProps<MultiChoiceTask>> = ({
   task,
@@ -82,7 +82,6 @@ export const MultiTaskView: React.FC<TaskViewProps<MultiChoiceTask>> = ({
                 title={feedbackTitle}
                 explanation={task.explanation}
                 correctAnswer={grade.outcome === 'correct' ? undefined : correctAnswer}
-                xp={sumXp(grade.xpByTopic)}
               />
             )}
 

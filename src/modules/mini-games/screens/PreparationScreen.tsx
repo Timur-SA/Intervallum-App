@@ -5,11 +5,12 @@ import {
   GraduationCap,
   Infinity as InfinityIcon,
   Lock,
+  Star,
   Swords,
   Target,
   Timer,
 } from 'lucide-react';
-import { PracticeProgress, totalXp } from '../../../shared/storage/progressStore';
+import { PracticeProgress } from '../../../shared/storage/progressStore';
 import { MINI_GAMES, TOTAL_PLAYABLE_TASKS } from '../data';
 import { plural, tasksLabel } from '../engine/plural';
 import { TRACKS } from '../domain/sections';
@@ -38,8 +39,8 @@ export const PreparationScreen: React.FC<PreparationScreenProps> = ({
           <p className="mg-screen__subtitle">Трек ОГЭ · индивидуальная версия</p>
         </div>
         <span className="mg-xp">
-          <span className="mg-xp__value">{totalXp(progress)}</span>
-          <span className="mg-xp__unit">XP</span>
+          <Star size={13} fill="#f59e0b" />
+          <span className="mg-xp__value">{progress.stars}</span>
         </span>
       </header>
 

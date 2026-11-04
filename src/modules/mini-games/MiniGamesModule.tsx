@@ -2,10 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import './styles/mini-games.css';
 import { CircleCheck, Layers, Link2, ListChecks, Swords, Target, Timer, Trophy } from 'lucide-react';
 import { AnyTask, PlayableTaskType, SectionId, TopicId } from './domain/types';
-import { getSection, getTopic } from './domain/sections';
+import { SECTIONS, getSection, getTopic } from './domain/sections';
 import {
   BOSS_TIME_SECONDS,
   BOSS_WIN_SCORE,
+  isSectionUnlocked,
   TRAINING_TASKS,
 } from './domain/progression';
 import { getMiniGameMeta } from './data';
@@ -39,7 +40,6 @@ interface SessionConfig {
   kind: SessionKind;
   title: string;
   tasks: AnyTask[];
-  awardStars: boolean;
   timerSeconds?: number;
   sectionId?: SectionId;
   topicId?: TopicId;
@@ -116,7 +116,6 @@ export const MiniGamesModule: React.FC<MiniGamesModuleProps> = ({
       kind: 'mini-game',
       title: getMiniGameMeta(type).title,
       tasks,
-      awardStars: false,
     });
   };
 
@@ -137,17 +136,21 @@ export const MiniGamesModule: React.FC<MiniGamesModuleProps> = ({
       kind: 'topic',
       title: getTopic(topicId)?.title ?? 'Тема',
       tasks,
-      awardStars: false,
       sectionId,
       topicId,
     });
   };
 
   const startTraining = (sectionId?: SectionId) => {
+    const allowedSections = SECTIONS.filter(section =>
+      isSectionUnlocked(progress.practice, section.id),
+    ).map(section => section.id);
+
     const tasks = selectTrain(
       {
         count: TRAINING_TASKS,
         sectionId,
+        sectionIds: sectionId ? undefined : allowedSections,
         seed: String(Date.now()),
       },
       progress.practice,
@@ -159,7 +162,6 @@ export const MiniGamesModule: React.FC<MiniGamesModuleProps> = ({
       kind: 'training',
       title: 'Тренировка',
       tasks,
-      awardStars: true,
       sectionId,
     });
   };
@@ -174,7 +176,6 @@ export const MiniGamesModule: React.FC<MiniGamesModuleProps> = ({
       kind: 'boss',
       title: `Дуэль: ${section.boss}`,
       tasks,
-      awardStars: false,
       timerSeconds: BOSS_TIME_SECONDS,
       sectionId,
     });
@@ -215,7 +216,6 @@ export const MiniGamesModule: React.FC<MiniGamesModuleProps> = ({
       <div className="mini-games">
         <SessionRunner
           tasks={route.config.tasks}
-          awardStars={route.config.awardStars}
           timerSeconds={route.config.timerSeconds}
           onComplete={handleSessionComplete}
         />

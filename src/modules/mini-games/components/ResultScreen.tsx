@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Button } from '@maxhub/max-ui';
-import { RotateCcw, Sparkles, Star } from 'lucide-react';
+import { RotateCcw, Star } from 'lucide-react';
 import { SessionSummary } from '../renderers/SessionRunner';
 
 interface ResultScreenProps {
@@ -36,12 +36,6 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
       <p className="mg-result__subtitle">{subtitle}</p>
 
       <div className="mg-result__badges">
-        {summary.xp > 0 && (
-          <span className="mg-result__xp">
-            <Sparkles size={16} />
-            +{summary.xp} XP
-          </span>
-        )}
 
         {summary.stars > 0 && (
           <span className="mg-result__stars-earned">

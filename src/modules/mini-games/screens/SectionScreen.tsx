@@ -10,6 +10,7 @@ import {
   isSectionDefeated,
   isTopicUnlocked,
   sectionStars,
+  TOPIC_XP_THRESHOLD,
 } from '../domain/progression';
 import { haptics } from '../../../shared/motion/haptics';
 
@@ -120,7 +121,22 @@ export const SectionScreen: React.FC<SectionScreenProps> = ({
                 }}
                 overline={`Тема ${index + 1}`}
                 title={title}
-                subtitle={`${xp} XP`}
+                subtitle={
+                  <span className="mg-topic-progress">
+                    <span className="mg-topic-progress__bar">
+                      <span
+                        className="mg-topic-progress__fill"
+                        style={{
+                          width: `${Math.min(100, (xp / TOPIC_XP_THRESHOLD) * 100)}%`,
+                          backgroundColor: unlocked ? section.color : 'var(--text-muted)',
+                        }}
+                      />
+                    </span>
+                    <span className="mg-topic-progress__value">
+                      {Math.min(xp, TOPIC_XP_THRESHOLD)} / {TOPIC_XP_THRESHOLD}
+                    </span>
+                  </span>
+                }
                 before={
                   <span
                     className="mg-row__icon mg-row__icon--small"

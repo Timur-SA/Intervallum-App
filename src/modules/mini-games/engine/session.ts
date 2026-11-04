@@ -1,11 +1,13 @@
 import { AnyTask } from '../domain/types';
 
 /**
- * Звезда начисляется за полностью верное решение новой или сложной задачи
- * и только в режимах, где звёзды предусмотрены (Тренировка).
+ * Звезда за каждое полностью верное задание, ещё одна — за новое или сложное.
+ * Так прогрессия не «высыхает», когда все задачи уже видели.
  */
 export const earnedStars = (
   task: Pick<AnyTask, 'isNew' | 'isHard'>,
   score: number,
-  awardStars: boolean,
-): number => (awardStars && score >= 1 && (task.isNew || task.isHard) ? 1 : 0);
+): number => {
+  if (score < 1) return 0;
+  return 1 + (task.isNew || task.isHard ? 1 : 0);
+};

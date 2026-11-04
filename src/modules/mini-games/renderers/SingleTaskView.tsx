@@ -9,7 +9,7 @@ import { haptics } from '../../../shared/motion/haptics';
 import { GameShell } from '../components/GameShell';
 import { AnswerOption } from '../components/AnswerOption';
 import { FeedbackPanel } from '../components/FeedbackPanel';
-import { TaskViewProps, sumXp } from './taskView';
+import { TaskViewProps } from './taskView';
 
 const FEEDBACK_TITLE: Record<Outcome, string> = {
   correct: 'Верно!',
@@ -67,7 +67,6 @@ export const SingleTaskView: React.FC<TaskViewProps<SingleChoiceTask>> = ({
                 title={FEEDBACK_TITLE[grade.outcome]}
                 explanation={task.explanation}
                 correctAnswer={grade.outcome === 'correct' ? undefined : correctAnswer}
-                xp={sumXp(grade.xpByTopic)}
               />
             )}
 

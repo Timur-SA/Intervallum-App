@@ -76,9 +76,6 @@ export const calcForceStars = (taskIds: string[]): number =>
 export const calcFormulaStars = (taskIds: string[]): number =>
   taskIds.reduce((sum, id) => sum + (FORMULA_DIFFICULTIES[id] || 1), 0);
 
-export const totalXp = (practice: PracticeProgress): number =>
-  Object.values(practice.xpByTopic).reduce((sum, value) => sum + value, 0);
-
 const createDefaultPractice = (): PracticeProgress => ({
   xpByTopic: {},
   exploredTypes: [],

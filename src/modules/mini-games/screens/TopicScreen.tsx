@@ -1,9 +1,10 @@
 import React from 'react';
 import { Button } from '@maxhub/max-ui';
-import { BookOpen, Play, Star } from 'lucide-react';
+import { BookOpen, Play } from 'lucide-react';
 import { PracticeProgress } from '../../../shared/storage/progressStore';
 import { getSection, getTopic } from '../domain/sections';
 import { SectionId, TopicId } from '../domain/types';
+import { TOPIC_XP_THRESHOLD } from '../domain/progression';
 import { CARDS } from '../data/cards';
 import { TASK_BANK } from '../data';
 import { haptics } from '../../../shared/motion/haptics';
@@ -38,11 +39,25 @@ export const TopicScreen: React.FC<TopicScreenProps> = ({
             <h1 className="mg-screen__title">{topic ? topic.title : 'Тема'}</h1>
             <p className="mg-screen__subtitle">{section ? section.title : 'Физика'}</p>
           </div>
-          <span className="mg-xp">
-            <Star size={13} fill="#f59e0b" />
-            <span className="mg-xp__value">{xp}</span>
-          </span>
         </header>
+
+        <div className="mg-topic-progress mg-topic-progress--wide">
+          <span className="mg-topic-progress__bar">
+            <span
+              className="mg-topic-progress__fill"
+              style={{
+                width: `${Math.min(100, (xp / TOPIC_XP_THRESHOLD) * 100)}%`,
+                backgroundColor: section?.color ?? 'var(--accent)',
+              }}
+            />
+          </span>
+          <span className="mg-topic-progress__value">
+            {Math.min(xp, TOPIC_XP_THRESHOLD)} / {TOPIC_XP_THRESHOLD}
+          </span>
+        </div>
+        <p className="mg-topic-progress__caption">
+          Прогресс темы открывает следующую тему раздела
+        </p>
 
         <div className="mg-theory">
           <div className="mg-theory__head">

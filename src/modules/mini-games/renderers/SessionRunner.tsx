@@ -25,8 +25,6 @@ export interface SessionSummary {
 
 interface SessionRunnerProps {
   tasks: AnyTask[];
-  /** Начислять звёзды за новые и сложные задачи (только Тренировка). */
-  awardStars?: boolean;
   /** Таймер дуэли; по нулю сессия завершается. */
   timerSeconds?: number;
   onComplete: (summary: SessionSummary) => void;
@@ -51,7 +49,6 @@ const formatTime = (seconds: number): string => {
 
 export const SessionRunner: React.FC<SessionRunnerProps> = ({
   tasks,
-  awardStars = false,
   timerSeconds,
   onComplete,
 }) => {
@@ -115,7 +112,7 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
     if (!task) return;
 
     const gainedXp = sumXp(grade.xpByTopic);
-    const earnedStar = earnedStars(task, grade.score, awardStars);
+    const earnedStar = earnedStars(task, grade.score);
     const nextStreak = grade.score >= 1 ? acc.streak + 1 : 0;
 
     const next: Accumulator = {

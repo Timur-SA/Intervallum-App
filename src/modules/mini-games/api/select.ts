@@ -8,6 +8,8 @@ import { shuffleBySeed } from '../engine/shuffle';
 export interface SelectTrainRequest {
   count: number;
   sectionId?: SectionId;
+  /** Ограничить выборку списком разделов (например, только открытыми). */
+  sectionIds?: SectionId[];
   topicId?: TopicId;
   type?: PlayableTaskType;
   /** Исключить типы, например карточки из практики по теме. */
@@ -34,6 +36,10 @@ const matches = (
   if (request.excludeTypes?.includes(task.type)) return false;
   if (request.topicId && task.topic !== request.topicId) return false;
   if (request.sectionId && getSectionByTopic(task.topic)?.id !== request.sectionId) return false;
+  if (request.sectionIds) {
+    const sectionId = getSectionByTopic(task.topic)?.id;
+    if (!sectionId || !request.sectionIds.includes(sectionId)) return false;
+  }
   return true;
 };
 

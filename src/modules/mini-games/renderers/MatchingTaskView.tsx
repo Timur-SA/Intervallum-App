@@ -8,7 +8,7 @@ import { shuffleBySeed } from '../engine/shuffle';
 import { haptics } from '../../../shared/motion/haptics';
 import { GameShell } from '../components/GameShell';
 import { FeedbackPanel } from '../components/FeedbackPanel';
-import { TaskViewProps, sumXp } from './taskView';
+import { TaskViewProps } from './taskView';
 
 export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
   task,
@@ -119,7 +119,6 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
                     )}%.`
                   : task.explanation
               }
-              xp={grade ? sumXp(grade.xpByTopic) : 0}
             />
           )}
 

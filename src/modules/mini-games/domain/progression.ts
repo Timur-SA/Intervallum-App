@@ -6,7 +6,7 @@ import { SectionId, TopicId } from './types';
 export const BOSS_STARS_REQUIRED = 10;
 
 /** Порог опыта на предыдущей теме, чтобы открыть следующую. */
-export const TOPIC_XP_THRESHOLD = 30;
+export const TOPIC_XP_THRESHOLD = 20;
 
 /** Тренировка: 5–10 задач из спеки. */
 export const TRAINING_TASKS = 7;

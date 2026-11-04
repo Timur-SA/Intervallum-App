@@ -7,7 +7,6 @@ interface FeedbackPanelProps {
   title: string;
   explanation: string;
   correctAnswer?: string;
-  xp?: number;
 }
 
 const ICONS = {
@@ -22,7 +21,6 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
   title,
   explanation,
   correctAnswer,
-  xp,
 }) => {
   const Icon = ICONS[status];
 
@@ -31,7 +29,6 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
       <div className="mg-feedback__title">
         <Icon size={17} />
         <span>{title}</span>
-        {typeof xp === 'number' && xp > 0 && <span className="mg-feedback__xp">+{xp} XP</span>}
       </div>
 
       <p className="mg-feedback__text">{explanation}</p>

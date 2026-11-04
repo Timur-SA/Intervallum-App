@@ -95,7 +95,7 @@ export const BossesScreen: React.FC<BossesScreenProps> = ({ progress, onStartBos
       </div>
 
       <p className="mg-note">
-        Звёзды начисляются в Тренировке за верно решённые новые и сложные задачи.
+        Звёзды начисляются за верно решённые задания, сложные и новые дают две.
         Дуэль: 10 задач, 6 минут, победа при 8 верных.
       </p>
     </div>

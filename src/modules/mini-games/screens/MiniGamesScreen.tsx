@@ -84,7 +84,7 @@ export const MiniGamesScreen: React.FC<MiniGamesScreenProps> = ({
           <div>
             <h1 className="mg-screen__title">Мини-игры</h1>
             <p className="mg-screen__subtitle">
-              Короткие раунды по типам заданий ОГЭ. Опыт начисляется по темам.
+              Короткие раунды по типам заданий ОГЭ. Звёзды начисляются за верные ответы.
             </p>
           </div>
         </header>
