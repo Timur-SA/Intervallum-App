@@ -570,19 +570,21 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
 
           <CollapsibleProblemPanel task={currentTask} onPointerDownGiven={handlePointerDownGiven} />
 
-          <div className={`mg-answer-slot ${answer ? 'is-filled' : ''}`}>
-            <span className="mg-answer-slot__label">Ответ</span>
-            {answer ? (
-              <span className="given-chip mg-answer-slot__pill">
-                <b>{answer.symbol}</b> ={' '}
-                {Number.isInteger(answer.value)
-                  ? answer.value
-                  : parseFloat(answer.value.toFixed(3))}{' '}
-                {answer.unit}
-              </span>
-            ) : (
-              <span className="mg-answer-slot__hint">Перетащите сюда «Результат»</span>
-            )}
+          <div className="mg-answer-slot">
+            <span className="mg-answer-slot__label">Ответ:</span>
+            <div className={`mg-answer-slot__drop ${answer ? 'is-filled' : ''}`}>
+              {answer ? (
+                <span className="given-chip mg-answer-slot__pill">
+                  <b>{answer.symbol}</b> ={' '}
+                  {Number.isInteger(answer.value)
+                    ? answer.value
+                    : parseFloat(answer.value.toFixed(3))}{' '}
+                  {answer.unit}
+                </span>
+              ) : (
+                <span className="mg-answer-slot__hint">Перетащите сюда величину</span>
+              )}
+            </div>
           </div>
 
           {selectionMode && (
@@ -645,16 +647,6 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
             <div className="dock-content">
               <span className="dock-icon">📚</span>
               <span className="dock-label">Законы физики</span>
-              <button
-                type="button"
-                className="dock-add"
-                onClick={event => {
-                  event.stopPropagation();
-                  setIsSheetOpen(true);
-                }}
-              >
-                + Добавить закон
-              </button>
             </div>
           </div>
 
