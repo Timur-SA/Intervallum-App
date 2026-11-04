@@ -5,7 +5,7 @@ import { PracticeProgress } from '../../../shared/storage/progressStore';
 import { SECTIONS } from '../domain/sections';
 import { SectionId } from '../domain/types';
 import {
-  BOSS_STARS_REQUIRED,
+  bossStarsRequired,
   isBossReady,
   isSectionDefeated,
   isSectionUnlocked,
@@ -25,7 +25,7 @@ export const BossesScreen: React.FC<BossesScreenProps> = ({ progress, onStartBos
         <div>
           <h1 className="mg-screen__title">Боссы</h1>
           <p className="mg-screen__subtitle">
-            Дуэль на время: {BOSS_STARS_REQUIRED} звёзд раздела открывают бой.
+            Дуэль на время: чтобы открыть бой, нужно пройти почти весь раздел.
           </p>
         </div>
       </header>
@@ -36,6 +36,7 @@ export const BossesScreen: React.FC<BossesScreenProps> = ({ progress, onStartBos
           const defeated = isSectionDefeated(progress, section.id);
           const ready = isBossReady(progress, section.id);
           const stars = sectionStars(progress, section.id);
+          const required = bossStarsRequired(section.id);
 
           return (
             <div key={section.id} className="mg-boss-row">
@@ -57,7 +58,7 @@ export const BossesScreen: React.FC<BossesScreenProps> = ({ progress, onStartBos
 
                 <span className="mg-boss-card__stars">
                   <Star size={13} fill="#f59e0b" />
-                  {stars} / {BOSS_STARS_REQUIRED}
+                  {stars} / {required}
                 </span>
               </div>
 
@@ -65,7 +66,7 @@ export const BossesScreen: React.FC<BossesScreenProps> = ({ progress, onStartBos
                 <span
                   className="mg-xpbar__fill"
                   style={{
-                    width: `${Math.min(100, (stars / BOSS_STARS_REQUIRED) * 100)}%`,
+                    width: `${Math.min(100, (stars / required) * 100)}%`,
                     backgroundColor: defeated ? 'var(--success)' : section.color,
                   }}
                 />
@@ -87,7 +88,7 @@ export const BossesScreen: React.FC<BossesScreenProps> = ({ progress, onStartBos
                     ? 'Раздел закрыт'
                     : ready
                       ? 'Начать дуэль'
-                      : `Нужно ещё ${Math.max(0, BOSS_STARS_REQUIRED - stars)} ★`}
+                      : `Нужно ещё ${Math.max(0, required - stars)} ★`}
               </Button>
             </div>
           );
@@ -96,7 +97,7 @@ export const BossesScreen: React.FC<BossesScreenProps> = ({ progress, onStartBos
 
       <p className="mg-note">
         Звёзды начисляются за верно решённые задания, сложные и новые дают две.
-        Дуэль: 10 задач, 6 минут, победа при 8 верных.
+        Дуэль: 10 задач, 6 минут, победа при 9 верных.
       </p>
     </div>
   </div>

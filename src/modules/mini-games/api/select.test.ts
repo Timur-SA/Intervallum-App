@@ -77,6 +77,7 @@ describe('selectBossTasks', () => {
       expect(tasks).toHaveLength(BOSS_TASKS);
       expect(tasks.every(task => getSectionByTopic(task.topic)?.id === sectionId)).toBe(true);
       expect(tasks.every(task => task.type !== 'cards')).toBe(true);
+      expect(tasks.every(task => task.difficulty >= 2)).toBe(true);
     }
   });
 

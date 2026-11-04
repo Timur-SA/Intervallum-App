@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { PracticeProgress } from '../../../shared/storage/progressStore';
 import {
-  BOSS_STARS_REQUIRED,
+  bossStarsRequired,
+  sectionMaxStars,
   isBossReady,
   isSectionDefeated,
   isSectionUnlocked,
@@ -38,22 +39,31 @@ describe('разделы', () => {
   });
 
   it('босс открывается по звёздам раздела', () => {
+    const required = bossStarsRequired('thermal');
     const almost = makeProgress({
       unlockedSections: ['thermal'],
-      starsBySection: { thermal: BOSS_STARS_REQUIRED - 1 },
+      starsBySection: { thermal: required - 1 },
     });
     expect(isBossReady(almost, 'thermal')).toBe(false);
 
     const ready = makeProgress({
       unlockedSections: ['thermal'],
-      starsBySection: { thermal: BOSS_STARS_REQUIRED },
+      starsBySection: { thermal: required },
     });
     expect(isBossReady(ready, 'thermal')).toBe(true);
   });
 
+  it('порог босса требует почти весь раздел', () => {
+    for (const sectionId of ['mechanics', 'thermal', 'electromagnetism'] as const) {
+      const max = sectionMaxStars(sectionId);
+      expect(max).toBeGreaterThan(0);
+      expect(bossStarsRequired(sectionId)).toBeGreaterThanOrEqual(Math.ceil(max * 0.7));
+    }
+  });
+
   it('побеждённый босс больше не открывается', () => {
     const defeated = makeProgress({
-      starsBySection: { mechanics: BOSS_STARS_REQUIRED },
+      starsBySection: { mechanics: bossStarsRequired('mechanics') },
       defeatedBosses: ['mechanics'],
     });
     expect(isBossReady(defeated, 'mechanics')).toBe(false);

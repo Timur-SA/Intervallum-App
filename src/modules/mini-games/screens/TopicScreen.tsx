@@ -73,6 +73,7 @@ export const TopicScreen: React.FC<TopicScreenProps> = ({
             <div key={card.id} className="mg-theory__card">
               <div className="mg-theory__question">{card.question}</div>
               <div className="mg-theory__answer">{card.answer}</div>
+              {card.details && <p className="mg-theory__details">{card.details}</p>}
               {card.formula && <div className="mg-theory__formula">{card.formula}</div>}
             </div>
           ))}

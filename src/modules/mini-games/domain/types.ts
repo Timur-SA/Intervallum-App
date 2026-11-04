@@ -109,6 +109,8 @@ export interface TheoryCard extends BaseTask {
   question: string;
   answer: string;
   formula?: string;
+  /** Дополнительное пояснение для экрана теории. */
+  details?: string;
 }
 
 export type AnyTask = SingleChoiceTask | MultiChoiceTask | MatchingTask | TheoryCard;

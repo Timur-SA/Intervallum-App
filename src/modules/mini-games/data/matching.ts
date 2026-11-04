@@ -80,4 +80,34 @@ export const MATCHING_TASKS: MatchingTask[] = [
     explanation:
       'Амперметр измеряет силу тока, вольтметр — напряжение, омметр — сопротивление, ваттметр — мощность.',
   },
+  {
+    id: 'match-kinematics',
+    type: 'matching',
+    topic: 'accelerated-motion',
+    difficulty: 2,
+    prompt: 'Установите соответствие между формулой и физической величиной.',
+    pairs: [
+      { id: 'speed', left: 'v = s/t', right: 'Скорость' },
+      { id: 'path', left: 's = vt', right: 'Путь' },
+      { id: 'accel', left: 'a = Δv/t', right: 'Ускорение' },
+      { id: 'force', left: 'F = ma', right: 'Сила' },
+    ],
+    explanation:
+      'v = s/t — скорость, s = vt — путь при равномерном движении, a = Δv/t — ускорение, F = ma — второй закон Ньютона.',
+  },
+  {
+    id: 'match-electric-units',
+    type: 'matching',
+    topic: 'resistance',
+    difficulty: 2,
+    prompt: 'Установите соответствие между электрической величиной и единицей СИ.',
+    pairs: [
+      { id: 'current', left: 'Сила тока', right: 'Ампер (А)' },
+      { id: 'voltage', left: 'Напряжение', right: 'Вольт (В)' },
+      { id: 'resistance', left: 'Сопротивление', right: 'Ом (Ом)' },
+      { id: 'charge', left: 'Электрический заряд', right: 'Кулон (Кл)' },
+    ],
+    explanation:
+      'Сила тока — ампер, напряжение — вольт, сопротивление — ом, заряд — кулон.',
+  },
 ];

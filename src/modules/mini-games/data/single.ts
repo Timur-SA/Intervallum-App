@@ -25,7 +25,7 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
     id: 'single-relativity',
     type: 'single',
     topic: 'relativity',
-    difficulty: 1,
+    difficulty: 2,
     prompt:
       'Лодка плывёт по течению реки со скоростью 3 м/с относительно воды. Скорость течения 2 м/с. Чему равна скорость лодки относительно берега?',
     options: [
@@ -77,7 +77,7 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
     id: 'single-momentum',
     type: 'single',
     topic: 'momentum',
-    difficulty: 1,
+    difficulty: 2,
     prompt: 'Тело массой 2 кг движется со скоростью 3 м/с. Чему равен импульс тела?',
     options: [
       { id: 'a', text: '1,5 кг·м/с' },
@@ -93,7 +93,7 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
     id: 'single-mechanical-energy',
     type: 'single',
     topic: 'mechanical-energy',
-    difficulty: 1,
+    difficulty: 2,
     prompt:
       'Тело массой 2 кг поднято на высоту 5 м. Чему равна его потенциальная энергия? Ускорение свободного падения примите равным 10 Н/кг.',
     options: [

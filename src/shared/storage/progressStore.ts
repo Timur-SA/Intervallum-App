@@ -224,11 +224,15 @@ export const recordTaskResult = (params: {
   sectionId: string;
   xp: number;
   score: number;
-  stars?: number;
-}): UserProgressData => {
+  difficulty: number;
+}): { data: UserProgressData; stars: number } => {
   const current = loadUserProgress();
-  const { taskId, taskType, topicId, sectionId, xp, score } = params;
-  const stars = Math.max(0, params.stars ?? 0);
+  const { taskId, taskType, topicId, sectionId, xp, score, difficulty } = params;
+  const previousStat = current.practice.taskStats[taskId];
+
+  // Звезда за первое верное решение, ещё одна — если задача повышенной сложности.
+  const firstCorrect = score >= 1 && (previousStat?.bestScore ?? 0) < 1;
+  const stars = firstCorrect ? 1 + (difficulty === 3 ? 1 : 0) : 0;
 
   if (xp > 0) {
     current.practice.xpByTopic[topicId] = (current.practice.xpByTopic[topicId] ?? 0) + xp;
@@ -243,10 +247,9 @@ export const recordTaskResult = (params: {
     Math.max(0, Math.min(1, score)),
   );
 
-  const previous = current.practice.taskStats[taskId];
   current.practice.taskStats[taskId] = {
-    attempts: (previous?.attempts ?? 0) + 1,
-    bestScore: Math.max(previous?.bestScore ?? 0, Math.max(0, Math.min(1, score))),
+    attempts: (previousStat?.attempts ?? 0) + 1,
+    bestScore: Math.max(previousStat?.bestScore ?? 0, Math.max(0, Math.min(1, score))),
   };
 
   if (stars > 0) {
@@ -256,7 +259,7 @@ export const recordTaskResult = (params: {
   }
 
   saveUserProgress(current);
-  return current;
+  return { data: current, stars };
 };
 
 /** Открывает раздел после победы над боссом. */

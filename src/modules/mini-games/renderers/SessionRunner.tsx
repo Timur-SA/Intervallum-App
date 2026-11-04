@@ -3,7 +3,6 @@ import { AnyTask } from '../domain/types';
 import { GradeResponse } from '../api/contracts';
 import { getSectionByTopic } from '../domain/sections';
 import { recordTaskResult } from '../../../shared/storage/progressStore';
-import { earnedStars } from '../engine/session';
 import { SingleTaskView } from './SingleTaskView';
 import { MultiTaskView } from './MultiTaskView';
 import { MatchingTaskView } from './MatchingTaskView';
@@ -112,8 +111,18 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
     if (!task) return;
 
     const gainedXp = sumXp(grade.xpByTopic);
-    const earnedStar = earnedStars(task, grade.score);
     const nextStreak = grade.score >= 1 ? acc.streak + 1 : 0;
+
+    const saved = recordTaskResult({
+      taskId: task.id,
+      taskType: task.type,
+      topicId: task.topic,
+      sectionId: getSectionByTopic(task.topic)?.id ?? 'mechanics',
+      xp: gainedXp,
+      score: grade.score,
+      difficulty: task.difficulty,
+    });
+    const earnedStar = saved.stars;
 
     const next: Accumulator = {
       index: acc.index + 1,
@@ -124,16 +133,6 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
       streak: nextStreak,
       bestStreak: Math.max(acc.bestStreak, nextStreak),
     };
-
-    recordTaskResult({
-      taskId: task.id,
-      taskType: task.type,
-      topicId: task.topic,
-      sectionId: getSectionByTopic(task.topic)?.id ?? 'mechanics',
-      xp: gainedXp,
-      score: grade.score,
-      stars: earnedStar,
-    });
 
     accRef.current = next;
     setAcc(next);

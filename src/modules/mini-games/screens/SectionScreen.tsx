@@ -5,7 +5,7 @@ import { PracticeProgress } from '../../../shared/storage/progressStore';
 import { getSection, getTopic } from '../domain/sections';
 import { SectionId, TopicId } from '../domain/types';
 import {
-  BOSS_STARS_REQUIRED,
+  bossStarsRequired,
   isBossReady,
   isSectionDefeated,
   isTopicUnlocked,
@@ -31,9 +31,10 @@ export const SectionScreen: React.FC<SectionScreenProps> = ({
   if (!section) return null;
 
   const stars = sectionStars(progress, sectionId);
+  const required = bossStarsRequired(sectionId);
   const defeated = isSectionDefeated(progress, sectionId);
   const ready = isBossReady(progress, sectionId);
-  const progressPercent = Math.min(100, (stars / BOSS_STARS_REQUIRED) * 100);
+  const progressPercent = Math.min(100, (stars / required) * 100);
 
   return (
     <div className="mg-screen">
@@ -70,7 +71,7 @@ export const SectionScreen: React.FC<SectionScreenProps> = ({
 
             <span className="mg-boss-card__stars">
               <Star size={13} fill="#f59e0b" />
-              {stars} / {BOSS_STARS_REQUIRED}
+              {stars} / {required}
             </span>
           </div>
 
@@ -98,7 +99,7 @@ export const SectionScreen: React.FC<SectionScreenProps> = ({
               ? 'Босс побеждён'
               : ready
                 ? 'Начать дуэль'
-                : `Нужно ещё ${Math.max(0, BOSS_STARS_REQUIRED - stars)} ★`}
+                : `Нужно ещё ${Math.max(0, required - stars)} ★`}
           </Button>
         </div>
 

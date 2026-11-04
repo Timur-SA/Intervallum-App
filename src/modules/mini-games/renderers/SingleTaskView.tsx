@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { BottomSheet, Button, StatusBadge } from '@maxhub/max-ui';
-import { Lightbulb } from 'lucide-react';
+import { Button, StatusBadge } from '@maxhub/max-ui';
 import { miniGamesApi } from '../api';
 import { GradeResponse } from '../api/contracts';
 import { Outcome, SingleChoiceTask } from '../domain/types';
 import { getSectionByTopic, getTopic } from '../domain/sections';
+import { shuffleBySeed } from '../engine/shuffle';
 import { haptics } from '../../../shared/motion/haptics';
 import { GameShell } from '../components/GameShell';
 import { AnswerOption } from '../components/AnswerOption';
@@ -28,10 +28,11 @@ export const SingleTaskView: React.FC<TaskViewProps<SingleChoiceTask>> = ({
   const [selected, setSelected] = useState<string | null>(null);
   const [grade, setGrade] = useState<GradeResponse | null>(null);
   const [busy, setBusy] = useState(false);
-  const [hintOpen, setHintOpen] = useState(false);
 
   const topic = getTopic(task.topic);
   const section = getSectionByTopic(task.topic);
+
+  const options = useMemo(() => shuffleBySeed(task.options, `${task.id}:options`), [task]);
 
   const correctAnswer = useMemo(
     () => task.options.find(option => option.id === task.correctOptionId)?.text ?? '',
@@ -52,7 +53,6 @@ export const SingleTaskView: React.FC<TaskViewProps<SingleChoiceTask>> = ({
   };
 
   return (
-    <>
       <GameShell
         title="Выбор ответа"
         step={step}
@@ -93,21 +93,9 @@ export const SingleTaskView: React.FC<TaskViewProps<SingleChoiceTask>> = ({
 
         <p className="mg-question__prompt">{task.prompt}</p>
 
-        {task.hint && (
-          <div className="mg-question__hint-row">
-            <Button
-              variant="ghost"
-              size="xsmall"
-              iconBefore={<Lightbulb size={14} />}
-              onClick={() => setHintOpen(true)}
-            >
-              Подсказка
-            </Button>
-          </div>
-        )}
 
         <div className="mg-options" role="radiogroup" aria-label="Варианты ответа">
-          {task.options.map(option => {
+          {options.map(option => {
             const optionSelected = selected === option.id;
             const mark = !grade
               ? 'none'
@@ -135,15 +123,6 @@ export const SingleTaskView: React.FC<TaskViewProps<SingleChoiceTask>> = ({
             );
           })}
         </div>
-      </GameShell>
-
-      {task.hint && (
-        <BottomSheet open={hintOpen} title="Подсказка" onClose={() => setHintOpen(false)}>
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
-            {task.hint}
-          </p>
-        </BottomSheet>
-      )}
-    </>
+    </GameShell>
   );
 };

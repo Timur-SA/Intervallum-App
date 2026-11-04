@@ -1,9 +1,20 @@
 import { PracticeProgress } from '../../../shared/storage/progressStore';
-import { SECTIONS, getSection } from './sections';
+import { TASK_BANK } from '../data';
+import { SECTIONS, getSection, getSectionByTopic } from './sections';
 import { SectionId, TopicId } from './types';
 
-/** Сколько звёзд раздела нужно, чтобы открыть босса. */
-export const BOSS_STARS_REQUIRED = 10;
+/**
+ * Максимум звёзд раздела: по одной за каждую практическую задачу
+ * и ещё по одной за задачи повышенной сложности.
+ */
+export const sectionMaxStars = (sectionId: SectionId): number =>
+  TASK_BANK.filter(
+    task => task.type !== 'cards' && getSectionByTopic(task.topic)?.id === sectionId,
+  ).reduce((sum, task) => sum + (task.difficulty === 3 ? 2 : 1), 0);
+
+/** Чтобы открыть босса, нужно пройти почти весь раздел — 75% звёзд. */
+export const bossStarsRequired = (sectionId: SectionId): number =>
+  Math.max(1, Math.ceil(sectionMaxStars(sectionId) * 0.75));
 
 /** Порог опыта на предыдущей теме, чтобы открыть следующую. */
 export const TOPIC_XP_THRESHOLD = 20;
@@ -14,7 +25,7 @@ export const TRAINING_TASKS = 7;
 /** Дуэль с боссом. */
 export const BOSS_TASKS = 10;
 export const BOSS_TIME_SECONDS = 6 * 60;
-export const BOSS_WIN_SCORE = 8;
+export const BOSS_WIN_SCORE = 9;
 
 export const sectionStars = (progress: PracticeProgress, sectionId: SectionId): number =>
   progress.starsBySection[sectionId] ?? 0;
@@ -42,7 +53,7 @@ export const isSectionDefeated = (
 export const isBossReady = (progress: PracticeProgress, sectionId: SectionId): boolean =>
   isSectionUnlocked(progress, sectionId) &&
   !isSectionDefeated(progress, sectionId) &&
-  sectionStars(progress, sectionId) >= BOSS_STARS_REQUIRED;
+  sectionStars(progress, sectionId) >= bossStarsRequired(sectionId);
 
 export const isTopicUnlocked = (
   progress: PracticeProgress,

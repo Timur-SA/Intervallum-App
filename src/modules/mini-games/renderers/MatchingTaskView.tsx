@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Button, StatusBadge } from '@maxhub/max-ui';
 import { miniGamesApi } from '../api';
 import { GradeResponse } from '../api/contracts';
@@ -9,6 +9,17 @@ import { haptics } from '../../../shared/motion/haptics';
 import { GameShell } from '../components/GameShell';
 import { FeedbackPanel } from '../components/FeedbackPanel';
 import { TaskViewProps } from './taskView';
+
+const THREAD_COLORS = ['#38bdf8', '#a78bfa', '#34d399', '#fbbf24', '#fb7185', '#22d3ee'];
+
+interface Thread {
+  id: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  color: string;
+}
 
 export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
   task,
@@ -26,11 +37,61 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
   const [grade, setGrade] = useState<GradeResponse | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [threads, setThreads] = useState<Thread[]>([]);
+  const [measureTick, setMeasureTick] = useState(0);
+
   const topic = getTopic(task.topic);
   const section = getSectionByTopic(task.topic);
 
   const rightItems = useMemo(() => shuffleBySeed(task.pairs, task.id), [task]);
   const allLinked = Object.keys(links).length === task.pairs.length;
+
+  const colorFor = (leftId: string): string => {
+    const index = task.pairs.findIndex(pair => pair.id === leftId);
+    return THREAD_COLORS[(index < 0 ? 0 : index) % THREAD_COLORS.length];
+  };
+
+  // Нитки между парами: пересчитываем после каждого изменения связей.
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const base = container.getBoundingClientRect();
+    const next: Thread[] = [];
+
+    task.pairs.forEach(pair => {
+      const rightId = links[pair.id];
+      if (!rightId) return;
+
+      const leftEl = container.querySelector<HTMLElement>(`[data-tile-left="${pair.id}"]`);
+      const rightEl = container.querySelector<HTMLElement>(`[data-tile-right="${rightId}"]`);
+      if (!leftEl || !rightEl) return;
+
+      const leftRect = leftEl.getBoundingClientRect();
+      const rightRect = rightEl.getBoundingClientRect();
+
+      next.push({
+        id: pair.id,
+        x1: leftRect.right - base.left,
+        y1: leftRect.top + leftRect.height / 2 - base.top,
+        x2: rightRect.left - base.left,
+        y2: rightRect.top + rightRect.height / 2 - base.top,
+        color: colorFor(pair.id),
+      });
+    });
+
+    setThreads(next);
+  }, [links, task, measureTick]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(() => setMeasureTick(previous => previous + 1));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const resetCheck = () => {
     setChecked(false);
@@ -157,7 +218,25 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
         {errors > 0 ? ` · ошибок: ${errors}` : ''}
       </p>
 
-      <div className="mg-match">
+      <div className="mg-match" ref={containerRef}>
+        <svg className="mg-match__threads" aria-hidden>
+          {threads.map(thread => (
+            <g key={thread.id}>
+              <path
+                d={`M ${thread.x1} ${thread.y1} C ${thread.x1 + 22} ${thread.y1}, ${
+                  thread.x2 - 22
+                } ${thread.y2}, ${thread.x2} ${thread.y2}`}
+                stroke={thread.color}
+                strokeWidth={2.5}
+                fill="none"
+                strokeLinecap="round"
+              />
+              <circle cx={thread.x1} cy={thread.y1} r={3.5} fill={thread.color} />
+              <circle cx={thread.x2} cy={thread.y2} r={3.5} fill={thread.color} />
+            </g>
+          ))}
+        </svg>
+
         <div className="mg-match__col">
           <div className="mg-match__col-title">Слева</div>
           {task.pairs.map(pair => {
@@ -165,6 +244,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
             const linkedRightText = linkedRightId
               ? task.pairs.find(item => item.id === linkedRightId)?.right
               : undefined;
+            const color = colorFor(pair.id);
 
             const className = [
               'mg-tile',
@@ -179,16 +259,26 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
             return (
               <Button
                 key={pair.id}
+                data-tile-left={pair.id}
                 variant={leftSelected === pair.id ? 'primary' : 'secondary'}
                 size="small"
                 stretched
                 className={className}
                 innerClassNames={{ content: 'mg-tile__content' }}
+                style={
+                  linkedRightId && !wrongIds.includes(pair.id)
+                    ? { boxShadow: `inset 0 0 0 1.5px ${color}` }
+                    : undefined
+                }
                 onClick={() => handleLeft(pair.id)}
               >
                 <span className="mg-tile__stack">
                   <span>{pair.left}</span>
-                  {linkedRightText && <span className="mg-tile__link">→ {linkedRightText}</span>}
+                  {linkedRightText && (
+                    <span className="mg-tile__link" style={{ color }}>
+                      → {linkedRightText}
+                    </span>
+                  )}
                 </span>
               </Button>
             );
@@ -199,6 +289,8 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
           <div className="mg-match__col-title">Справа</div>
           {rightItems.map(pair => {
             const owner = rightOwner(pair.id);
+            const color = owner ? colorFor(owner) : undefined;
+
             const className = [
               'mg-tile',
               owner ? 'mg-tile--taken' : '',
@@ -211,11 +303,17 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
             return (
               <Button
                 key={pair.id}
+                data-tile-right={pair.id}
                 variant="secondary"
                 size="small"
                 stretched
                 className={className}
                 innerClassNames={{ content: 'mg-tile__content' }}
+                style={
+                  owner && !wrongIds.includes(owner)
+                    ? { boxShadow: `inset 0 0 0 1.5px ${color}` }
+                    : undefined
+                }
                 onClick={() => handleRight(pair.id)}
               >
                 {pair.right}

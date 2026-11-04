@@ -110,7 +110,11 @@ export const selectBossTasks = (
 
   if (!candidates.length) return [];
 
-  const sorted = [...candidates].sort((a, b) => {
+  // Для дуэли берём только задачи повышенной сложности, если их хватает.
+  const hardPool = candidates.filter(task => task.difficulty >= 2);
+  const pool = hardPool.length >= count ? hardPool : candidates;
+
+  const sorted = [...pool].sort((a, b) => {
     if (b.difficulty !== a.difficulty) return b.difficulty - a.difficulty;
 
     const aScore = progress.taskStats[a.id]?.bestScore ?? -1;

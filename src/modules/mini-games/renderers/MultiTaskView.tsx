@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { BottomSheet, Button, StatusBadge } from '@maxhub/max-ui';
-import { Lightbulb } from 'lucide-react';
+import { Button, StatusBadge } from '@maxhub/max-ui';
 import { miniGamesApi } from '../api';
 import { GradeResponse } from '../api/contracts';
 import { MultiChoiceTask } from '../domain/types';
 import { getSectionByTopic, getTopic } from '../domain/sections';
+import { shuffleBySeed } from '../engine/shuffle';
 import { haptics } from '../../../shared/motion/haptics';
 import { GameShell } from '../components/GameShell';
 import { AnswerOption } from '../components/AnswerOption';
@@ -22,10 +22,11 @@ export const MultiTaskView: React.FC<TaskViewProps<MultiChoiceTask>> = ({
   const [selected, setSelected] = useState<string[]>([]);
   const [grade, setGrade] = useState<GradeResponse | null>(null);
   const [busy, setBusy] = useState(false);
-  const [hintOpen, setHintOpen] = useState(false);
 
   const topic = getTopic(task.topic);
   const section = getSectionByTopic(task.topic);
+
+  const options = useMemo(() => shuffleBySeed(task.options, `${task.id}:options`), [task]);
 
   const correctAnswer = useMemo(
     () =>
@@ -67,7 +68,6 @@ export const MultiTaskView: React.FC<TaskViewProps<MultiChoiceTask>> = ({
         : 'Не совсем';
 
   return (
-    <>
       <GameShell
         title="Множественный выбор"
         step={step}
@@ -111,21 +111,9 @@ export const MultiTaskView: React.FC<TaskViewProps<MultiChoiceTask>> = ({
           Отметьте все подходящие варианты. Штраф за пропущенные и лишние.
         </p>
 
-        {task.hint && (
-          <div className="mg-question__hint-row">
-            <Button
-              variant="ghost"
-              size="xsmall"
-              iconBefore={<Lightbulb size={14} />}
-              onClick={() => setHintOpen(true)}
-            >
-              Подсказка
-            </Button>
-          </div>
-        )}
 
         <div className="mg-options" role="group" aria-label="Варианты ответа">
-          {task.options.map(option => {
+          {options.map(option => {
             const optionSelected = selected.includes(option.id);
             const mark = !grade
               ? 'none'
@@ -150,15 +138,6 @@ export const MultiTaskView: React.FC<TaskViewProps<MultiChoiceTask>> = ({
             );
           })}
         </div>
-      </GameShell>
-
-      {task.hint && (
-        <BottomSheet open={hintOpen} title="Подсказка" onClose={() => setHintOpen(false)}>
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
-            {task.hint}
-          </p>
-        </BottomSheet>
-      )}
-    </>
+    </GameShell>
   );
 };
