@@ -10,6 +10,8 @@ export interface TaskViewProps<T extends AnyTask = AnyTask> {
   streak?: number;
   /** Слот справа в шапке — например, таймер босса. */
   headerRight?: ReactNode;
+  /** Сид сессии: меняет порядок вариантов при каждом заходе. */
+  seed?: string;
   /** Вызывается, когда задание оценено и пользователь готов идти дальше. */
   onDone: (grade: GradeResponse) => void;
 }

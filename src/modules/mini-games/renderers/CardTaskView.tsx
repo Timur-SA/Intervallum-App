@@ -3,6 +3,7 @@ import { Button } from '@maxhub/max-ui';
 import { miniGamesApi } from '../api';
 import { CardGrade, TheoryCard } from '../domain/types';
 import { getSectionByTopic, getTopic } from '../domain/sections';
+import { ANSWER_KIND_LABELS } from '../data/cards';
 import { haptics } from '../../../shared/motion/haptics';
 import { GameShell } from '../components/GameShell';
 import { TaskViewProps } from './taskView';
@@ -33,11 +34,16 @@ export const CardTaskView: React.FC<TaskViewProps<TheoryCard>> = ({
   const handleGrade = async (value: CardGrade) => {
     if (busy) return;
     setBusy(true);
-    const result = await miniGamesApi.grade({
+    let result;
+    try {
+      result = await miniGamesApi.grade({
       taskId: task.id,
       answer: { type: 'cards', selfAssessment: value },
-    });
-    setBusy(false);
+      });
+    } finally {
+      setBusy(false);
+    }
+    if (!result) return;
     haptics.selection();
     onDone(result);
   };
@@ -104,7 +110,10 @@ export const CardTaskView: React.FC<TaskViewProps<TheoryCard>> = ({
             <span className="mg-flash__deck">
               {section ? section.title : 'Физика'} · сложность {task.difficulty}
             </span>
-            <span className="mg-flash__question">{task.question}</span>
+            <span className="mg-flash__question">
+              {task.question}
+              {task.answerKind && ` (${ANSWER_KIND_LABELS[task.answerKind]})`}
+            </span>
             <span className="mg-flash__tap">Нажмите на карточку, чтобы увидеть ответ</span>
           </div>
 

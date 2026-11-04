@@ -36,6 +36,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
   step,
   total,
   headerRight,
+  seed,
   onDone,
 }) => {
   const [selected, setSelected] = useState<{ side: 'left' | 'right'; id: string } | null>(null);
@@ -58,7 +59,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
   const topic = getTopic(task.topic);
   const section = getSectionByTopic(task.topic);
 
-  const rightItems = useMemo(() => shuffleBySeed(task.pairs, task.id), [task]);
+  const rightItems = useMemo(() => shuffleBySeed(task.pairs, `${seed ?? 'session'}:${task.id}`), [task, seed]);
   const allLinked = Object.keys(links).length === task.pairs.length;
 
   const colorFor = (leftId: string): string => {
@@ -245,12 +246,15 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
 
     if (!grade) {
       setBusy(true);
-      const result = await miniGamesApi.grade({
-        taskId: task.id,
-        answer: { type: 'matching', links },
-      });
-      setBusy(false);
-      setGrade(result);
+      try {
+        const result = await miniGamesApi.grade({
+          taskId: task.id,
+          answer: { type: 'matching', links },
+        });
+        setGrade(result);
+      } finally {
+        setBusy(false);
+      }
     }
 
     if (!wrong.length) {

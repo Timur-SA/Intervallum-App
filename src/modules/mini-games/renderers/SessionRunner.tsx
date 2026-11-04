@@ -7,6 +7,7 @@ import { SingleTaskView } from './SingleTaskView';
 import { MultiTaskView } from './MultiTaskView';
 import { MatchingTaskView } from './MatchingTaskView';
 import { CardTaskView } from './CardTaskView';
+import { ForceTaskView } from './ForceTaskView';
 import { sumXp } from './taskView';
 
 export interface SessionSummary {
@@ -25,6 +26,7 @@ interface SessionRunnerProps {
   tasks: AnyTask[];
   /** Таймер дуэли; по нулю сессия завершается. */
   timerSeconds?: number;
+  seed?: string;
   onComplete: (summary: SessionSummary) => void;
 }
 
@@ -47,6 +49,7 @@ const formatTime = (seconds: number): string => {
 export const SessionRunner: React.FC<SessionRunnerProps> = ({
   tasks,
   timerSeconds,
+  seed,
   onComplete,
 }) => {
   const [acc, setAcc] = useState<Accumulator>({
@@ -149,6 +152,7 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
     total: tasks.length,
     streak: acc.streak,
     headerRight,
+    seed: seed ?? 'session',
     onDone: handleDone,
   };
 
@@ -162,6 +166,10 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
 
   if (task.type === 'matching') {
     return <MatchingTaskView key={`${task.id}-${acc.index}`} task={task} {...viewProps} />;
+  }
+
+  if (task.type === 'forces') {
+    return <ForceTaskView key={`${task.id}-${acc.index}`} task={task} {...viewProps} />;
   }
 
   return <CardTaskView key={`${task.id}-${acc.index}`} task={task} {...viewProps} />;

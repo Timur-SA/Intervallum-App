@@ -87,11 +87,11 @@ export const createLocalApi = (): MiniGamesApi => ({
     const score = cardScore(selfAssessment);
 
     return {
-      ...withXp(
-        { outcome: outcomeFromScore(score), score, cardGrade: selfAssessment },
-        task.topic,
-        task.difficulty,
-      ),
+      outcome: outcomeFromScore(score),
+      score,
+      cardGrade: selfAssessment,
+      // Карточки — учебный материал, опыт за них не начисляется.
+      xpByTopic: {},
       correctAnswer: null,
     };
   },

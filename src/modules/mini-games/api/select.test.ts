@@ -9,6 +9,7 @@ const makeProgress = (overrides: Partial<PracticeProgress> = {}): PracticeProgre
   exploredTypes: [],
   bestScoreByType: {},
   taskStats: {},
+  bestXpByTask: {},
   defeatedBosses: [],
   unlockedSections: [],
   items: [],

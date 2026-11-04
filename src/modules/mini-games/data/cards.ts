@@ -247,7 +247,38 @@ const DETAILS: Record<string, string> = {
     'α — угол между проводником и вектором магнитной индукции. Направление силы определяют по правилу левой руки.',
 };
 
+const ANSWER_KINDS: Record<string, TheoryCard['answerKind']> = {
+  'card-uniform-motion': 'formula',
+  'card-relativity': 'definition',
+  'card-acceleration': 'definition',
+  'card-newton-2': 'law',
+  'card-gravity': 'formula',
+  'card-momentum': 'definition',
+  'card-energy': 'law',
+  'card-work': 'formula',
+  'card-lever': 'law',
+  'card-heat': 'formula',
+  'card-aggregate': 'value',
+  'card-heat-balance': 'law',
+  'card-thermal-energy': 'law',
+  'card-fuel-engines': 'formula',
+  'card-coulomb': 'law',
+  'card-charge-conservation': 'law',
+  'card-resistance': 'definition',
+  'card-ohm': 'law',
+  'card-joule-lenz': 'formula',
+  'card-ampere': 'definition',
+};
+
+export const ANSWER_KIND_LABELS: Record<NonNullable<TheoryCard['answerKind']>, string> = {
+  formula: 'формула',
+  definition: 'определение',
+  law: 'закон',
+  value: 'значение',
+};
+
 export const CARDS: TheoryCard[] = RAW_CARDS.map(card => ({
   ...card,
   details: DETAILS[card.id],
+  answerKind: ANSWER_KINDS[card.id],
 }));

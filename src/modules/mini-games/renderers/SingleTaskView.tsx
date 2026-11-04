@@ -23,6 +23,7 @@ export const SingleTaskView: React.FC<TaskViewProps<SingleChoiceTask>> = ({
   total,
   streak,
   headerRight,
+  seed,
   onDone,
 }) => {
   const [selected, setSelected] = useState<string | null>(null);
@@ -32,7 +33,7 @@ export const SingleTaskView: React.FC<TaskViewProps<SingleChoiceTask>> = ({
   const topic = getTopic(task.topic);
   const section = getSectionByTopic(task.topic);
 
-  const options = useMemo(() => shuffleBySeed(task.options, `${task.id}:options`), [task]);
+  const options = useMemo(() => shuffleBySeed(task.options, `${seed ?? 'session'}:${task.id}:options`), [task, seed]);
 
   const correctAnswer = useMemo(
     () => task.options.find(option => option.id === task.correctOptionId)?.text ?? '',
@@ -43,11 +44,16 @@ export const SingleTaskView: React.FC<TaskViewProps<SingleChoiceTask>> = ({
     if (!selected || grade || busy) return;
 
     setBusy(true);
-    const result = await miniGamesApi.grade({
+    let result;
+    try {
+      result = await miniGamesApi.grade({
       taskId: task.id,
       answer: { type: 'single', optionId: selected },
-    });
-    setBusy(false);
+      });
+    } finally {
+      setBusy(false);
+    }
+    if (!result) return;
     setGrade(result);
     haptics.notification(result.outcome === 'correct' ? 'success' : 'error');
   };

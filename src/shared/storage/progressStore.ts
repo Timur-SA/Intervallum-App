@@ -27,6 +27,8 @@ export interface PracticeProgress {
   bestScoreByType: Record<string, number>;
   /** История ответов по задачам: попытки и лучший результат. */
   taskStats: Record<string, TaskStat>;
+  /** Лучший начисленный опыт по каждой задаче. */
+  bestXpByTask: Record<string, number>;
   /** Побеждённые боссы (id разделов). */
   defeatedBosses: string[];
   /** Дополнительно открытые разделы. */
@@ -80,6 +82,7 @@ const createDefaultPractice = (): PracticeProgress => ({
   exploredTypes: [],
   bestScoreByType: {},
   taskStats: {},
+  bestXpByTask: {},
   defeatedBosses: [],
   unlockedSections: [],
   items: [],
@@ -141,6 +144,7 @@ export const loadUserProgress = (): UserProgressData => {
       exploredTypes: stringArray(parsed?.practice?.exploredTypes),
       bestScoreByType: numericRecord(parsed?.practice?.bestScoreByType),
       taskStats: taskStatsRecord(parsed?.practice?.taskStats),
+      bestXpByTask: numericRecord(parsed?.practice?.bestXpByTask),
       defeatedBosses: stringArray(parsed?.practice?.defeatedBosses),
       unlockedSections: stringArray(parsed?.practice?.unlockedSections),
       items: stringArray(parsed?.practice?.items),
@@ -224,8 +228,13 @@ export const recordTaskResult = (params: {
   const { taskId, taskType, topicId, sectionId, xp, score } = params;
   const previousStat = current.practice.taskStats[taskId];
 
-  if (xp > 0) {
-    current.practice.xpByTopic[topicId] = (current.practice.xpByTopic[topicId] ?? 0) + xp;
+  const previousBestXp = current.practice.bestXpByTask[taskId] ?? 0;
+  const gainedXp = Math.max(0, xp - previousBestXp);
+  current.practice.bestXpByTask[taskId] = Math.max(previousBestXp, xp);
+
+  if (gainedXp > 0) {
+    current.practice.xpByTopic[topicId] =
+      (current.practice.xpByTopic[topicId] ?? 0) + gainedXp;
   }
 
   if (!current.practice.exploredTypes.includes(taskType)) {

@@ -17,6 +17,7 @@ export const MultiTaskView: React.FC<TaskViewProps<MultiChoiceTask>> = ({
   total,
   streak,
   headerRight,
+  seed,
   onDone,
 }) => {
   const [selected, setSelected] = useState<string[]>([]);
@@ -26,7 +27,7 @@ export const MultiTaskView: React.FC<TaskViewProps<MultiChoiceTask>> = ({
   const topic = getTopic(task.topic);
   const section = getSectionByTopic(task.topic);
 
-  const options = useMemo(() => shuffleBySeed(task.options, `${task.id}:options`), [task]);
+  const options = useMemo(() => shuffleBySeed(task.options, `${seed ?? 'session'}:${task.id}:options`), [task, seed]);
 
   const correctAnswer = useMemo(
     () =>
@@ -49,11 +50,16 @@ export const MultiTaskView: React.FC<TaskViewProps<MultiChoiceTask>> = ({
     if (!selected.length || grade || busy) return;
 
     setBusy(true);
-    const result = await miniGamesApi.grade({
+    let result;
+    try {
+      result = await miniGamesApi.grade({
       taskId: task.id,
       answer: { type: 'multi', optionIds: selected },
-    });
-    setBusy(false);
+      });
+    } finally {
+      setBusy(false);
+    }
+    if (!result) return;
     setGrade(result);
     haptics.notification(
       result.outcome === 'correct' ? 'success' : result.outcome === 'partial' ? 'warning' : 'error',

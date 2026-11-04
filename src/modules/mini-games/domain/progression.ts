@@ -5,7 +5,7 @@ import { SectionId, TopicId } from './types';
 
 /** Максимум опыта темы — сумма опыта всех её заданий. */
 export const topicMaxXp = (topicId: TopicId): number =>
-  TASK_BANK.filter(task => task.topic === topicId).reduce(
+  TASK_BANK.filter(task => task.topic === topicId && task.type !== 'cards').reduce(
     (sum, task) => sum + 10 * task.difficulty,
     0,
   );

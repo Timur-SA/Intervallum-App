@@ -14,7 +14,7 @@ import {
   topicMaxXp,
 } from '../domain/progression';
 import { TASK_BANK } from '../data';
-import { CARDS } from '../data/cards';
+import { ANSWER_KIND_LABELS, CARDS } from '../data/cards';
 import { haptics } from '../../../shared/motion/haptics';
 
 interface SectionMapScreenProps {
@@ -61,6 +61,8 @@ export const SectionMapScreen: React.FC<SectionMapScreenProps> = ({
   const section = getSection(sectionId);
   const [selectedTopic, setSelectedTopic] = useState<TopicId | null>(null);
   const [theoryOpen, setTheoryOpen] = useState(false);
+  const [theoryIndex, setTheoryIndex] = useState(0);
+  const touchStartX = useRef<number | null>(null);
   const pathRef = useRef<HTMLDivElement>(null);
   const [road, setRoad] = useState('');
 
@@ -108,13 +110,8 @@ export const SectionMapScreen: React.FC<SectionMapScreenProps> = ({
   return (
     <div className="mg-screen">
       <div className="mg-scroll">
-        <header className="mg-screen__head">
-          <div>
-            <h1 className="mg-screen__title">{section.title}</h1>
-            <p className="mg-screen__subtitle">
-              {xp} / {bossRequired} XP · босс {section.boss}
-            </p>
-          </div>
+        <header className="mg-screen__head mg-screen__head--sticky">
+          <h1 className="mg-screen__title">{section.title}</h1>
           <span className="mg-xp">
             <Sparkles size={13} />
             <span className="mg-xp__value">{totalXp(progress)} XP</span>
@@ -132,11 +129,14 @@ export const SectionMapScreen: React.FC<SectionMapScreenProps> = ({
             const unlocked = isTopicUnlocked(progress, sectionId, topicId);
             const complete = isTopicComplete(progress, topicId);
             const current = index === currentIndex;
-            const side = index % 2 === 0 ? 'left' : 'right';
+            const offset = Math.round(Math.sin((index + 1) * 1.7) * 42);
 
             return (
-              <div key={topicId} className={`mg-path__row mg-path__row--${side}`}>
-                <div className="mg-path__node-wrap">
+              <div key={topicId} className="mg-path__row mg-path__row--chaos">
+                <div
+                  className="mg-path__node-wrap"
+                  style={{ transform: `translateX(${offset}px)` }}
+                >
                   {current && !complete && <span className="mg-path__start">Начать</span>}
 
                   <button
@@ -162,7 +162,7 @@ export const SectionMapScreen: React.FC<SectionMapScreenProps> = ({
                     </span>
                   </button>
 
-                  <span className={`mg-path__caption mg-path__caption--${side}`}>
+                  <span className="mg-path__caption mg-path__caption--center">
                     {topic?.title}
                   </span>
                 </div>
@@ -244,24 +244,86 @@ export const SectionMapScreen: React.FC<SectionMapScreenProps> = ({
             size="medium"
             stretched
             iconBefore={<BookOpen size={16} />}
-            onClick={() => setTheoryOpen(previous => !previous)}
+            onClick={() => {
+              setTheoryOpen(previous => !previous);
+              setTheoryIndex(0);
+            }}
           >
             Теория · {selectedTheory.length}
           </Button>
 
           {theoryOpen && (
-            <div className="mg-theory">
+            <div className="mg-theory-carousel">
               {selectedTheory.length === 0 && (
                 <p className="mg-theory__empty">Теория по этой теме появится позже.</p>
               )}
-              {selectedTheory.map(card => (
-                <div key={card.id} className="mg-theory__card">
-                  <div className="mg-theory__question">{card.question}</div>
-                  <div className="mg-theory__answer">{card.answer}</div>
-                  {card.details && <p className="mg-theory__details">{card.details}</p>}
-                  {card.formula && <div className="mg-theory__formula">{card.formula}</div>}
-                </div>
-              ))}
+
+              {selectedTheory.length > 0 && (
+                <>
+                  <div
+                    className="mg-theory"
+                    onTouchStart={event => {
+                      touchStartX.current = event.touches[0]?.clientX ?? null;
+                    }}
+                    onTouchEnd={event => {
+                      const start = touchStartX.current;
+                      const end = event.changedTouches[0]?.clientX ?? null;
+                      touchStartX.current = null;
+                      if (start === null || end === null) return;
+                      if (Math.abs(end - start) < 40) return;
+                      setTheoryIndex(previous =>
+                        end < start
+                          ? Math.min(selectedTheory.length - 1, previous + 1)
+                          : Math.max(0, previous - 1),
+                      );
+                    }}
+                  >
+                    {(() => {
+                      const card = selectedTheory[Math.min(theoryIndex, selectedTheory.length - 1)];
+                      if (!card) return null;
+                      return (
+                        <div className="mg-theory__card">
+                          <div className="mg-theory__question">
+                            {card.question}
+                            {card.answerKind && ` (${ANSWER_KIND_LABELS[card.answerKind]})`}
+                          </div>
+                          <div className="mg-theory__answer">{card.answer}</div>
+                          {card.details && <p className="mg-theory__details">{card.details}</p>}
+                          {card.formula && <div className="mg-theory__formula">{card.formula}</div>}
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {selectedTheory.length > 1 && (
+                    <div className="mg-theory-nav">
+                      <button
+                        type="button"
+                        className="mg-theory-nav__btn"
+                        disabled={theoryIndex === 0}
+                        onClick={() => setTheoryIndex(previous => Math.max(0, previous - 1))}
+                      >
+                        ←
+                      </button>
+                      <span className="mg-theory-nav__count">
+                        {theoryIndex + 1} / {selectedTheory.length}
+                      </span>
+                      <button
+                        type="button"
+                        className="mg-theory-nav__btn"
+                        disabled={theoryIndex >= selectedTheory.length - 1}
+                        onClick={() =>
+                          setTheoryIndex(previous =>
+                            Math.min(selectedTheory.length - 1, previous + 1),
+                          )
+                        }
+                      >
+                        →
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
 

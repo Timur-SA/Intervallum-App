@@ -1,4 +1,6 @@
 import { AnyTask, MiniGameMeta, PlayableTaskType } from '../domain/types';
+import { BOSS_TASKS } from './bossTasks';
+import { FORCE_LEVEL_TASKS } from './forces';
 import { CARDS } from './cards';
 import { MATCHING_TASKS } from './matching';
 import { MULTI_TASKS } from './multi';
@@ -13,9 +15,15 @@ export const TASK_BANK: AnyTask[] = [
   ...MULTI_TASKS,
   ...MATCHING_TASKS,
   ...CARDS,
+  ...FORCE_LEVEL_TASKS,
 ];
 
-const TASK_INDEX = new Map<string, AnyTask>(TASK_BANK.map(task => [task.id, task]));
+const ALL_TASKS: AnyTask[] = [
+  ...TASK_BANK,
+  ...Object.values(BOSS_TASKS).flat(),
+];
+
+const TASK_INDEX = new Map<string, AnyTask>(ALL_TASKS.map(task => [task.id, task]));
 
 export const getTaskById = (id: string): AnyTask | undefined => TASK_INDEX.get(id);
 

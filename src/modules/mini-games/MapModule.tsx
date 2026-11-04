@@ -5,6 +5,7 @@ import { AnyTask, SectionId, TopicId } from './domain/types';
 import { getSection, getTopic } from './domain/sections';
 import { BOSS_TIME_SECONDS, BOSS_WIN_SCORE } from './domain/progression';
 import { TASK_BANK } from './data';
+import { shuffleBySeed } from './engine/shuffle';
 import { selectBossTasks } from './api/select';
 import {
   defeatBoss,
@@ -29,6 +30,7 @@ interface SessionConfig {
   title: string;
   tasks: AnyTask[];
   timerSeconds?: number;
+  seed?: string;
   sectionId: SectionId;
   topicId?: TopicId;
 }
@@ -73,7 +75,11 @@ export const MapModule: React.FC<MapModuleProps> = ({
   const replace = (next: Screen) => setRoute(next);
 
   const startLevel = (sectionId: SectionId, topicId: TopicId) => {
-    const tasks = TASK_BANK.filter(task => task.topic === topicId);
+    const seed = `${Date.now()}-${topicId}`;
+    const tasks = shuffleBySeed(
+      TASK_BANK.filter(task => task.topic === topicId),
+      seed,
+    );
     if (!tasks.length) return;
 
     navigate({
@@ -82,6 +88,7 @@ export const MapModule: React.FC<MapModuleProps> = ({
         kind: 'level',
         title: getTopic(topicId)?.title ?? 'Уровень',
         tasks,
+        seed,
         sectionId,
         topicId,
       },
@@ -148,6 +155,7 @@ export const MapModule: React.FC<MapModuleProps> = ({
         <SessionRunner
           tasks={route.config.tasks}
           timerSeconds={route.config.timerSeconds}
+          seed={route.config.seed}
           onComplete={handleComplete}
         />
       </div>
@@ -223,9 +231,6 @@ export const MapModule: React.FC<MapModuleProps> = ({
           onStartBoss={() => startBoss(route.sectionId)}
         />
         <div className="mg-map__footer">
-          <button type="button" className="mg-map__force" onClick={onOpenForceLab}>
-            Расстановка сил
-          </button>
           <button type="button" className="mg-map__force" onClick={onOpenFormulaTrainer}>
             Тренажёр формул
           </button>

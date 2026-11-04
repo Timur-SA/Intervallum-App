@@ -27,6 +27,8 @@ export type TopicId =
 
 /** Типы задач из Intervallum-Core. */
 export type TaskType =
+  | 'forces'
+  | 'interactive'
   | 'single'
   | 'multi'
   | 'matching'
@@ -110,11 +112,23 @@ export interface TheoryCard extends BaseTask {
   question: string;
   answer: string;
   formula?: string;
+  /** Что именно нужно вспомнить: формулу, определение, закон или значение. */
+  answerKind?: 'formula' | 'definition' | 'law' | 'value';
   /** Дополнительное пояснение для экрана теории. */
   details?: string;
 }
 
-export type AnyTask = SingleChoiceTask | MultiChoiceTask | MatchingTask | TheoryCard;
+export interface ForcesTask extends BaseTask {
+  type: 'forces';
+  forceTask: import('../../force-lab/types').ForceTask;
+}
+
+export type AnyTask =
+  | SingleChoiceTask
+  | MultiChoiceTask
+  | MatchingTask
+  | TheoryCard
+  | ForcesTask;
 
 export type PlayableTaskType = 'single' | 'multi' | 'matching' | 'cards';
 
