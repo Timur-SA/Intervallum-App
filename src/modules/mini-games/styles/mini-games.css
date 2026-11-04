@@ -1618,13 +1618,13 @@
 }
 
 /* Sticky-шапка карты раздела */
-.mg-screen__head--sticky {
-  position: sticky;
-  top: -16px;
-  z-index: 6;
-  margin: -16px -16px 0;
+.mg-screen__head--fixed {
+  position: relative;
+  z-index: 30;
+  flex-shrink: 0;
   padding: 16px 16px 10px;
   background: var(--bg-app);
+  border-bottom: 1px solid var(--border);
 }
 
 .mg-path__row--chaos {
@@ -1822,8 +1822,14 @@
 /* Sticky-заголовки разделов и карточки выбора */
 .mg-journey__section-head {
   position: sticky;
-  top: 56px;
-  z-index: 6;
+  top: -16px;
+  z-index: 10;
+  margin-left: -16px;
+  margin-right: -16px;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  padding: 10px 16px;
 }
 
 .mg-journey__choose-row {

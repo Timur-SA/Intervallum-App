@@ -135,15 +135,15 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
 
   return (
     <div className="mg-screen">
-      <div className="mg-scroll">
-        <header className="mg-screen__head mg-screen__head--sticky">
-          <h1 className="mg-screen__title">Подготовка · ОГЭ</h1>
-          <span className="mg-xp">
-            <Sparkles size={13} />
-            <span className="mg-xp__value">{totalXp(progress)} XP</span>
-          </span>
-        </header>
+      <header className="mg-screen__head mg-screen__head--fixed">
+        <h1 className="mg-screen__title">Подготовка · ОГЭ</h1>
+        <span className="mg-xp">
+          <Sparkles size={13} />
+          <span className="mg-xp__value">{totalXp(progress)} XP</span>
+        </span>
+      </header>
 
+      <div className="mg-scroll">
         <div className="mg-journey" ref={mapRef}>
           <svg className="mg-path__road" aria-hidden>
             <path d={road} />
