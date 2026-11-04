@@ -202,6 +202,9 @@ export const AppShell: React.FC = () => {
             flexDirection: 'column',
             overflow: 'hidden',
             position: 'relative',
+            // Делает корпус содержащим блоком для position: fixed,
+            // чтобы шторки MAX UI не выходили за пределы «телефона» в песочнице
+            transform: 'translateZ(0)',
           }}
         >
           <MaxUI platform={platform} colorScheme={colorScheme} resetBody={false}>

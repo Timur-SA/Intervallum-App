@@ -14,7 +14,6 @@ import {
 import { useNavigation } from '../../shell/HeaderContext';
 import { SectionsMapScreen } from './screens/SectionsMapScreen';
 import { SectionMapScreen } from './screens/SectionMapScreen';
-import { LevelScreen } from './screens/LevelScreen';
 import { SessionRunner, SessionSummary } from './renderers/SessionRunner';
 import { ResultScreen } from './components/ResultScreen';
 
@@ -37,7 +36,6 @@ interface SessionConfig {
 type Screen =
   | { name: 'sections'; choosing: boolean }
   | { name: 'section'; sectionId: SectionId }
-  | { name: 'level'; sectionId: SectionId; topicId: TopicId }
   | { name: 'session'; config: SessionConfig }
   | { name: 'result'; config: SessionConfig; summary: SessionSummary; bossLost?: boolean }
   | { name: 'boss-victory'; sectionId: SectionId };
@@ -78,7 +76,7 @@ export const MapModule: React.FC<MapModuleProps> = ({
     const tasks = TASK_BANK.filter(task => task.topic === topicId);
     if (!tasks.length) return;
 
-    replace({
+    navigate({
       name: 'session',
       config: {
         kind: 'level',
@@ -94,7 +92,7 @@ export const MapModule: React.FC<MapModuleProps> = ({
     const section = getSection(sectionId);
     if (!section) return;
 
-    replace({
+    navigate({
       name: 'session',
       config: {
         kind: 'boss',
@@ -212,19 +210,6 @@ export const MapModule: React.FC<MapModuleProps> = ({
     );
   }
 
-  if (route.name === 'level') {
-    return (
-      <div className="mini-games">
-        <LevelScreen
-          sectionId={route.sectionId}
-          topicId={route.topicId}
-          progress={progress.practice}
-          onStart={() => startLevel(route.sectionId, route.topicId)}
-        />
-      </div>
-    );
-  }
-
   const isSandbox =
     typeof window !== 'undefined' && !(window as any).WebApp?.platform;
 
@@ -234,7 +219,7 @@ export const MapModule: React.FC<MapModuleProps> = ({
         <SectionMapScreen
           sectionId={route.sectionId}
           progress={progress.practice}
-          onStartLevel={topicId => navigate({ name: 'level', sectionId: route.sectionId, topicId })}
+          onStartLevel={topicId => startLevel(route.sectionId, topicId)}
           onStartBoss={() => startBoss(route.sectionId)}
         />
         <div className="mg-map__footer">

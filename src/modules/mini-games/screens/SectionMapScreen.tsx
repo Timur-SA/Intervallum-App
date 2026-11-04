@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BottomSheet, Button } from '@maxhub/max-ui';
-import { Flame, Lock, Play, Sparkles, Trophy } from 'lucide-react';
+import { BookOpen, Flame, Lock, Play, Sparkles, Trophy } from 'lucide-react';
 import { PracticeProgress, totalXp } from '../../../shared/storage/progressStore';
 import { getSection, getTopic } from '../domain/sections';
 import { SectionId, TopicId } from '../domain/types';
@@ -14,6 +14,7 @@ import {
   topicMaxXp,
 } from '../domain/progression';
 import { TASK_BANK } from '../data';
+import { CARDS } from '../data/cards';
 import { haptics } from '../../../shared/motion/haptics';
 
 interface SectionMapScreenProps {
@@ -59,6 +60,7 @@ export const SectionMapScreen: React.FC<SectionMapScreenProps> = ({
 }) => {
   const section = getSection(sectionId);
   const [selectedTopic, setSelectedTopic] = useState<TopicId | null>(null);
+  const [theoryOpen, setTheoryOpen] = useState(false);
   const pathRef = useRef<HTMLDivElement>(null);
   const [road, setRoad] = useState('');
 
@@ -98,6 +100,9 @@ export const SectionMapScreen: React.FC<SectionMapScreenProps> = ({
   const selectedTopicMeta = selectedTopic ? getTopic(selectedTopic) : null;
   const selectedTasks = selectedTopic
     ? TASK_BANK.filter(task => task.topic === selectedTopic)
+    : [];
+  const selectedTheory = selectedTopic
+    ? CARDS.filter(card => card.topic === selectedTopic)
     : [];
 
   return (
@@ -213,7 +218,10 @@ export const SectionMapScreen: React.FC<SectionMapScreenProps> = ({
       <BottomSheet
         open={Boolean(selectedTopic)}
         title={selectedTopicMeta?.title ?? 'Уровень'}
-        onClose={() => setSelectedTopic(null)}
+        onClose={() => {
+          setSelectedTopic(null);
+          setTheoryOpen(false);
+        }}
       >
         <div className="mg-level-sheet">
           <p className="mg-level-sheet__meta">{section.title}</p>
@@ -232,6 +240,32 @@ export const SectionMapScreen: React.FC<SectionMapScreenProps> = ({
           </div>
 
           <Button
+            variant="secondary"
+            size="medium"
+            stretched
+            iconBefore={<BookOpen size={16} />}
+            onClick={() => setTheoryOpen(previous => !previous)}
+          >
+            Теория · {selectedTheory.length}
+          </Button>
+
+          {theoryOpen && (
+            <div className="mg-theory">
+              {selectedTheory.length === 0 && (
+                <p className="mg-theory__empty">Теория по этой теме появится позже.</p>
+              )}
+              {selectedTheory.map(card => (
+                <div key={card.id} className="mg-theory__card">
+                  <div className="mg-theory__question">{card.question}</div>
+                  <div className="mg-theory__answer">{card.answer}</div>
+                  {card.details && <p className="mg-theory__details">{card.details}</p>}
+                  {card.formula && <div className="mg-theory__formula">{card.formula}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <Button
             variant="primary"
             size="large"
             stretched
@@ -240,6 +274,7 @@ export const SectionMapScreen: React.FC<SectionMapScreenProps> = ({
               if (selectedTopic) {
                 const topicId = selectedTopic;
                 setSelectedTopic(null);
+                setTheoryOpen(false);
                 onStartLevel(topicId);
               }
             }}
