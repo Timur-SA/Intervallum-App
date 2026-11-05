@@ -1361,7 +1361,9 @@
   height: 64px;
   border: 0;
   padding: 0;
-  background: transparent;
+  border-radius: 50%;
+  /* непрозрачная подложка: дорожка не должна просвечивать под иконкой */
+  background: var(--bg-app);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -1428,6 +1430,7 @@
 
 .mg-node__inner svg {
   opacity: 1;
+  color: inherit;
 }
 
 .mg-node--boss {
