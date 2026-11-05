@@ -1420,7 +1420,7 @@
 
 /* Иконка заблокированного уровня всегда полностью непрозрачная */
 .mg-node--locked .mg-node__inner {
-  color: var(--text-primary);
+  color: var(--text-secondary);
   background: var(--bg-surface);
   border-color: var(--border);
   opacity: 1;
