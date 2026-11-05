@@ -6,7 +6,7 @@ import {
   ChevronUp,
   Check,
   Flame,
-  Lock,
+  LockKeyhole,
   Play,
   Sparkles,
   Trophy,
@@ -235,7 +235,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                               <Ring value={levelXp} max={max} size={64} color={section.color} done={complete} />
                               <span className="mg-node__inner">
                                 {!unlocked ? (
-                                  <Lock size={16} />
+                                  <LockKeyhole size={23} strokeWidth={2.2} />
                                 ) : (
                                   (() => {
                                     const Icon = TOPIC_ICONS[topicId];
