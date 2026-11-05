@@ -1418,10 +1418,16 @@
   opacity: 0.45;
 }
 
+/* Иконка заблокированного уровня всегда полностью непрозрачная */
 .mg-node--locked .mg-node__inner {
   color: var(--text-primary);
   background: var(--bg-surface);
   border-color: var(--border);
+  opacity: 1;
+}
+
+.mg-node__inner svg {
+  opacity: 1;
 }
 
 .mg-node--boss {

@@ -6,6 +6,7 @@ import {
   ChevronUp,
   Check,
   Flame,
+  Lock,
   Play,
   Sparkles,
   Trophy,
@@ -233,10 +234,14 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                             >
                               <Ring value={levelXp} max={max} size={64} color={section.color} done={complete} />
                               <span className="mg-node__inner">
-                                {(() => {
-                                  const Icon = TOPIC_ICONS[topicId];
-                                  return Icon ? <Icon size={18} /> : index + 1;
-                                })()}
+                                {!unlocked ? (
+                                  <Lock size={16} />
+                                ) : (
+                                  (() => {
+                                    const Icon = TOPIC_ICONS[topicId];
+                                    return Icon ? <Icon size={18} /> : index + 1;
+                                  })()
+                                )}
                                 {complete && (
                                   <span className="mg-node__check" aria-hidden>
                                     <Check size={9} />
