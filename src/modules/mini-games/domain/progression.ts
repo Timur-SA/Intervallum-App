@@ -72,7 +72,7 @@ export const isTopicUnlocked = (
 
   const index = section.topics.indexOf(topicId);
   if (index < 0) return false;
-  if (index <= 1) return true;
+  if (index === 0) return true;
 
   const previousTopic = section.topics[index - 1];
   return (progress.xpByTopic[previousTopic] ?? 0) >= topicUnlockXp(previousTopic);

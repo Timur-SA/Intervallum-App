@@ -86,18 +86,18 @@ describe('темы', () => {
     expect(isTopicComplete(makeProgress({ xpByTopic: { 'uniform-motion': max } }), 'uniform-motion')).toBe(true);
   });
 
-  it('первые две темы открыты сразу', () => {
+  it('сразу открыта только первая тема', () => {
     const progress = makeProgress();
     const section = getSection('mechanics')!;
     expect(isTopicUnlocked(progress, 'mechanics', section.topics[0])).toBe(true);
-    expect(isTopicUnlocked(progress, 'mechanics', section.topics[1])).toBe(true);
-    expect(openTopicsCount(progress, 'mechanics')).toBe(2);
+    expect(isTopicUnlocked(progress, 'mechanics', section.topics[1])).toBe(false);
+    expect(openTopicsCount(progress, 'mechanics')).toBe(1);
   });
 
   it('следующая тема открывается по опыту предыдущей', () => {
     const section = getSection('mechanics')!;
-    const previous = section.topics[1];
-    const next = section.topics[2];
+    const previous = section.topics[0];
+    const next = section.topics[1];
     const required = topicUnlockXp(previous);
 
     expect(
