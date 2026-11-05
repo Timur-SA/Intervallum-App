@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { PracticeProgress, totalXp } from '../../../shared/storage/progressStore';
 import { SECTIONS, getSection, getTopic } from '../domain/sections';
-import { SectionId, TopicId } from '../domain/types';
+import { Section, SectionId, TopicId } from '../domain/types';
 import {
   bossXpRequired,
   isBossReady,
@@ -79,7 +79,11 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
   const mapRef = useRef<HTMLDivElement>(null);
   const [road, setRoad] = useState('');
 
-  const visibleSections = SECTIONS.filter(section => isSectionUnlocked(progress, section.id));
+  // Порядок разделов — порядок, в котором игрок их открывал.
+  const visibleSections = ['mechanics', ...progress.unlockedSections.filter(id => id !== 'mechanics')]
+    .map(id => getSection(id as SectionId))
+    .filter((section): section is Section => Boolean(section))
+    .filter(section => isSectionUnlocked(progress, section.id));
   const lastSection = visibleSections[visibleSections.length - 1];
   const lastDefeated = lastSection ? isSectionDefeated(progress, lastSection.id) : false;
   const lockedSections = SECTIONS.filter(section => !isSectionUnlocked(progress, section.id));
