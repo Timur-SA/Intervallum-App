@@ -1938,3 +1938,22 @@
   cursor: grab;
   touch-action: none;
 }
+
+/* Иконка уровня и отметка прохождения */
+.mg-node__inner {
+  position: relative;
+}
+
+.mg-node__check {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--success);
+  color: #04120b;
+  border: 1.5px solid var(--bg-card);
+}
