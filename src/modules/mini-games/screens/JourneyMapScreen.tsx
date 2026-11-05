@@ -4,8 +4,8 @@ import {
   BookOpen,
   ChevronDown,
   ChevronUp,
+  Check,
   Flame,
-  Lock,
   Play,
   Sparkles,
   Trophy,
@@ -24,6 +24,7 @@ import {
   topicMaxXp,
 } from '../domain/progression';
 import { TASK_BANK } from '../data';
+import { TOPIC_ICONS } from '../config/topicIcons';
 import { ANSWER_KIND_LABELS, CARDS } from '../data/cards';
 import { haptics } from '../../../shared/motion/haptics';
 
@@ -228,7 +229,15 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                             >
                               <Ring value={levelXp} max={max} size={64} color={section.color} done={complete} />
                               <span className="mg-node__inner">
-                                {complete ? <Trophy size={18} /> : unlocked ? index + 1 : <Lock size={16} />}
+                                {(() => {
+                                  const Icon = TOPIC_ICONS[topicId];
+                                  return Icon ? <Icon size={18} /> : index + 1;
+                                })()}
+                                {complete && (
+                                  <span className="mg-node__check" aria-hidden>
+                                    <Check size={9} />
+                                  </span>
+                                )}
                               </span>
                             </button>
                             <span className="mg-path__caption mg-path__caption--center">
