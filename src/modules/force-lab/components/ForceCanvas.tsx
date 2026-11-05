@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { DrawnVector, ForceTask, ForceType } from '../types';
 import { FORCE_CATALOG } from '../data/catalog';
 import { TaskIllustration } from './TaskIllustration';
@@ -37,17 +37,22 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
   onCommitVector,
   onRequireSelectForce,
 }) => {
-  const svgRef = useRef<SVGSVGElement>(null);
   const [gesture, setGesture] = useState<GestureState | null>(null);
 
   const getPoint = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (!svgRef.current) return { x: 180, y: 175 };
-    const rect = svgRef.current.getBoundingClientRect();
-    const scaleX = 360 / rect.width;
-    const scaleY = 350 / rect.height;
-    const x = Math.max(16, Math.min(344, (e.clientX - rect.left) * scaleX));
-    const y = Math.max(28, Math.min(330, (e.clientY - rect.top) * scaleY));
-    return { x, y };
+    const svg = e.currentTarget;
+    const screenTransform = svg.getScreenCTM();
+    if (!screenTransform) return { x: 180, y: 175 };
+
+    const screenPoint = svg.createSVGPoint();
+    screenPoint.x = e.clientX;
+    screenPoint.y = e.clientY;
+    const point = screenPoint.matrixTransform(screenTransform.inverse());
+
+    return {
+      x: Math.max(16, Math.min(344, point.x)),
+      y: Math.max(28, Math.min(330, point.y)),
+    };
   };
 
   const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -247,7 +252,6 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
   return (
     <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column' }}>
       <svg
-        ref={svgRef}
         viewBox="0 0 360 350"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -255,6 +259,7 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
         style={{
           width: '100%',
           flex: 1,
+          minHeight: 0,
           display: 'block',
           touchAction: 'none',
           userSelect: 'none',

@@ -105,12 +105,20 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
     <>
       <GameShell
         title="Расстановка сил"
-        bodyClassName="mg-game__body--flush"
+        bodyClassName="mg-game__body--force"
         step={step}
         total={total}
         headerRight={headerRight}
         footer={
           <>
+            <ForceToolbar
+              selectedForce={selectedForce}
+              canUndo={history.length > 0 && !checked}
+              canDelete={Boolean(activeVectorType) && !checked}
+              onOpenLibrary={() => setIsCatalogOpen(true)}
+              onUndo={handleUndo}
+              onDelete={handleDelete}
+            />
             <Button
               variant="primary"
               size="large"
@@ -188,16 +196,6 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
             <span>Выберите силу в каталоге снизу</span>
           )}
         </div>
-
-        <ForceToolbar
-          selectedForce={selectedForce}
-          activeVectorType={activeVectorType}
-          canUndo={history.length > 0 && !checked}
-          canDelete={Boolean(activeVectorType) && !checked}
-          onOpenLibrary={() => setIsCatalogOpen(true)}
-          onUndo={handleUndo}
-          onDelete={handleDelete}
-        />
       </GameShell>
 
       <ForceCatalogSheet

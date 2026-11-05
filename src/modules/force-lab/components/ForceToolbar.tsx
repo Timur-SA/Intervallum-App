@@ -6,7 +6,6 @@ import { ForceType } from '../types';
 
 interface ForceToolbarProps {
   selectedForce: ForceType | null;
-  activeVectorType: ForceType | null;
   canUndo: boolean;
   canDelete: boolean;
   onOpenLibrary: () => void;
@@ -16,7 +15,6 @@ interface ForceToolbarProps {
 
 export const ForceToolbar: React.FC<ForceToolbarProps> = ({
   selectedForce,
-  activeVectorType,
   canUndo,
   canDelete,
   onOpenLibrary,
@@ -28,9 +26,7 @@ export const ForceToolbar: React.FC<ForceToolbarProps> = ({
   return (
     <div
       style={{
-        padding: '10px 16px 14px',
-        backgroundColor: 'var(--bg-card)',
-        borderTop: '1px solid var(--border)',
+        marginBottom: 10,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -44,6 +40,7 @@ export const ForceToolbar: React.FC<ForceToolbarProps> = ({
         onClick={onOpenLibrary}
         style={{
           flex: 1,
+          minWidth: 0,
           display: 'flex',
           alignItems: 'center',
           gap: 10,
@@ -88,7 +85,7 @@ export const ForceToolbar: React.FC<ForceToolbarProps> = ({
       </button>
 
       {/* Undo & Delete buttons */}
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
         <button
           type="button"
           onClick={onUndo}

@@ -30,6 +30,8 @@ export const ForceCatalogSheet: React.FC<ForceCatalogSheetProps> = ({
 }) => {
   const [activeCategory, setActiveCategory] = useState<string>('Все');
 
+  if (!isOpen) return null;
+
   const allForces = Object.values(FORCE_CATALOG);
   const filteredForces =
     activeCategory === 'Все'
@@ -40,17 +42,17 @@ export const ForceCatalogSheet: React.FC<ForceCatalogSheetProps> = ({
     <>
       {/* Backdrop */}
       <div
-        className={`sheet-backdrop ${isOpen ? 'visible' : ''}`}
+        className="sheet-backdrop visible"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Unified Bottom Sheet */}
-      <div className={`bottom-sheet ${isOpen ? 'open' : ''}`} role="dialog" aria-modal="true">
+      <div className="bottom-sheet open" role="dialog" aria-modal="true" aria-labelledby="force-catalog-title">
         {/* Drag header with handle pill */}
         <div className="sheet-drag-header">
           <div className="handle-pill" />
-          <h3>Каталог физических сил</h3>
+          <h3 id="force-catalog-title">Каталог физических сил</h3>
         </div>
 
         {/* Categories Bar */}
