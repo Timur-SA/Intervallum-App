@@ -107,12 +107,10 @@ export const TaskIllustration: React.FC<TaskIllustrationProps> = ({ kind }) => {
     case 'table':
       return (
         <g className="fl-illustration-table">
-          {/* Стол рисуем первым, чтобы линии уходили под брусок */}
-          <path d="M 55 227 H 305" stroke={ink} strokeWidth="2.2" />
-          <path d="M 55 235 H 305" stroke={line} strokeWidth="1.2" />
-          <path d="M 55 227 V 315 M 305 227 V 315" stroke={ink} strokeWidth="2.2" />
-          <path d="M 18 315 H 342" stroke={line} strokeWidth="1.5" />
           <rect x="135" y="153" width="90" height="74" rx="4" fill={panel} stroke={ink} strokeWidth="1.8" />
+          <path d="M 35 227 H 325 M 55 227 V 315 M 305 227 V 315" stroke={ink} strokeWidth="2.2" />
+          <path d="M 35 235 H 325" stroke={line} strokeWidth="1.2" />
+          <path d="M 18 315 H 342" stroke={line} strokeWidth="1.5" />
         </g>
       );
     case 'hanging':
