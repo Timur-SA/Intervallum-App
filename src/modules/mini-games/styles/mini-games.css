@@ -1414,8 +1414,14 @@
   border-color: var(--border-accent);
 }
 
-.mg-node--locked {
-  opacity: 0.5;
+.mg-node--locked .mg-node__ring {
+  opacity: 0.45;
+}
+
+.mg-node--locked .mg-node__inner {
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border-color: var(--border);
 }
 
 .mg-node--boss {
