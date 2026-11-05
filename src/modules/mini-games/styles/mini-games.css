@@ -1635,6 +1635,11 @@
 }
 
 /* Задание «Расстановка сил» внутри общего каркаса */
+.mg-game__body--force {
+  padding: 0;
+  gap: 0;
+}
+
 .mg-force-head {
   display: flex;
   flex-direction: column;
@@ -1644,7 +1649,7 @@
 
 .mg-force-canvas {
   flex: 1;
-  min-height: 240px;
+  min-height: 160px;
   display: flex;
   flex-direction: column;
   border-radius: 0;
