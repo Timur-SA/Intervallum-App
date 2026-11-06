@@ -4,15 +4,16 @@ import {
   BookOpen,
   ChevronDown,
   ChevronUp,
+  Check,
   Flame,
-  Lock,
+  LockKeyhole,
   Play,
   Sparkles,
   Trophy,
 } from 'lucide-react';
 import { PracticeProgress, totalXp } from '../../../shared/storage/progressStore';
 import { SECTIONS, getSection, getTopic } from '../domain/sections';
-import { SectionId, TopicId } from '../domain/types';
+import { Section, SectionId, TopicId } from '../domain/types';
 import {
   bossXpRequired,
   isBossReady,
@@ -26,6 +27,8 @@ import {
 import { TASK_BANK } from '../data';
 import { CARDS } from '../data/cards';
 import { MathText, MathView } from '../../../shared/components/MathView';
+import { SECTION_ICONS } from '../config/sectionIcons';
+import { ANSWER_KIND_LABELS, CARDS } from '../data/cards';
 import { haptics } from '../../../shared/motion/haptics';
 
 interface JourneyMapScreenProps {
@@ -79,7 +82,11 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
   const mapRef = useRef<HTMLDivElement>(null);
   const [road, setRoad] = useState('');
 
-  const visibleSections = SECTIONS.filter(section => isSectionUnlocked(progress, section.id));
+  // Порядок разделов — порядок, в котором игрок их открывал.
+  const visibleSections = ['mechanics', ...progress.unlockedSections.filter(id => id !== 'mechanics')]
+    .map(id => getSection(id as SectionId))
+    .filter((section): section is Section => Boolean(section))
+    .filter(section => isSectionUnlocked(progress, section.id));
   const lastSection = visibleSections[visibleSections.length - 1];
   const lastDefeated = lastSection ? isSectionDefeated(progress, lastSection.id) : false;
   const lockedSections = SECTIONS.filter(section => !isSectionUnlocked(progress, section.id));
@@ -177,7 +184,10 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                   }}
                 >
                   <span className="mg-journey__section-icon" style={{ backgroundColor: section.color }}>
-                    {defeated ? <Trophy size={16} /> : <Sparkles size={16} />}
+                    {(() => {
+                      const SectionIcon = SECTION_ICONS[section.id];
+                      return SectionIcon ? <SectionIcon size={17} /> : <Sparkles size={16} />;
+                    })()}
                   </span>
                   <span className="mg-journey__section-title">{section.title}</span>
                   <span className="mg-journey__section-meta">
@@ -230,7 +240,13 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                             >
                               <Ring value={levelXp} max={max} size={64} color={section.color} done={complete} />
                               <span className="mg-node__inner">
-                                {complete ? <Trophy size={18} /> : unlocked ? index + 1 : <Lock size={16} />}
+                                {!unlocked ? (
+                                  <LockKeyhole size={23} strokeWidth={2.2} />
+                                ) : complete ? (
+                                  <Check size={22} strokeWidth={3} />
+                                ) : (
+                                  index + 1
+                                )}
                               </span>
                             </button>
                             <span className="mg-path__caption mg-path__caption--center">
@@ -262,7 +278,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                         >
                           <Ring value={xp} max={required} size={96} color="#f59e0b" done={defeated} />
                           <span className="mg-node__inner mg-node__inner--boss">
-                            <Flame size={30} />
+                            {defeated ? <Trophy size={30} /> : <Flame size={30} />}
                           </span>
                         </button>
                         <span className="mg-path__caption mg-path__caption--center">
@@ -308,7 +324,10 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                       style={{ backgroundColor: section.color }}
                       aria-hidden
                     >
-                      <Sparkles size={18} />
+                      {(() => {
+                        const SectionIcon = SECTION_ICONS[section.id];
+                        return SectionIcon ? <SectionIcon size={18} /> : <Sparkles size={18} />;
+                      })()}
                     </span>
                     <span className="mg-choice-card__title">{section.title}</span>
                     <span className="mg-choice-card__meta">{section.topics.length} тем</span>
