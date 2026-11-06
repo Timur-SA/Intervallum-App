@@ -1,4 +1,5 @@
-import { SECTIONS } from '../../modules/mini-games/domain/sections';
+import { getSection } from '../../modules/mini-games/domain/sections';
+import { Section } from '../../modules/mini-games/domain/types';
 import {
   isSectionDefeated,
   isSectionUnlocked,
@@ -6,10 +7,19 @@ import {
 } from '../../modules/mini-games/domain/progression';
 import { PracticeProgress } from '../storage/progressStore';
 
-const currentSection = (practice: PracticeProgress) =>
-  SECTIONS.find(
-    section => isSectionUnlocked(practice, section.id) && !isSectionDefeated(practice, section.id),
-  ) ?? SECTIONS[SECTIONS.length - 1];
+const orderedSections = (practice: PracticeProgress): Section[] =>
+  ['mechanics', ...practice.unlockedSections.filter(id => id !== 'mechanics')]
+    .map(id => getSection(id as Section['id']))
+    .filter((section): section is Section => Boolean(section));
+
+const currentSection = (practice: PracticeProgress) => {
+  const sections = orderedSections(practice);
+  return (
+    sections.find(
+      section => isSectionUnlocked(practice, section.id) && !isSectionDefeated(practice, section.id),
+    ) ?? sections[sections.length - 1]
+  );
+};
 
 export const completeCurrentLevel = (practice: PracticeProgress): void => {
   const section = currentSection(practice);

@@ -1361,7 +1361,9 @@
   height: 64px;
   border: 0;
   padding: 0;
-  background: transparent;
+  border-radius: 50%;
+  /* непрозрачная подложка: дорожка не должна просвечивать под иконкой */
+  background: var(--bg-app);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -1414,8 +1416,21 @@
   border-color: var(--border-accent);
 }
 
-.mg-node--locked {
-  opacity: 0.5;
+.mg-node--locked .mg-node__ring {
+  opacity: 0.45;
+}
+
+/* Иконка заблокированного уровня всегда полностью непрозрачная */
+.mg-node--locked .mg-node__inner {
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border-color: var(--border);
+  opacity: 1;
+}
+
+.mg-node__inner svg {
+  opacity: 1;
+  color: inherit;
 }
 
 .mg-node--boss {
@@ -1936,4 +1951,23 @@
 .out-pill {
   cursor: grab;
   touch-action: none;
+}
+
+/* Иконка уровня и отметка прохождения */
+.mg-node__inner {
+  position: relative;
+}
+
+.mg-node__check {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--success);
+  color: #04120b;
+  border: 1.5px solid var(--bg-card);
 }
