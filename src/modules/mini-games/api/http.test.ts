@@ -71,6 +71,45 @@ describe('createHttpApi', () => {
     });
   });
 
+  it('sends force vectors to Core', async () => {
+    const fetchMock = vi.fn(async () =>
+      jsonResponse({
+        outcome: 'correct',
+        score: 1,
+        xp_by_topic: { 'accelerated-motion': 20 },
+        correct_answer: { forces: ['gravity', 'normal', 'elastic'] },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const api = createHttpApi();
+    await api.grade({
+      taskId: 'forces-incline',
+      answer: { type: 'forces', vectors: [{ type: 'gravity', x: 1, y: 2, dx: 0, dy: 1 }], attempts: 1 },
+    });
+    const body = JSON.parse(String((fetchMock.mock.calls[0] as any)[1].body));
+    expect(body.answer.vectors[0].type).toBe('gravity');
+    expect(body.answer.attempts).toBe(1);
+  });
+
+  it('sends interactive value to Core', async () => {
+    const fetchMock = vi.fn(async () =>
+      jsonResponse({
+        outcome: 'correct',
+        score: 1,
+        xp_by_topic: { ohm: 10 },
+        correct_answer: { value: 6, formula: 'R = U / I' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const api = createHttpApi();
+    await api.grade({
+      taskId: 'interactive-task_ohm_resistance',
+      answer: { type: 'interactive', value: 6, attempts: 1 },
+    });
+    const body = JSON.parse(String((fetchMock.mock.calls[0] as any)[1].body));
+    expect(body.answer).toEqual({ value: 6, attempts: 1 });
+  });
+
   it('falls back to local grading when Core is unavailable', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline'); }));
     const { createResilientApi } = await import('./http');

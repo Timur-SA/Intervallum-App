@@ -138,11 +138,21 @@ export type AnyTask =
 
 export type PlayableTaskType = 'single' | 'multi' | 'matching' | 'cards';
 
+export interface ForceVectorAnswer {
+  type: string;
+  x?: number;
+  y?: number;
+  dx?: number;
+  dy?: number;
+}
+
 export type TaskAnswer =
   | { type: 'single'; optionId: string }
   | { type: 'multi'; optionIds: string[] }
   | { type: 'matching'; links: Record<string, string> }
-  | { type: 'cards'; selfAssessment: CardGrade };
+  | { type: 'cards'; selfAssessment: CardGrade }
+  | { type: 'forces'; vectors: ForceVectorAnswer[]; attempts?: number }
+  | { type: 'interactive'; value: number; attempts?: number };
 
 export interface GradeResult {
   outcome: Outcome;
