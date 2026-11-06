@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { DrawnVector, ForceTask, ForceType } from '../types';
 import { FORCE_CATALOG } from '../data/catalog';
 import { TaskIllustration } from './TaskIllustration';
@@ -38,6 +38,7 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
   onRequireSelectForce,
 }) => {
   const [gesture, setGesture] = useState<GestureState | null>(null);
+  const committedDrag = useRef(false);
 
   const getPoint = (e: React.PointerEvent<SVGSVGElement>) => {
     const svg = e.currentTarget;
@@ -57,6 +58,7 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
 
   const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     if (passed || e.button > 0) return;
+    committedDrag.current = false;
     const p = getPoint(e);
     const hitRadius = 24;
 
@@ -131,9 +133,11 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
   const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!gesture || gesture.pointerId !== e.pointerId) return;
     const v = gesture.vector;
-    const moved = Math.hypot(v.dx, v.dy) >= 14;
+    const end = getPoint(e);
+    const moved = Math.hypot(end.x - gesture.start.x, end.y - gesture.start.y) >= 3;
 
-    if (moved) {
+    if (moved && Math.hypot(v.dx, v.dy) >= 14) {
+      committedDrag.current = true;
       haptics.impact('medium');
       onCommitVector(v);
     }
@@ -166,7 +170,9 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
       <g
         key={v.type + (isDraft ? '-draft' : '')}
         opacity={isDraft ? 0.75 : 1}
-        onClick={() => !isDraft && onSelectVector(v.type)}
+        onClick={() => {
+          if (!isDraft && !passed && !committedDrag.current) onSelectVector(v.type);
+        }}
         style={{ cursor: 'pointer' }}
       >
         {/* Invisible wider hit area */}
@@ -256,6 +262,9 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        onPointerCancel={event => {
+          if (gesture?.pointerId === event.pointerId) setGesture(null);
+        }}
         style={{
           width: '100%',
           flex: 1,

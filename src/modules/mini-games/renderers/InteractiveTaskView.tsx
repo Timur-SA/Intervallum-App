@@ -86,7 +86,7 @@ export const InteractiveTaskView: React.FC<TaskViewProps<InteractiveTask>> = ({
       <div className="mg-interactive__meta">
         <StatusBadge status="neutral" text={section ? section.title : 'Физика'} />
         <span className="mg-question__meta-text">
-          {topic ? topic.title : ''} · {step + 1} из {total}
+          {topic?.title}
         </span>
       </div>
 

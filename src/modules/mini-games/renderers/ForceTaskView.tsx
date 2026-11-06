@@ -30,40 +30,44 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
   const [activeVectorType, setActiveVectorType] = useState<ForceType | null>(null);
   const [history, setHistory] = useState<DrawnVector[][]>([]);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-  const [passed, setPassed] = useState(false);
-  const [checked, setChecked] = useState(false);
   const [score, setScore] = useState(0);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [reviewQueue, setReviewQueue] = useState<ReviewEntry[]>([]);
   const [reviewIndex, setReviewIndex] = useState(0);
 
+  const checked = validationResult !== null;
+  const passed = validationResult?.passed ?? false;
+
   const checkpoint = () => {
     setHistory(previous => [...previous.slice(-19), vectors.map(vector => ({ ...vector }))]);
   };
 
   const handleCommitVector = (newVector: DrawnVector) => {
-    if (checked) return;
+    if (passed) return;
     checkpoint();
     setVectors(previous => [...previous.filter(vector => vector.type !== newVector.type), newVector]);
+    setValidationResult(null);
     setActiveVectorType(newVector.type);
     setSelectedForce(newVector.type);
   };
 
   const handleUndo = () => {
-    if (!history.length || checked) return;
+    if (!history.length || passed) return;
     haptics.impact('light');
     const previous = history[history.length - 1];
     setHistory(items => items.slice(0, -1));
     setVectors(previous);
+    setValidationResult(null);
     setActiveVectorType(null);
   };
 
   const handleDelete = () => {
-    if (!activeVectorType || checked) return;
+    if (!activeVectorType || passed) return;
     haptics.impact('light');
     checkpoint();
     setVectors(previous => previous.filter(vector => vector.type !== activeVectorType));
+    setValidationResult(null);
     setActiveVectorType(null);
   };
 
@@ -75,14 +79,11 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
   });
 
   const handleCheck = () => {
-    if (checked) return;
+    if (passed || !vectors.length) return;
 
     const result = validatePlacement(forceTask, vectors);
     setValidationResult(result);
-    setPassed(result.passed);
     setActiveVectorType(null);
-    setSelectedForce(null);
-    setChecked(true);
 
     const attemptScore = result.passed
       ? 1
@@ -90,6 +91,7 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
     setScore(attemptScore);
 
     if (result.passed) {
+      setSelectedForce(null);
       haptics.notification('success');
     } else {
       haptics.notification('error');
@@ -113,9 +115,11 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
           <>
             <ForceToolbar
               selectedForce={selectedForce}
-              canUndo={history.length > 0 && !checked}
-              canDelete={Boolean(activeVectorType) && !checked}
-              onOpenLibrary={() => setIsCatalogOpen(true)}
+              canUndo={history.length > 0 && !passed}
+              canDelete={Boolean(activeVectorType) && !passed}
+              onOpenLibrary={() => {
+                if (!passed) setIsCatalogOpen(true);
+              }}
               onUndo={handleUndo}
               onDelete={handleDelete}
             />
@@ -131,20 +135,6 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
             >
               {checked ? 'Продолжить' : 'Проверить'}
             </Button>
-            {checked && !passed && (
-              <Button
-                variant="secondary"
-                size="medium"
-                stretched
-                style={{ marginTop: 8 }}
-                onClick={() => {
-                  setChecked(false);
-                  setValidationResult(null);
-                }}
-              >
-                Проверить ещё раз
-              </Button>
-            )}
           </>
         }
       >
@@ -152,7 +142,7 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
           <div className="mg-question__meta">
             <StatusBadge status="neutral" text={section ? section.title : 'Механика'} />
             <span className="mg-question__meta-text">
-              {topic ? topic.title : ''} · {step + 1} из {total}
+              {topic?.title}
             </span>
           </div>
 
@@ -172,7 +162,7 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
             errorTypes={validationResult?.badTypes || []}
             passed={passed}
             onSelectVector={type => {
-              if (checked) return;
+              if (passed) return;
               setActiveVectorType(type);
               setSelectedForce(type);
             }}
@@ -182,6 +172,7 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
         </div>
 
         <div
+          role="status"
           className={`mg-force-feedback ${
             passed ? 'is-pass' : validationResult ? 'is-fail' : ''
           }`}
@@ -189,7 +180,7 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
           {passed ? (
             <strong>Отлично! Все точки приложения и направления верны.</strong>
           ) : validationResult ? (
-            <span>Есть неточности. Можно исправить и проверить снова.</span>
+            <span>Исправьте стрелки на схеме и проверьте снова.</span>
           ) : selectedForce ? (
             <span>Коснитесь точки на теле и протяните стрелку силы</span>
           ) : (

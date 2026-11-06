@@ -142,6 +142,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
   return (
     <div
+      className="mg-force-review"
       style={{
         position: 'absolute',
         inset: 0,
@@ -198,6 +199,8 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
         {/* Side by Side Panes */}
         <div
+          key={entry.type}
+          className="mg-force-review__comparison"
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',

@@ -5,6 +5,7 @@ import { GradeResponse } from '../api/contracts';
 import { MultiChoiceTask } from '../domain/types';
 import { getSectionByTopic, getTopic } from '../domain/sections';
 import { shuffleBySeed } from '../engine/shuffle';
+import { MathText } from '../../../shared/components/MathView';
 import { haptics } from '../../../shared/motion/haptics';
 import { GameShell } from '../components/GameShell';
 import { AnswerOption } from '../components/AnswerOption';
@@ -108,11 +109,11 @@ export const MultiTaskView: React.FC<TaskViewProps<MultiChoiceTask>> = ({
         <div className="mg-question__meta">
           <StatusBadge status="neutral" text={section ? section.title : 'Физика'} />
           <span className="mg-question__meta-text">
-            {topic ? topic.title : ''} · {step + 1} из {total}
+            {topic?.title}
           </span>
         </div>
 
-        <p className="mg-question__prompt">{task.prompt}</p>
+        <p className="mg-question__prompt"><MathText text={task.prompt} /></p>
         <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-muted)' }}>
           Отметьте все подходящие варианты. Штраф за пропущенные и лишние.
         </p>

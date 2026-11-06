@@ -1,6 +1,6 @@
 import React from 'react';
 import { PhysicsTask, ComputedResult } from '../types/physics';
-import { MathText } from './MathView';
+import { MathText } from '../../../shared/components/MathView';
 import { Button } from '@maxhub/max-ui';
 
 interface ResultModalProps {

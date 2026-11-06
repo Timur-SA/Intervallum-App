@@ -2,7 +2,7 @@ import React from 'react';
 import { Typography, Button } from '@maxhub/max-ui';
 import { PhysicsTask } from '../types/physics';
 import { PHYSICS_TASKS } from '../data/tasksDb';
-import { MathText } from './MathView';
+import { MathText } from '../../../shared/components/MathView';
 import { haptics } from '../../../shared/motion/haptics';
 
 interface TaskScreenProps {

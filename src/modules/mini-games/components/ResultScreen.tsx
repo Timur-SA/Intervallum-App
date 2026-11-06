@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { CSSProperties, ReactNode } from 'react';
 import { Button } from '@maxhub/max-ui';
 import { RotateCcw } from 'lucide-react';
 import { SessionSummary } from '../renderers/SessionRunner';
@@ -12,7 +12,19 @@ interface ResultScreenProps {
   onBack: () => void;
   backLabel?: string;
   title?: string;
+  celebrate?: boolean;
 }
+
+const CONFETTI = [
+  { x: -104, y: -22, turn: -145, tone: 'accent' },
+  { x: -90, y: -58, turn: 95, tone: 'warning' },
+  { x: -64, y: -37, turn: -75, tone: 'success' },
+  { x: -42, y: -69, turn: 150, tone: 'accent' },
+  { x: 49, y: -65, turn: -120, tone: 'success' },
+  { x: 68, y: -43, turn: 85, tone: 'accent' },
+  { x: 91, y: -57, turn: -105, tone: 'warning' },
+  { x: 108, y: -19, turn: 135, tone: 'success' },
+] as const;
 
 export const ResultScreen: React.FC<ResultScreenProps> = ({
   subtitle,
@@ -23,20 +35,36 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   onBack,
   backLabel = 'Продолжить',
   title = 'Раунд завершён',
+  celebrate = false,
 }) => {
   const accuracy = Math.round(summary.score * 100);
 
   return (
     <div className="mg-result">
-      <div className="mg-result__badge" style={{ backgroundColor: color }}>
-        {icon}
+      <div className="mg-result__emblem">
+        {celebrate && (
+          <div className="mg-result__confetti" aria-hidden="true">
+            {CONFETTI.map(({ x, y, turn, tone }) => (
+              <span
+                key={x}
+                className="mg-result__confetti-piece"
+                style={{
+                  '--confetti-x': `${x}px`,
+                  '--confetti-y': `${y}px`,
+                  '--confetti-turn': `${turn}deg`,
+                  backgroundColor: tone === 'accent' ? color : `var(--${tone})`,
+                } as CSSProperties}
+              />
+            ))}
+          </div>
+        )}
+        <div className="mg-result__badge" style={{ backgroundColor: color }}>
+          {icon}
+        </div>
       </div>
 
       <h2 className="mg-result__title">{title}</h2>
       <p className="mg-result__subtitle">{subtitle}</p>
-
-      <div className="mg-result__badges">
-      </div>
 
       <div className="mg-result__stats">
         <div className="mg-result__stat">

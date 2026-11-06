@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PhysicsTask } from '../types/physics';
-import { MathText } from './MathView';
+import { MathText } from '../../../shared/components/MathView';
 
 interface CollapsibleProblemPanelProps {
   task: PhysicsTask;

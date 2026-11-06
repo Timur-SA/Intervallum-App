@@ -24,9 +24,11 @@ export const MathView: React.FC<MathViewProps> = ({
         displayMode,
       });
     } catch {
-      return expr;
+      return null;
     }
   }, [expr, displayMode]);
+
+  if (html === null) return <span className={className}>{expr}</span>;
 
   return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 };
@@ -36,17 +38,10 @@ interface MathTextProps {
   className?: string;
 }
 
-export const MathText: React.FC<MathTextProps> = ({ text, className = '' }) => {
-  const html = useMemo(() => {
-    if (!text) return '';
-    return text.replace(/\$([^\$]+)\$/g, (_, m) => {
-      try {
-        return katex.renderToString(m, { throwOnError: false });
-      } catch {
-        return m;
-      }
-    });
-  }, [text]);
-
-  return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
-};
+export const MathText: React.FC<MathTextProps> = ({ text, className = '' }) => (
+  <span className={className}>
+    {text.split(/\$([^$]+)\$/g).map((part, index) =>
+      index % 2 ? <MathView key={index} latex={part} /> : part,
+    )}
+  </span>
+);
