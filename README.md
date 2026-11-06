@@ -49,8 +49,16 @@ http://127.0.0.1:3000
 
 ## Docker
 
+Продакшен-сборка:
+
 ```bash
 docker compose up --build
+```
+
+Разработка с сохранением `node_modules` между перезапусками:
+
+```bash
+docker compose -f docker-compose.dev.yml up
 ```
 
 Если Core находится на другом сервере:
