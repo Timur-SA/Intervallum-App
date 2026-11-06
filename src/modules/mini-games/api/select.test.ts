@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PracticeProgress } from '../../../shared/storage/progressStore';
-import { selectBossTasks, selectTrain } from './select';
+import { selectBossTasks, selectTrain, selectTrainRemote } from './select';
 import { getSectionByTopic } from '../domain/sections';
 import { BOSS_TASK_COUNT } from '../domain/progression';
 
@@ -85,5 +85,36 @@ describe('selectBossTasks', () => {
     for (let i = 1; i < head.length; i += 1) {
       expect(head[i - 1].difficulty).toBeLessThanOrEqual(head[i].difficulty);
     }
+  });
+});
+
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe('selectTrainRemote', () => {
+  it('maps Core tasks to local task objects and keeps new/hard marks', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            tasks: [
+              { id: 'single-uniform-motion', isNew: true, isHard: false },
+              { id: 'multi-uniform', isNew: false, isHard: true },
+            ],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        ),
+      ),
+    );
+    const tasks = await selectTrainRemote(
+      { count: 2, topicId: 'uniform-motion', seed: 'core' },
+      makeProgress(),
+    );
+    expect(tasks.map(task => task.id)).toEqual(['single-uniform-motion', 'multi-uniform']);
+    expect(tasks[0].isNew).toBe(true);
+    expect(tasks[1].isHard).toBe(true);
   });
 });
