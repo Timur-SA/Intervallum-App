@@ -25,7 +25,7 @@ import {
   topicMaxXp,
 } from '../domain/progression';
 import { TASK_BANK } from '../data';
-import { TOPIC_ICONS } from '../config/topicIcons';
+import { SECTION_ICONS } from '../config/sectionIcons';
 import { ANSWER_KIND_LABELS, CARDS } from '../data/cards';
 import { haptics } from '../../../shared/motion/haptics';
 
@@ -181,7 +181,10 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                   }}
                 >
                   <span className="mg-journey__section-icon" style={{ backgroundColor: section.color }}>
-                    {defeated ? <Trophy size={16} /> : <Sparkles size={16} />}
+                    {(() => {
+                      const SectionIcon = SECTION_ICONS[section.id];
+                      return SectionIcon ? <SectionIcon size={17} /> : <Sparkles size={16} />;
+                    })()}
                   </span>
                   <span className="mg-journey__section-title">{section.title}</span>
                   <span className="mg-journey__section-meta">
@@ -236,16 +239,10 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                               <span className="mg-node__inner">
                                 {!unlocked ? (
                                   <LockKeyhole size={23} strokeWidth={2.2} />
+                                ) : complete ? (
+                                  <Check size={22} strokeWidth={3} />
                                 ) : (
-                                  (() => {
-                                    const Icon = TOPIC_ICONS[topicId];
-                                    return Icon ? <Icon size={18} /> : index + 1;
-                                  })()
-                                )}
-                                {complete && (
-                                  <span className="mg-node__check" aria-hidden>
-                                    <Check size={9} />
-                                  </span>
+                                  index + 1
                                 )}
                               </span>
                             </button>
@@ -278,7 +275,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                         >
                           <Ring value={xp} max={required} size={96} color="#f59e0b" done={defeated} />
                           <span className="mg-node__inner mg-node__inner--boss">
-                            <Flame size={30} />
+                            {defeated ? <Trophy size={30} /> : <Flame size={30} />}
                           </span>
                         </button>
                         <span className="mg-path__caption mg-path__caption--center">
@@ -324,7 +321,10 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                       style={{ backgroundColor: section.color }}
                       aria-hidden
                     >
-                      <Sparkles size={18} />
+                      {(() => {
+                        const SectionIcon = SECTION_ICONS[section.id];
+                        return SectionIcon ? <SectionIcon size={18} /> : <Sparkles size={18} />;
+                      })()}
                     </span>
                     <span className="mg-choice-card__title">{section.title}</span>
                     <span className="mg-choice-card__meta">{section.topics.length} тем</span>
