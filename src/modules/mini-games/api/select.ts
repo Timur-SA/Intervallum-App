@@ -6,7 +6,7 @@ import { getCoreUserId } from './http';
 import { BOSS_TASK_COUNT } from '../domain/progression';
 import { BOSS_TASKS } from '../data/bossTasks';
 import { shuffleBySeed } from '../engine/shuffle';
-import { CORE_URL, fetchWithTimeout, setCoreStatus } from './status';
+import { CORE_URL, fetchWithTimeout } from './status';
 
 export interface SelectTrainRequest {
   count: number;
@@ -141,7 +141,6 @@ export const selectTrainRemote = async (
     );
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = (await response.json()) as { tasks?: Array<{ id: string; isNew?: boolean; isHard?: boolean }> };
-    setCoreStatus('online', 'подключён');
     const tasks: AnyTask[] = [];
     for (const row of payload.tasks ?? []) {
       const local = getTaskById(row.id);
@@ -150,9 +149,7 @@ export const selectTrainRemote = async (
       }
     }
     return tasks.length ? tasks : selectTrain(request, progress);
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : 'нет ответа';
-    setCoreStatus('offline', `локальный режим · ${reason}`);
+  } catch {
     return selectTrain(request, progress);
   }
 };

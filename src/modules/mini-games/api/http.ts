@@ -2,7 +2,7 @@ import { createLocalApi } from './local';
 import { getTaskById } from '../data';
 import { TaskAnswer } from '../domain/types';
 import { GradeRequest, GradeResponse, MiniGamesApi } from './contracts';
-import { CORE_URL, fetchWithTimeout, setCoreStatus } from './status';
+import { CORE_URL, fetchWithTimeout } from './status';
 
 const USER_KEY = 'intervallum:coreUserId';
 
@@ -88,11 +88,8 @@ export const createHttpApi = (): MiniGamesApi => ({
         throw new Error(`HTTP ${response.status}`);
       }
       const data = await response.json();
-      setCoreStatus('online', 'подключён');
       return toGradeResponse(taskId, data);
     } catch (error) {
-      const reason = error instanceof Error ? error.message : 'нет ответа';
-      setCoreStatus('offline', `локальный режим · ${reason}`);
       throw error;
     }
   },

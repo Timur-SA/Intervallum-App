@@ -8,7 +8,6 @@ import { MapModule } from '../modules/mini-games/MapModule';
 import { NavigationProvider, useNavigation } from './HeaderContext';
 import { SandboxMessengerHeader } from './SandboxMessengerHeader';
 import { DevPanel } from './DevPanel';
-import { CoreStatusBadge } from './CoreStatusBadge';
 
 export type AppMode = 'map';
 
@@ -119,7 +118,6 @@ export const AppShell: React.FC = () => {
             >
               MAX UI 0.9
             </span>
-            <CoreStatusBadge />
           </div>
 
           <div style={{ display: 'flex', gap: 14 }}>
