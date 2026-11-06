@@ -1,3 +1,4 @@
+import { MathText } from '../../../shared/components/MathView';
 import React from 'react';
 import { CellSimple, Checkbox, Radio } from '@maxhub/max-ui';
 import { Check, X } from 'lucide-react';
@@ -51,7 +52,7 @@ export const AnswerOption: React.FC<AnswerOptionProps> = ({
       as="label"
       className={className}
       height="normal"
-      title={text}
+      title={<MathText text={text} />}
       before={control}
       after={
         mark === 'correct' ? (

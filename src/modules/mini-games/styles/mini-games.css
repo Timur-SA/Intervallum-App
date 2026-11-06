@@ -201,9 +201,36 @@
   flex-shrink: 0;
 }
 
-.mg-steps {
-  padding: 0 !important;
-  gap: 5px !important;
+.mg-game__progress {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 5px;
+}
+
+.mg-game__segment {
+  flex: 1;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--states-icon-primary-disabled);
+}
+
+.mg-game__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gradients-loading-icon-themed-filled);
+}
+
+.mg-game__fill--new {
+  transform-origin: left center;
+  animation: mg-progress-fill 240ms cubic-bezier(0.2, 0.7, 0.25, 1);
+}
+
+@keyframes mg-progress-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 .mg-game__streak {
@@ -225,6 +252,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  animation: mg-fade-in 160ms ease-out;
 }
 
 .mg-game__footer {
@@ -232,6 +260,10 @@
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
   background: var(--bg-card);
   border-top: 1px solid var(--border);
+}
+
+.mg-game__footer button:enabled:active {
+  scale: 0.98;
 }
 
 /* ------------------------------------------------------------- Вопрос */
@@ -395,61 +427,37 @@
 
 /* ------------------------------------------------------------- Карточки */
 
-.mg-cards__counter {
-  font-size: 12px;
-  color: var(--text-muted);
-  text-align: center;
-}
-
 .mg-cards__grades {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+  animation: mg-slide-up 160ms ease-out;
 }
 
 .mg-flash {
-  perspective: 1200px;
-  height: clamp(240px, 40vh, 340px);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.mg-flash__inner {
-  position: relative;
   width: 100%;
-  height: 100%;
-  transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  transform-style: preserve-3d;
-}
-
-.mg-flash.is-flipped .mg-flash__inner {
-  transform: rotateY(180deg);
+  flex-shrink: 0;
+  padding: 20px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-card);
+  font: inherit;
+  cursor: pointer;
 }
 
 .mg-flash__face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  background: var(--bg-card);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 24px 22px;
+  gap: 8px;
+  min-height: 120px;
   text-align: center;
-  overflow: hidden;
+  animation: mg-slide-up 180ms ease-out;
 }
 
-.mg-flash__face--back {
-  transform: rotateY(180deg);
-  justify-content: flex-start;
-  justify-content: safe center;
-  overflow-y: auto;
+.mg-flash .mg-theory__formula {
+  align-self: center;
 }
 
 .mg-flash__deck {
@@ -461,9 +469,9 @@
 }
 
 .mg-flash__question {
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
   color: var(--text-primary);
   line-height: 1.3;
 }
@@ -473,19 +481,6 @@
   font-size: 14px;
   line-height: 1.55;
   color: var(--text-secondary);
-}
-
-.mg-flash__formula {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 8px 16px;
-  border-radius: 12px;
-  background: var(--accent-bg);
-  border: 1px solid var(--border-accent);
-  color: var(--accent);
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
 }
 
 .mg-flash__tap {
@@ -500,7 +495,7 @@
   border-radius: 16px;
   border: 1px solid var(--border);
   padding: 14px;
-  animation: mg-slide-up 220ms ease-out;
+  animation: mg-slide-up 180ms ease-out;
 }
 
 .mg-feedback--correct {
@@ -524,6 +519,10 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 700;
+}
+
+.mg-feedback--correct .mg-feedback__title svg {
+  animation: mg-confirm 220ms ease-out;
 }
 
 .mg-feedback--correct .mg-feedback__title {
@@ -566,14 +565,64 @@
   overflow-y: auto;
 }
 
+.mg-result__emblem {
+  position: relative;
+  margin-bottom: 4px;
+}
+
 .mg-result__badge {
+  position: relative;
   width: 76px;
   height: 76px;
   border-radius: 26px;
   display: grid;
   place-items: center;
   color: #ffffff;
-  margin-bottom: 4px;
+  animation: mg-confirm 260ms ease-out;
+}
+
+.mg-result__confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mg-result__confetti-piece {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 7px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: mg-confetti-burst 680ms 90ms ease-out;
+}
+
+.mg-result__confetti-piece:nth-child(even) {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+@keyframes mg-confetti-burst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.7);
+  }
+
+  30% { opacity: 0.95; }
+
+  60% {
+    opacity: 0.85;
+    transform: translate(calc(var(--confetti-x) * 0.8), var(--confetti-y))
+      rotate(calc(var(--confetti-turn) * 0.65));
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(var(--confetti-x), calc(var(--confetti-y) + 30px))
+      rotate(var(--confetti-turn));
+  }
 }
 
 .mg-result__title {
@@ -595,6 +644,7 @@
   gap: 10px;
   width: 100%;
   margin-top: 8px;
+  animation: mg-slide-up 200ms ease-out;
 }
 
 .mg-result__stat {
@@ -632,10 +682,15 @@
 
 /* ------------------------------------------------------------- Анимации */
 
+@keyframes mg-fade-in {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+
 @keyframes mg-slide-up {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(5px);
   }
   to {
     opacity: 1;
@@ -643,14 +698,10 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .mg-option,
-  .mg-row,
-  .mg-flash__inner,
-  .mg-feedback {
-    transition: none !important;
-    animation: none !important;
-  }
+@keyframes mg-confirm {
+  0% { transform: scale(0.9); }
+  55% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
 /* ------------------------------------------------------------- Таймер босса */
@@ -796,17 +847,6 @@
   gap: 10px;
 }
 
-.mg-theory__head {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-}
-
 .mg-theory__card {
   padding: 14px;
   border-radius: 16px;
@@ -818,20 +858,32 @@
 }
 
 .mg-theory__question {
-  font-size: 13.5px;
+  margin: 0;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.4;
 }
 
 .mg-theory__answer {
-  font-size: 12.5px;
+  margin: 0;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--text-secondary);
 }
 
+.mg-theory__more {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.mg-theory__more summary {
+  padding: 6px 0;
+  cursor: pointer;
+}
+
 .mg-theory__details {
-  margin: 2px 0 0;
+  margin: 0;
   font-size: 12px;
   line-height: 1.55;
   color: var(--text-muted);
@@ -839,6 +891,8 @@
 
 .mg-theory__formula {
   align-self: flex-start;
+  max-width: 100%;
+  overflow-x: auto;
   padding: 5px 12px;
   border-radius: 10px;
   background: var(--accent-bg);
@@ -1689,12 +1743,22 @@
   color: var(--success);
   border-color: rgba(52, 211, 153, 0.4);
   background: var(--success-bg);
+  animation: mg-fade-in 180ms ease-out;
 }
 
 .mg-force-feedback.is-fail {
   color: var(--danger);
   border-color: rgba(248, 113, 113, 0.4);
   background: var(--danger-bg);
+  animation: mg-fade-in 180ms ease-out;
+}
+
+.mg-force-review {
+  animation: mg-fade-in 160ms ease-out;
+}
+
+.mg-force-review__comparison {
+  animation: mg-slide-up 180ms ease-out;
 }
 
 /* ------------------------------------------------------------- Единая карта */
@@ -1786,17 +1850,17 @@
 
 /* Анимация листания теории */
 .mg-theory__card--next {
-  animation: mg-slide-left 240ms ease-out;
+  animation: mg-slide-left 180ms ease-out;
 }
 
 .mg-theory__card--prev {
-  animation: mg-slide-right 240ms ease-out;
+  animation: mg-slide-right 180ms ease-out;
 }
 
 @keyframes mg-slide-left {
   from {
     opacity: 0;
-    transform: translateX(28px);
+    transform: translateX(8px);
   }
   to {
     opacity: 1;
@@ -1807,11 +1871,50 @@
 @keyframes mg-slide-right {
   from {
     opacity: 0;
-    transform: translateX(-28px);
+    transform: translateX(-8px);
   }
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mg-result__confetti {
+    display: none;
+  }
+
+  .mg-game__body,
+  .mg-game__fill--new,
+  .mg-cards__grades,
+  .mg-flash__face,
+  .mg-theory__card,
+  .mg-result__badge,
+  .mg-result__stats,
+  .mg-feedback,
+  .mg-feedback--correct .mg-feedback__title svg,
+  .mg-force-feedback.is-pass,
+  .mg-force-feedback.is-fail,
+  .mg-force-review,
+  .mg-force-review__comparison,
+  .mg-thread,
+  .mg-thread__dot,
+  .mg-section-node--selectable,
+  .mg-node--boss-ready .mg-node__inner--boss {
+    animation: none;
+  }
+
+  .mg-option,
+  .mg-row {
+    transition: none;
+  }
+
+  .mg-game__footer button:enabled:active {
+    scale: 1;
+  }
+
+  .mg-thread {
+    stroke-dashoffset: 0;
   }
 }
 

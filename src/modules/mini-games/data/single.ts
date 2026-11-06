@@ -18,8 +18,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '0,8 м' },
     ],
     correctOptionId: 'c',
-    explanation: 'При равномерном движении s = vt = 5 м/с · 4 с = 20 м.',
-    hint: 's = vt',
+    explanation: 'При равномерном движении $s = vt = 5\\cdot 4 = 20$ м.',
+    hint: '$s = vt$',
   },
   {
     id: 'single-relativity',
@@ -36,7 +36,7 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
     ],
     correctOptionId: 'c',
     explanation:
-      'При движении по течению скорость лодки относительно берега равна сумме скоростей: 3 + 2 = 5 м/с.',
+      'При движении по течению скорость лодки относительно берега равна сумме скоростей: $3 + 2 = 5$ м/с.',
     hint: 'Скорости складываются, когда тело и система отсчёта движутся в одну сторону.',
   },
   {
@@ -53,8 +53,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '18 м/с' },
     ],
     correctOptionId: 'c',
-    explanation: 'Ускорение показывает изменение скорости за секунду: Δv = a · t = 2 · 3 = 6 м/с.',
-    hint: 'a = Δv / t',
+    explanation: 'Ускорение показывает изменение скорости за секунду: $\\Delta v = at = 2\\cdot 3 = 6$ м/с.',
+    hint: '$a = \\frac{\\Delta v}{\\Delta t}$',
   },
   {
     id: 'single-gravity',
@@ -70,8 +70,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '200 Н' },
     ],
     correctOptionId: 'c',
-    explanation: 'F = mg = 2 кг · 10 Н/кг = 20 Н.',
-    hint: 'F = mg',
+    explanation: '$F = mg = 2\\cdot 10 = 20$ Н.',
+    hint: '$F = mg$',
   },
   {
     id: 'single-momentum',
@@ -86,8 +86,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '12 кг·м/с' },
     ],
     correctOptionId: 'c',
-    explanation: 'Импульс тела равен произведению массы на скорость: p = mv = 2 · 3 = 6 кг·м/с.',
-    hint: 'p = mv',
+    explanation: 'Импульс тела равен произведению массы на скорость: $p = mv = 2\\cdot 3 = 6$ кг·м/с.',
+    hint: '$p = mv$',
   },
   {
     id: 'single-mechanical-energy',
@@ -103,8 +103,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '1000 Дж' },
     ],
     correctOptionId: 'c',
-    explanation: 'Потенциальная энергия в поле тяжести: Eп = mgh = 2 · 10 · 5 = 100 Дж.',
-    hint: 'Eп = mgh',
+    explanation: 'Потенциальная энергия в поле тяжести: $E_{\\text{п}} = mgh = 2\\cdot 10\\cdot 5 = 100$ Дж.',
+    hint: '$E_{\\text{п}} = mgh$',
   },
   {
     id: 'single-work',
@@ -119,8 +119,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '200 Дж' },
     ],
     correctOptionId: 'c',
-    explanation: 'Работа силы, направленной вдоль перемещения: A = Fs = 50 Н · 2 м = 100 Дж.',
-    hint: 'A = Fs',
+    explanation: 'Работа силы, направленной вдоль перемещения: $A = Fs = 50\\cdot 2 = 100$ Дж.',
+    hint: '$A = Fs$',
   },
   {
     id: 'single-lever',
@@ -135,8 +135,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '100 Н·м' },
     ],
     correctOptionId: 'b',
-    explanation: 'Момент силы равен произведению силы на плечо: M = F · l = 20 · 0,5 = 10 Н·м.',
-    hint: 'M = F · l',
+    explanation: 'Момент силы равен произведению силы на плечо: $M = Fl = 20\\cdot 0{,}5 = 10$ Н·м.',
+    hint: '$M = F \\cdot l$',
   },
   {
     id: 'single-heat',
@@ -152,8 +152,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '42 000 Дж' },
     ],
     correctOptionId: 'c',
-    explanation: 'Q = cmΔt = 4200 · 1 · 1 = 4200 Дж.',
-    hint: 'Q = cmΔt',
+    explanation: '$Q = cm\\Delta t = 4200\\cdot 1\\cdot 1 = 4200$ Дж.',
+    hint: '$Q = cm\\Delta t$',
   },
   {
     id: 'single-aggregate-states',
@@ -187,8 +187,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
     ],
     correctOptionId: 'b',
     explanation:
-      'Массы и теплоёмкости одинаковы, поэтому горячая вода отдаёт столько же теплоты, сколько холодная получает. Температура смеси — средняя: (60 + 20) / 2 = 40 °C.',
-    hint: 'Qотд = Qпол',
+      'Массы и теплоёмкости одинаковы, поэтому горячая вода отдаёт столько же теплоты, сколько холодная получает. Температура смеси — средняя: $\\frac{60 + 20}{2} = 40$ °C.',
+    hint: '$Q_{\\text{отд}} = Q_{\\text{пол}}$',
   },
   {
     id: 'single-thermal-energy',
@@ -205,8 +205,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
     ],
     correctOptionId: 'a',
     explanation:
-      'Первый закон термодинамики: Q = ΔU + A. Значит ΔU = Q − A = 300 − 100 = 200 Дж — энергия увеличилась.',
-    hint: 'Q = ΔU + A',
+      'Первый закон термодинамики: $Q = \\Delta U + A$. Значит $\\Delta U = Q - A = 300 - 100 = 200$ Дж — энергия увеличилась.',
+    hint: '$Q = \\Delta U + A$',
   },
   {
     id: 'single-fuel-engines',
@@ -222,8 +222,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '150%' },
     ],
     correctOptionId: 'b',
-    explanation: 'КПД равен отношению полезной работы к полученной теплоте: 150 / 500 = 0,3, то есть 30%.',
-    hint: 'η = Aп / Qн',
+    explanation: 'КПД равен отношению полезной работы к полученной теплоте: $\\frac{150}{500} = 0{,}3$, то есть 30%.',
+    hint: '$\\eta = \\frac{A_{\\text{п}}}{Q_{\\text{н}}}$',
   },
   {
     id: 'single-coulomb',
@@ -239,8 +239,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: 'Уменьшится в 4 раза' },
     ],
     correctOptionId: 'd',
-    explanation: 'По закону Кулона сила обратно пропорциональна квадрату расстояния: при росте r в 2 раза сила падает в 4 раза.',
-    hint: 'F ~ 1/r²',
+    explanation: 'По закону Кулона сила обратно пропорциональна квадрату расстояния: при росте $r$ в 2 раза сила падает в 4 раза.',
+    hint: '$F \\propto \\frac{1}{r^2}$',
   },
   {
     id: 'single-charge-conservation',
@@ -248,12 +248,12 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
     topic: 'charge-conservation',
     difficulty: 2,
     prompt:
-      'Два одинаковых металлических шарика имеют заряды +q и −q. Шарики соприкоснулись и разошлись. Каков заряд каждого шарика?',
+      'Два одинаковых металлических шарика имеют заряды $+q$ и $-q$. Шарики соприкоснулись и разошлись. Каков заряд каждого шарика?',
     options: [
-      { id: 'a', text: '+q' },
-      { id: 'b', text: '−q' },
+      { id: 'a', text: '$+q$' },
+      { id: 'b', text: '$-q$' },
       { id: 'c', text: '0' },
-      { id: 'd', text: '+2q' },
+      { id: 'd', text: '$+2q$' },
     ],
     correctOptionId: 'c',
     explanation:
@@ -274,8 +274,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: 'Увеличится в 4 раза' },
     ],
     correctOptionId: 'c',
-    explanation: 'Сопротивление прямо пропорционально длине: R = ρl / S. При удвоении длины сопротивление удвоится.',
-    hint: 'R = ρl / S',
+    explanation: 'Сопротивление прямо пропорционально длине: $R = \\rho\\frac{l}{S}$. При удвоении длины сопротивление удвоится.',
+    hint: '$R = \\frac{\\rho l}{S}$',
   },
   {
     id: 'single-ohm',
@@ -290,8 +290,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '72 А' },
     ],
     correctOptionId: 'b',
-    explanation: 'По закону Ома I = U / R = 12 В / 6 Ом = 2 А.',
-    hint: 'I = U / R',
+    explanation: 'По закону Ома $I = \\frac{U}{R} = \\frac{12}{6} = 2$ А.',
+    hint: '$I = \\frac{U}{R}$',
   },
   {
     id: 'single-joule-lenz',
@@ -307,8 +307,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '600 Дж' },
     ],
     correctOptionId: 'b',
-    explanation: 'По закону Джоуля — Ленца Q = I²Rt = 3² · 2 · 10 = 180 Дж.',
-    hint: 'Q = I²Rt',
+    explanation: 'По закону Джоуля — Ленца $Q = I^2Rt = 3^2\\cdot 2\\cdot 10 = 180$ Дж.',
+    hint: '$Q = I^{2}Rt$',
   },
   {
     id: 'single-ampere',
@@ -324,8 +324,8 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '4 Н' },
     ],
     correctOptionId: 'b',
-    explanation: 'Сила Ампера: F = BIl sin α = 0,4 · 2 · 0,5 · 1 = 0,4 Н.',
-    hint: 'F = BIl sin α',
+    explanation: 'Сила Ампера: $F = BIl\\sin\\alpha = 0{,}4\\cdot 2\\cdot 0{,}5\\cdot 1 = 0{,}4$ Н.',
+    hint: '$F = BIl\\sin\\alpha$',
   },
   {
     id: 'single-density',
@@ -341,7 +341,7 @@ export const SINGLE_TASKS: SingleChoiceTask[] = [
       { id: 'd', text: '0,1 м³' },
     ],
     correctOptionId: 'a',
-    explanation: 'V = m / ρ = 0,89 кг / 8900 кг/м³ = 0,0001 м³, то есть 100 см³.',
-    hint: 'V = m / ρ',
+    explanation: '$V = \\frac{m}{\\rho} = \\frac{0{,}89}{8900} = 0{,}0001$ м³, то есть 100 см³.',
+    hint: '$V = \\frac{m}{\\rho}$',
   },
 ];

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PhysicalLaw } from '../types/physics';
 import { PHYSICS_LAWS } from '../data/physicsDb';
-import { MathView } from './MathView';
+import { MathView } from '../../../shared/components/MathView';
 
 interface BottomSheetLawsProps {
   isOpen: boolean;

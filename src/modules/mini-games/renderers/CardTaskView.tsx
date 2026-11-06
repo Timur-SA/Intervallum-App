@@ -4,6 +4,7 @@ import { miniGamesApi } from '../api';
 import { CardGrade, TheoryCard } from '../domain/types';
 import { getSectionByTopic, getTopic } from '../domain/sections';
 import { ANSWER_KIND_LABELS } from '../data/cards';
+import { MathText, MathView } from '../../../shared/components/MathView';
 import { haptics } from '../../../shared/motion/haptics';
 import { GameShell } from '../components/GameShell';
 import { TaskViewProps } from './taskView';
@@ -85,46 +86,33 @@ export const CardTaskView: React.FC<TaskViewProps<TheoryCard>> = ({
         )
       }
     >
-      <div className="mg-cards__counter">
-        Карточка {step + 1} из {total}
-      </div>
-
-      <div
-        className={`mg-flash ${flipped ? 'is-flipped' : ''}`}
+      <button
+        type="button"
+        className="mg-flash"
+        aria-pressed={flipped}
         onClick={() => {
           haptics.selection();
           setFlipped(previous => !previous);
         }}
-        role="button"
-        tabIndex={0}
-        aria-label={flipped ? 'Показать вопрос' : 'Показать ответ'}
-        onKeyDown={event => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            setFlipped(previous => !previous);
-          }
-        }}
       >
-        <div className="mg-flash__inner">
-          <div className="mg-flash__face">
-            <span className="mg-flash__deck">
-              {section ? section.title : 'Физика'} · сложность {task.difficulty}
-            </span>
+        <span key={flipped ? 'answer' : 'question'} className="mg-flash__face">
+          <span className="mg-flash__deck">
+            {(flipped ? topic?.title : section?.title) ?? 'Физика'}
+          </span>
+          {flipped ? (
+            <>
+              {task.formula && <MathView className="mg-theory__formula" latex={task.formula} />}
+              <MathText className="mg-flash__answer" text={task.answer} />
+            </>
+          ) : (
             <span className="mg-flash__question">
-              {task.question}
+              <MathText text={task.question} />
               {task.answerKind && ` (${ANSWER_KIND_LABELS[task.answerKind]})`}
             </span>
-            <span className="mg-flash__tap">Нажмите на карточку, чтобы увидеть ответ</span>
-          </div>
-
-          <div className="mg-flash__face mg-flash__face--back">
-            <span className="mg-flash__deck">{topic ? topic.title : 'Физика'}</span>
-            <p className="mg-flash__answer">{task.answer}</p>
-            {task.formula && <span className="mg-flash__formula">{task.formula}</span>}
-            <span className="mg-flash__tap">Оцените, насколько уверенно вы это знаете</span>
-          </div>
-        </div>
-      </div>
+          )}
+          <span className="mg-flash__tap">{flipped ? 'Показать вопрос' : 'Показать ответ'}</span>
+        </span>
+      </button>
     </GameShell>
   );
 };

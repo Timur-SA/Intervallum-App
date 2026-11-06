@@ -25,6 +25,8 @@ import {
   topicMaxXp,
 } from '../domain/progression';
 import { TASK_BANK } from '../data';
+import { CARDS } from '../data/cards';
+import { MathText, MathView } from '../../../shared/components/MathView';
 import { SECTION_ICONS } from '../config/sectionIcons';
 import { ANSWER_KIND_LABELS, CARDS } from '../data/cards';
 import { haptics } from '../../../shared/motion/haptics';
@@ -123,6 +125,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
     ? TASK_BANK.filter(task => task.topic === selected.topicId && task.type !== 'cards')
     : [];
   const selectedTheory = selected ? CARDS.filter(card => card.topic === selected.topicId) : [];
+  const theoryCard = selectedTheory[theoryIndex];
   const selectedTopicMeta = selected ? getTopic(selected.topicId) : null;
   const selectedSection = selected ? getSection(selected.sectionId) : null;
 
@@ -370,6 +373,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
             size="medium"
             stretched
             iconBefore={<BookOpen size={16} />}
+            aria-expanded={theoryOpen}
             onClick={() => {
               setTheoryOpen(previous => !previous);
               setTheoryIndex(0);
@@ -401,24 +405,24 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                       shiftTheory(end < start ? 'next' : 'prev');
                     }}
                   >
-                    {(() => {
-                      const card = selectedTheory[Math.min(theoryIndex, selectedTheory.length - 1)];
-                      if (!card) return null;
-                      return (
-                        <div
-                          key={`${card.id}-${theoryDirection}`}
-                          className={`mg-theory__card mg-theory__card--${theoryDirection}`}
-                        >
-                          <div className="mg-theory__question">
-                            {card.question}
-                            {card.answerKind && ` (${ANSWER_KIND_LABELS[card.answerKind]})`}
-                          </div>
-                          <div className="mg-theory__answer">{card.answer}</div>
-                          {card.details && <p className="mg-theory__details">{card.details}</p>}
-                          {card.formula && <div className="mg-theory__formula">{card.formula}</div>}
-                        </div>
-                      );
-                    })()}
+                    {theoryCard && (
+                      <article
+                        key={theoryCard.id}
+                        className={`mg-theory__card mg-theory__card--${theoryDirection}`}
+                      >
+                        <h3 className="mg-theory__question"><MathText text={theoryCard.question} /></h3>
+                        {theoryCard.formula && (
+                          <MathView className="mg-theory__formula" latex={theoryCard.formula} />
+                        )}
+                        <p className="mg-theory__answer"><MathText text={theoryCard.answer} /></p>
+                        {theoryCard.details && (
+                          <details className="mg-theory__more">
+                            <summary>Подробнее</summary>
+                            <p className="mg-theory__details"><MathText text={theoryCard.details} /></p>
+                          </details>
+                        )}
+                      </article>
+                    )}
                   </div>
 
                   {selectedTheory.length > 1 && (
@@ -426,17 +430,19 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                       <button
                         type="button"
                         className="mg-theory-nav__btn"
+                        aria-label="Предыдущая карточка"
                         disabled={theoryIndex === 0}
                         onClick={() => shiftTheory('prev')}
                       >
                         ←
                       </button>
-                      <span className="mg-theory-nav__count">
+                      <span className="mg-theory-nav__count" aria-live="polite">
                         {theoryIndex + 1} / {selectedTheory.length}
                       </span>
                       <button
                         type="button"
                         className="mg-theory-nav__btn"
+                        aria-label="Следующая карточка"
                         disabled={theoryIndex >= selectedTheory.length - 1}
                         onClick={() => shiftTheory('next')}
                       >

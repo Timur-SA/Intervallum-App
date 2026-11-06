@@ -5,6 +5,7 @@ import { GradeResponse } from '../api/contracts';
 import { Outcome, SingleChoiceTask } from '../domain/types';
 import { getSectionByTopic, getTopic } from '../domain/sections';
 import { shuffleBySeed } from '../engine/shuffle';
+import { MathText } from '../../../shared/components/MathView';
 import { haptics } from '../../../shared/motion/haptics';
 import { GameShell } from '../components/GameShell';
 import { AnswerOption } from '../components/AnswerOption';
@@ -93,11 +94,11 @@ export const SingleTaskView: React.FC<TaskViewProps<SingleChoiceTask>> = ({
         <div className="mg-question__meta">
           <StatusBadge status="neutral" text={section ? section.title : 'Физика'} />
           <span className="mg-question__meta-text">
-            {topic ? topic.title : ''} · {step + 1} из {total}
+            {topic?.title}
           </span>
         </div>
 
-        <p className="mg-question__prompt">{task.prompt}</p>
+        <p className="mg-question__prompt"><MathText text={task.prompt} /></p>
 
 
         <div className="mg-options" role="radiogroup" aria-label="Варианты ответа">

@@ -12,13 +12,13 @@ export const MATCHING_TASKS: MatchingTask[] = [
     difficulty: 1,
     prompt: 'Установите соответствие между формулой и физической величиной, которую она определяет.',
     pairs: [
-      { id: 'work', left: 'A = Fs', right: 'Механическая работа' },
-      { id: 'power', left: 'N = A/t', right: 'Мощность' },
-      { id: 'gravity', left: 'F = mg', right: 'Сила тяжести' },
-      { id: 'momentum', left: 'p = mv', right: 'Импульс тела' },
+      { id: 'work', left: '$A = Fs$', right: 'Механическая работа' },
+      { id: 'power', left: '$N = \\frac{A}{t}$', right: 'Мощность' },
+      { id: 'gravity', left: '$F = mg$', right: 'Сила тяжести' },
+      { id: 'momentum', left: '$p = mv$', right: 'Импульс тела' },
     ],
     explanation:
-      'A = Fs — работа, N = A/t — мощность, F = mg — сила тяжести, p = mv — импульс тела.',
+      '$A = Fs$ — работа, $N = \\frac{A}{t}$ — мощность, $F = mg$ — сила тяжести, $p = mv$ — импульс тела.',
   },
   {
     id: 'match-units',
@@ -57,13 +57,13 @@ export const MATCHING_TASKS: MatchingTask[] = [
     difficulty: 2,
     prompt: 'Установите соответствие между формулой и тепловым процессом.',
     pairs: [
-      { id: 'heating', left: 'Q = cmΔt', right: 'Нагревание' },
-      { id: 'melting', left: 'Q = λm', right: 'Плавление' },
-      { id: 'vaporization', left: 'Q = Lm', right: 'Парообразование' },
-      { id: 'fuel', left: 'Q = qm', right: 'Сгорание топлива' },
+      { id: 'heating', left: '$Q = cm\\Delta t$', right: 'Нагревание' },
+      { id: 'melting', left: '$Q = \\lambda m$', right: 'Плавление' },
+      { id: 'vaporization', left: '$Q = Lm$', right: 'Парообразование' },
+      { id: 'fuel', left: '$Q = qm$', right: 'Сгорание топлива' },
     ],
     explanation:
-      'Q = cmΔt — нагревание, Q = λm — плавление, Q = Lm — парообразование, Q = qm — сгорание топлива.',
+      '$Q = cm\\Delta t$ — нагревание, $Q = \\lambda m$ — плавление, $Q = Lm$ — парообразование, $Q = qm$ — сгорание топлива.',
   },
   {
     id: 'match-devices',
@@ -87,13 +87,13 @@ export const MATCHING_TASKS: MatchingTask[] = [
     difficulty: 2,
     prompt: 'Установите соответствие между формулой и физической величиной.',
     pairs: [
-      { id: 'speed', left: 'v = s/t', right: 'Скорость' },
-      { id: 'path', left: 's = vt', right: 'Путь' },
-      { id: 'accel', left: 'a = Δv/t', right: 'Ускорение' },
-      { id: 'force', left: 'F = ma', right: 'Сила' },
+      { id: 'speed', left: '$v = \\frac{s}{t}$', right: 'Скорость' },
+      { id: 'path', left: '$s = vt$', right: 'Путь' },
+      { id: 'accel', left: '$a = \\frac{\\Delta v}{\\Delta t}$', right: 'Ускорение' },
+      { id: 'force', left: '$F = ma$', right: 'Сила' },
     ],
     explanation:
-      'v = s/t — скорость, s = vt — путь при равномерном движении, a = Δv/t — ускорение, F = ma — второй закон Ньютона.',
+      '$v = \\frac{s}{t}$ — скорость, $s = vt$ — путь при равномерном движении, $a = \\frac{\\Delta v}{\\Delta t}$ — ускорение, $F = ma$ — второй закон Ньютона.',
   },
   {
     id: 'match-electric-units',

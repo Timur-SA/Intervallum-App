@@ -445,7 +445,7 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
         correct,
         score,
         answerLabel: `${answer.symbol} = ${answer.value} ${answer.unit ?? ''}`.trim(),
-        correctLabel: `${expected.symbol} = ${expected.value} ${expected.unit ?? ''}`.trim(),
+        correctLabel: `$${expected.symbol} = ${String(expected.value).replace('.', '{,}')}$ ${expected.unit ?? ''}`.trim(),
       });
       return;
     }

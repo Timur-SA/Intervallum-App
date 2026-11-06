@@ -1,3 +1,4 @@
+import { MathText } from '../../../shared/components/MathView';
 import React from 'react';
 import { AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { Outcome } from '../domain/types';
@@ -31,11 +32,11 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({
         <span>{title}</span>
       </div>
 
-      <p className="mg-feedback__text">{explanation}</p>
+      <p className="mg-feedback__text"><MathText text={explanation} /></p>
 
       {correctAnswer && (
         <p className="mg-feedback__answer">
-          <strong>Верный ответ:</strong> {correctAnswer}
+          <strong>Верный ответ:</strong> <MathText text={correctAnswer} />
         </p>
       )}
     </div>

@@ -1,5 +1,4 @@
 import React, { ReactNode } from 'react';
-import { Steps } from '@maxhub/max-ui';
 import { Flame } from 'lucide-react';
 
 interface GameShellProps {
@@ -31,8 +30,24 @@ export const GameShell: React.FC<GameShellProps> = ({
 }) => (
   <div className="mg-game">
     <header className="mg-game__header" aria-label={title}>
-      <div className="mg-game__progress" style={{ flex: 1, minWidth: 0 }}>
-        <Steps className="mg-steps" count={total} progress={step} />
+      <div
+        className="mg-game__progress"
+        role="progressbar"
+        aria-label="Прогресс задания"
+        aria-valuenow={step}
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuetext={`${step + 1} из ${total}`}
+      >
+        {Array.from({ length: total }, (_, index) => (
+          <span className="mg-game__segment" key={index}>
+            {index < step && (
+              <span
+                className={index === step - 1 ? 'mg-game__fill mg-game__fill--new' : 'mg-game__fill'}
+              />
+            )}
+          </span>
+        ))}
       </div>
 
       {headerRight ??

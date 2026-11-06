@@ -1,3 +1,4 @@
+import { MathText } from '../../../shared/components/MathView';
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Button, StatusBadge } from '@maxhub/max-ui';
 import { miniGamesApi } from '../api';
@@ -336,11 +337,11 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
       <div className="mg-question__meta">
         <StatusBadge status="neutral" text={section ? section.title : 'Физика'} />
         <span className="mg-question__meta-text">
-          {topic ? topic.title : ''} · {step + 1} из {total}
+          {topic?.title}
         </span>
       </div>
 
-      <p className="mg-question__prompt">{task.prompt}</p>
+      <p className="mg-question__prompt"><MathText text={task.prompt} /></p>
       <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-muted)' }}>
         Соедините пары: нажмите на две плитки или протяните нитку от одной к другой
         {errors > 0 ? ` · ошибок: ${errors}` : ''}
@@ -417,7 +418,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
                 onPointerCancel={() => setDrag(null)}
                 onClick={() => handleTapLeft(pair.id)}
               >
-                {pair.left}
+                <MathText text={pair.left} />
               </Button>
             );
           })}
@@ -460,7 +461,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
                 onPointerCancel={() => setDrag(null)}
                 onClick={() => handleTapRight(pair.id)}
               >
-                {pair.right}
+                <MathText text={pair.right} />
               </Button>
             );
           })}

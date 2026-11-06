@@ -149,6 +149,7 @@ export const MapModule: React.FC = () => {
     return (
       <div className="mini-games">
         <ResultScreen
+          celebrate={config.kind === 'level' && !summary.timeout}
           subtitle={
             config.kind === 'boss'
               ? `${section?.boss ?? ''} · ${section?.title ?? ''}`
@@ -166,7 +167,7 @@ export const MapModule: React.FC = () => {
           summary={summary}
           onRetry={() => setRoute({ name: 'session', config })}
           onBack={back}
-          backLabel={config.kind === 'boss' ? 'К карте' : 'К уровню'}
+          backLabel="Перейти к карте"
         />
       </div>
     );
