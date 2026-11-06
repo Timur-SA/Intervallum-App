@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 # -------------------------------------------------------------
 # Stage 1: Build the Vite SPA
 # -------------------------------------------------------------
@@ -5,9 +6,12 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+ARG VITE_CORE_API_URL=http://127.0.0.1:8000
+ENV VITE_CORE_API_URL=$VITE_CORE_API_URL
+
 # Install dependencies based on lockfile for reproducible builds
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci --prefer-offline --no-audit --no-fund
 
 # Copy project files and build
 COPY . .

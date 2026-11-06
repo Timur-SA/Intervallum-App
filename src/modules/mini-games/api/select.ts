@@ -1,10 +1,12 @@
 import { PracticeProgress } from '../../../shared/storage/progressStore';
-import { TASK_BANK } from '../data';
+import { TASK_BANK, getTaskById } from '../data';
 import { AnyTask, PlayableTaskType, SectionId, TopicId } from '../domain/types';
 import { getSectionByTopic } from '../domain/sections';
+import { getCoreUserId } from './http';
 import { BOSS_TASK_COUNT } from '../domain/progression';
 import { BOSS_TASKS } from '../data/bossTasks';
 import { shuffleBySeed } from '../engine/shuffle';
+import { CORE_URL, fetchWithTimeout } from './status';
 
 export interface SelectTrainRequest {
   count: number;
@@ -110,3 +112,44 @@ export const selectBossTasks = (
     .slice(0, count)
     .map(task => decorateTask(task, progress));
 
+
+/**
+ * v2/select/train from Intervallum-Core.
+ * Falls back to the local selector when Core is unavailable.
+ */
+export const selectTrainRemote = async (
+  request: SelectTrainRequest,
+  progress: PracticeProgress,
+): Promise<AnyTask[]> => {
+  try {
+    const response = await fetchWithTimeout(
+      `${CORE_URL}/v2/select/train`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: getCoreUserId(),
+          count: request.count,
+          section_id: request.sectionId,
+          topic_id: request.topicId,
+          type: request.type,
+          exclude_types: request.excludeTypes ?? [],
+          seed: request.seed,
+        }),
+      },
+      2500,
+    );
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = (await response.json()) as { tasks?: Array<{ id: string; isNew?: boolean; isHard?: boolean }> };
+    const tasks: AnyTask[] = [];
+    for (const row of payload.tasks ?? []) {
+      const local = getTaskById(row.id);
+      if (local) {
+        tasks.push({ ...local, isNew: row.isNew, isHard: row.isHard });
+      }
+    }
+    return tasks.length ? tasks : selectTrain(request, progress);
+  } catch {
+    return selectTrain(request, progress);
+  }
+};

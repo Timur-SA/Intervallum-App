@@ -10,6 +10,7 @@ import { ForcesTask } from '../domain/types';
 import { getSectionByTopic, getTopic } from '../domain/sections';
 import { xpForScore } from '../engine/grading';
 import { GradeResponse } from '../api/contracts';
+import { miniGamesApi } from '../api';
 import { haptics } from '../../../shared/motion/haptics';
 import { GameShell } from '../components/GameShell';
 import { TaskViewProps } from './taskView';
@@ -31,6 +32,8 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
   const [history, setHistory] = useState<DrawnVector[][]>([]);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [score, setScore] = useState(0);
+  const [remoteGrade, setRemoteGrade] = useState<GradeResponse | null>(null);
+  const [attempts, setAttempts] = useState(0);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [reviewQueue, setReviewQueue] = useState<ReviewEntry[]>([]);
@@ -78,7 +81,7 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
     correctAnswer: null,
   });
 
-  const handleCheck = () => {
+  const handleCheck = async () => {
     if (passed || !vectors.length) return;
 
     const result = validatePlacement(forceTask, vectors);
@@ -89,6 +92,23 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
       ? 1
       : Math.max(0, 1 - result.badTypes.length / Math.max(1, forceTask.refs.length));
     setScore(attemptScore);
+
+    const nextAttempts = attempts + 1;
+    setAttempts(nextAttempts);
+    try {
+      const graded = await miniGamesApi.grade({
+        taskId: task.id,
+        answer: {
+          type: 'forces',
+          vectors: vectors.map(vector => ({ ...vector })),
+          attempts: nextAttempts,
+        },
+      });
+      setRemoteGrade(graded);
+      setScore(graded.score);
+    } catch {
+      setRemoteGrade(null);
+    }
 
     if (result.passed) {
       setSelectedForce(null);
@@ -129,8 +149,8 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
               stretched
               disabled={!checked && vectors.length === 0}
               onClick={() => {
-                if (checked) onDone(buildGrade(score));
-                else handleCheck();
+                if (checked) onDone(remoteGrade ?? buildGrade(score));
+                else void handleCheck();
               }}
             >
               {checked ? 'Продолжить' : 'Проверить'}
