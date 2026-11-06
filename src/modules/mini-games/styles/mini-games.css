@@ -1377,7 +1377,7 @@
 .mg-path {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   padding: 8px 0 24px;
 }
 
@@ -1397,7 +1397,7 @@
 
 .mg-path__row--center {
   justify-content: center;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .mg-path__node-wrap {
@@ -1406,13 +1406,13 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding-top: 26px;
+  padding-top: 28px;
 }
 
 .mg-node {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   border: 0;
   padding: 0;
   border-radius: 50%;
@@ -1446,15 +1446,15 @@
 }
 
 .mg-node__inner {
-  width: 50px;
-  height: 50px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   color: var(--text-primary);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
 }
 
@@ -1488,13 +1488,13 @@
 }
 
 .mg-node--boss {
-  width: 96px;
-  height: 96px;
+  width: 108px;
+  height: 108px;
 }
 
 .mg-node__inner--boss {
-  width: 76px;
-  height: 76px;
+  width: 86px;
+  height: 86px;
   color: #f59e0b;
   background: rgba(245, 158, 11, 0.12);
   border-color: rgba(245, 158, 11, 0.35);
@@ -1628,6 +1628,7 @@
 
 .mg-path {
   position: relative;
+  z-index: 1;
 }
 
 .mg-path__road {
@@ -1772,9 +1773,90 @@
 }
 
 .mg-journey__section {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+/* Разная плотность фона: электромагнетизм светлее, механика чуть ярче, тепло — минимально */
+.mg-journey__section--mechanics {
+  --mg-pattern-opacity: 0.13;
+  --mg-pattern-opacity-light: 0.102;
+  --mg-accent-opacity: 0.22;
+  --mg-accent-opacity-light: 0.19;
+}
+
+.mg-journey__section--thermal {
+  --mg-pattern-opacity: 0.123;
+  --mg-pattern-opacity-light: 0.098;
+  --mg-accent-opacity: 0.21;
+  --mg-accent-opacity-light: 0.18;
+}
+
+.mg-journey__section--electromagnetism {
+  --mg-pattern-opacity: 0.15;
+  --mg-pattern-opacity-light: 0.12;
+  --mg-accent-opacity: 0.25;
+  --mg-accent-opacity-light: 0.215;
+}
+
+/* Фоновая текстура раздела: тянется по всей высоте уровней */
+.mg-section-pattern {
+  position: absolute;
+  inset: 0 -16px;
+  z-index: 0;
+  opacity: var(--mg-pattern-opacity, 0.085);
+  pointer-events: none;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 6%, #000 94%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 6%, #000 94%, transparent 100%);
+  mask-composite: intersect;
+}
+
+.mg-section-pattern svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+[data-theme='light'] .mg-section-pattern {
+  opacity: var(--mg-pattern-opacity-light, 0.068);
+}
+
+/* Маленькие рисунки в изломах дорожки */
+.mg-section-accent {
+  position: absolute;
+  top: 38px;
+  width: 52px;
+  height: 52px;
+  z-index: 2;
+  opacity: var(--mg-accent-opacity, 0.15);
+  pointer-events: none;
+}
+
+.mg-section-accent svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mg-section-accent--left {
+  right: calc(100% + 12px);
+  transform: rotate(6deg);
+}
+
+.mg-section-accent--right {
+  left: calc(100% + 12px);
+  transform: rotate(-6deg);
+}
+
+[data-theme='light'] .mg-section-accent {
+  opacity: var(--mg-accent-opacity-light, 0.13);
 }
 
 .mg-journey__section-head {
@@ -1812,6 +1894,8 @@
 }
 
 .mg-journey__cutoff {
+  position: relative;
+  z-index: 1;
   margin: 6px 8px;
   padding: 12px 16px;
   border: 1px dashed var(--border-strong);

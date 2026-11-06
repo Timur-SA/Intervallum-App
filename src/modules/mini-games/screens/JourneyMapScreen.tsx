@@ -27,6 +27,7 @@ import {
 import { TASK_BANK } from '../data';
 import { MathText, MathView } from '../../../shared/components/MathView';
 import { SECTION_ICONS } from '../config/sectionIcons';
+import { SECTION_ACCENTS, SECTION_PATTERNS } from '../config/sectionArtwork';
 import { ANSWER_KIND_LABELS, CARDS } from '../data/cards';
 import { haptics } from '../../../shared/motion/haptics';
 
@@ -63,6 +64,37 @@ const Ring: React.FC<{ value: number; max: number; size: number; color: string; 
       />
     </svg>
   );
+};
+
+/** Горизонтальное смещение уровня на карте. */
+const levelOffset = (index: number): number => Math.round(Math.sin((index + 1) * 1.7) * 42);
+
+/**
+ * Сторона, с которой рисуем акцент в изломе дорожки.
+ * В вершине — слева, во впадине — справа.
+ * Для последнего уровня следующей точкой считаем центр босса.
+ */
+const turnSide = (
+  offsets: number[],
+  index: number,
+  tailOffset = 0,
+): 'left' | 'right' | null => {
+  if (index <= 0) return null;
+
+  const prev = offsets[index - 1];
+  const current = offsets[index];
+  const next = index + 1 < offsets.length ? offsets[index + 1] : tailOffset;
+
+  if (prev === undefined || current === undefined || next === undefined) return null;
+
+  const isPeak = current > prev && current > next;
+  const isValley = current < prev && current < next;
+  if (!isPeak && !isValley) return null;
+
+  const swing = Math.min(Math.abs(current - prev), Math.abs(next - current));
+  if (swing < 10) return null;
+
+  return isPeak ? 'left' : 'right';
 };
 
 export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
@@ -167,9 +199,16 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
             const currentIndex = section.topics.findIndex(
               topicId => !isTopicComplete(progress, topicId) && isTopicUnlocked(progress, section.id, topicId),
             );
+            const SectionPattern = SECTION_PATTERNS[section.id];
+            const accentComponents = SECTION_ACCENTS[section.id];
+            const levelOffsets = section.topics.map((_, index) => levelOffset(index));
+            const accentSides = levelOffsets.map((_, index) => turnSide(levelOffsets, index));
 
             return (
-              <div key={section.id} className="mg-journey__section">
+              <div
+                key={section.id}
+                className={`mg-journey__section mg-journey__section--${section.id}`}
+              >
                 <button
                   type="button"
                   className="mg-journey__section-head"
@@ -202,6 +241,10 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
 
                 {isExpanded && (
                   <div className="mg-path">
+                    <div className="mg-section-pattern" style={{ color: section.color }} aria-hidden>
+                      <SectionPattern />
+                    </div>
+
                     {section.topics.map((topicId, index) => {
                       const topic = getTopic(topicId);
                       const levelXp = progress.xpByTopic[topicId] ?? 0;
@@ -209,7 +252,14 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                       const unlocked = isTopicUnlocked(progress, section.id, topicId);
                       const complete = isTopicComplete(progress, topicId);
                       const current = sectionIndex === visibleSections.length - 1 && index === currentIndex;
-                      const offset = Math.round(Math.sin((index + 1) * 1.7) * 42);
+                      const offset = levelOffsets[index];
+                      const accentSide = accentSides[index];
+                      const accentOrdinal = accentSide
+                        ? accentSides.slice(0, index).filter(Boolean).length
+                        : 0;
+                      const Accent = accentSide
+                        ? accentComponents[accentOrdinal % accentComponents.length]
+                        : null;
 
                       return (
                         <div key={topicId} className="mg-path__row mg-path__row--chaos">
@@ -237,12 +287,12 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                               }}
                               aria-label={topic?.title ?? ''}
                             >
-                              <Ring value={levelXp} max={max} size={64} color={section.color} done={complete} />
+                              <Ring value={levelXp} max={max} size={72} color={section.color} done={complete} />
                               <span className="mg-node__inner">
                                 {!unlocked ? (
-                                  <LockKeyhole size={23} strokeWidth={2.2} />
+                                  <LockKeyhole size={25} strokeWidth={2.2} />
                                 ) : complete ? (
-                                  <Check size={22} strokeWidth={3} />
+                                  <Check size={24} strokeWidth={3} />
                                 ) : (
                                   index + 1
                                 )}
@@ -251,6 +301,16 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                             <span className="mg-path__caption mg-path__caption--center">
                               {topic?.title}
                             </span>
+
+                            {accentSide && Accent && (
+                              <span
+                                className={`mg-section-accent mg-section-accent--${accentSide}`}
+                                style={{ color: section.color }}
+                                aria-hidden
+                              >
+                                <Accent />
+                              </span>
+                            )}
                           </div>
                         </div>
                       );
@@ -275,9 +335,9 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                           }}
                           aria-label={`Босс ${section.boss}`}
                         >
-                          <Ring value={xp} max={required} size={96} color="#f59e0b" done={defeated} />
+                          <Ring value={xp} max={required} size={108} color="#f59e0b" done={defeated} />
                           <span className="mg-node__inner mg-node__inner--boss">
-                            {defeated ? <Trophy size={30} /> : <Flame size={30} />}
+                            {defeated ? <Trophy size={34} /> : <Flame size={34} />}
                           </span>
                         </button>
                         <span className="mg-path__caption mg-path__caption--center">
