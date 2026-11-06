@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button } from '@maxhub/max-ui';
 import { miniGamesApi } from '../api';
 import { CardGrade, TheoryCard } from '../domain/types';
@@ -28,6 +28,7 @@ export const CardTaskView: React.FC<TaskViewProps<TheoryCard>> = ({
 }) => {
   const [flipped, setFlipped] = useState(false);
   const [busy, setBusy] = useState(false);
+  const cardRef = useRef<HTMLButtonElement>(null);
 
   const topic = getTopic(task.topic);
   const section = getSectionByTopic(task.topic);
@@ -56,7 +57,7 @@ export const CardTaskView: React.FC<TaskViewProps<TheoryCard>> = ({
       total={total}
       headerRight={headerRight}
       footer={
-        flipped ? (
+        <div className="mg-cards__actions" data-flipped={flipped}>
           <div className="mg-cards__grades">
             {OPTIONS.map(option => (
               <Button
@@ -71,46 +72,47 @@ export const CardTaskView: React.FC<TaskViewProps<TheoryCard>> = ({
               </Button>
             ))}
           </div>
-        ) : (
           <Button
+            className="mg-cards__reveal"
             variant="primary"
             size="large"
             stretched
             onClick={() => {
               haptics.selection();
               setFlipped(true);
+              cardRef.current?.focus({ preventScroll: true });
             }}
           >
             Показать ответ
           </Button>
-        )
+        </div>
       }
     >
       <button
+        ref={cardRef}
         type="button"
         className="mg-flash"
-        aria-pressed={flipped}
+        aria-expanded={flipped}
         onClick={() => {
           haptics.selection();
           setFlipped(previous => !previous);
         }}
       >
-        <span key={flipped ? 'answer' : 'question'} className="mg-flash__face">
-          <span className="mg-flash__deck">
-            {(flipped ? topic?.title : section?.title) ?? 'Физика'}
-          </span>
-          {flipped ? (
-            <>
-              {task.formula && <MathView className="mg-theory__formula" latex={task.formula} />}
-              <MathText className="mg-flash__answer" text={task.answer} />
-            </>
-          ) : (
+        <span className="mg-flash__inner">
+          <span className="mg-flash__face" aria-hidden={flipped}>
+            <span className="mg-flash__deck">{section?.title ?? 'Физика'}</span>
             <span className="mg-flash__question">
               <MathText text={task.question} />
               {task.answerKind && ` (${ANSWER_KIND_LABELS[task.answerKind]})`}
             </span>
-          )}
-          <span className="mg-flash__tap">{flipped ? 'Показать вопрос' : 'Показать ответ'}</span>
+            <span className="mg-flash__tap">Показать ответ</span>
+          </span>
+          <span className="mg-flash__face mg-flash__face--back" aria-hidden={!flipped}>
+            <span className="mg-flash__deck">{topic?.title ?? 'Физика'}</span>
+            {task.formula && <MathView className="mg-theory__formula" latex={task.formula} />}
+            <MathText className="mg-flash__answer" text={task.answer} />
+            <span className="mg-flash__tap">Показать вопрос</span>
+          </span>
         </span>
       </button>
     </GameShell>
