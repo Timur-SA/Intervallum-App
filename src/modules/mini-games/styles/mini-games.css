@@ -1522,22 +1522,6 @@
   max-width: 220px;
 }
 
-.mg-path__start {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 3px 12px;
-  border-radius: 10px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  white-space: nowrap;
-}
-
 .mg-path__hint {
   font-size: 10.5px;
   color: var(--text-muted);

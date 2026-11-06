@@ -267,7 +267,6 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                             className="mg-path__node-wrap"
                             style={{ transform: `translateX(${offset}px)` }}
                           >
-                            {current && !complete && <span className="mg-path__start">Начать</span>}
                             <button
                               type="button"
                               className={[
