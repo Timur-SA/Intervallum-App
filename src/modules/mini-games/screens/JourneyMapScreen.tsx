@@ -25,7 +25,6 @@ import {
   topicMaxXp,
 } from '../domain/progression';
 import { TASK_BANK } from '../data';
-import { CARDS } from '../data/cards';
 import { MathText, MathView } from '../../../shared/components/MathView';
 import { SECTION_ICONS } from '../config/sectionIcons';
 import { ANSWER_KIND_LABELS, CARDS } from '../data/cards';
