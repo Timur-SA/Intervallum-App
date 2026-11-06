@@ -3,10 +3,8 @@ import './styles/mini-games.css';
 import { Flame, Swords } from 'lucide-react';
 import { AnyTask, SectionId, TopicId } from './domain/types';
 import { getSection, getTopic } from './domain/sections';
-import { BOSS_TIME_SECONDS, BOSS_WIN_SCORE } from './domain/progression';
-import { TASK_BANK } from './data';
-import { shuffleBySeed } from './engine/shuffle';
-import { selectBossTasks } from './api/select';
+import { BOSS_TIME_SECONDS, BOSS_WIN_SCORE, TRAINING_TASKS } from './domain/progression';
+import { selectBossTasks, selectTrainRemote } from './api/select';
 import {
   defeatBoss,
   loadUserProgress,
@@ -63,22 +61,22 @@ export const MapModule: React.FC = () => {
 
   const startLevel = (sectionId: SectionId, topicId: TopicId) => {
     const seed = `${Date.now()}-${topicId}`;
-    const tasks = shuffleBySeed(
-      TASK_BANK.filter(task => task.topic === topicId),
-      seed,
-    );
-    if (!tasks.length) return;
-
-    navigate({
-      name: 'session',
-      config: {
-        kind: 'level',
-        title: getTopic(topicId)?.title ?? 'Уровень',
-        tasks,
-        seed,
-        sectionId,
-        topicId,
-      },
+    void selectTrainRemote(
+      { count: TRAINING_TASKS, topicId, seed },
+      progress.practice,
+    ).then(tasks => {
+      if (!tasks.length) return;
+      navigate({
+        name: 'session',
+        config: {
+          kind: 'level',
+          title: getTopic(topicId)?.title ?? 'Уровень',
+          tasks,
+          seed,
+          sectionId,
+          topicId,
+        },
+      });
     });
   };
 
