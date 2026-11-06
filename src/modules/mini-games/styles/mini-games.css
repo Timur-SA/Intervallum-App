@@ -1781,22 +1781,22 @@
 
 /* Разная плотность фона: электромагнетизм светлее, механика чуть ярче, тепло — минимально */
 .mg-journey__section--mechanics {
-  --mg-pattern-opacity: 0.13;
-  --mg-pattern-opacity-light: 0.102;
+  --mg-pattern-opacity: 0.145;
+  --mg-pattern-opacity-light: 0.125;
   --mg-accent-opacity: 0.22;
   --mg-accent-opacity-light: 0.19;
 }
 
 .mg-journey__section--thermal {
-  --mg-pattern-opacity: 0.123;
-  --mg-pattern-opacity-light: 0.098;
+  --mg-pattern-opacity: 0.135;
+  --mg-pattern-opacity-light: 0.117;
   --mg-accent-opacity: 0.21;
   --mg-accent-opacity-light: 0.18;
 }
 
 .mg-journey__section--electromagnetism {
-  --mg-pattern-opacity: 0.15;
-  --mg-pattern-opacity-light: 0.12;
+  --mg-pattern-opacity: 0.165;
+  --mg-pattern-opacity-light: 0.145;
   --mg-accent-opacity: 0.25;
   --mg-accent-opacity-light: 0.215;
 }
@@ -1831,9 +1831,9 @@
 /* Маленькие рисунки в изломах дорожки */
 .mg-section-accent {
   position: absolute;
-  top: 38px;
-  width: 52px;
-  height: 52px;
+  top: 34px;
+  width: 60px;
+  height: 60px;
   z-index: 2;
   opacity: var(--mg-accent-opacity, 0.15);
   pointer-events: none;
@@ -1846,12 +1846,12 @@
 }
 
 .mg-section-accent--left {
-  right: calc(100% + 12px);
+  right: calc(100% + 20px);
   transform: rotate(6deg);
 }
 
 .mg-section-accent--right {
-  left: calc(100% + 12px);
+  left: calc(100% + 20px);
   transform: rotate(-6deg);
 }
 
