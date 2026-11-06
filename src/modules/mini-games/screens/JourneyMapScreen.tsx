@@ -29,6 +29,7 @@ import { MathText, MathView } from '../../../shared/components/MathView';
 import { SECTION_ICONS } from '../config/sectionIcons';
 import { ANSWER_KIND_LABELS, CARDS } from '../data/cards';
 import { haptics } from '../../../shared/motion/haptics';
+import { CoreStatusBadge } from '../../../shell/CoreStatusBadge';
 
 interface JourneyMapScreenProps {
   progress: PracticeProgress;
@@ -141,6 +142,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
     <div className="mg-screen">
       <header className="mg-screen__head mg-screen__head--fixed">
         <h1 className="mg-screen__title">Подготовка · ОГЭ</h1>
+        <CoreStatusBadge compact />
         <span className="mg-xp">
           <Sparkles size={13} />
           <span className="mg-xp__value">{totalXp(progress)} XP</span>

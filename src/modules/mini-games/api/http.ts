@@ -2,8 +2,8 @@ import { createLocalApi } from './local';
 import { getTaskById } from '../data';
 import { TaskAnswer } from '../domain/types';
 import { GradeRequest, GradeResponse, MiniGamesApi } from './contracts';
+import { CORE_URL, fetchWithTimeout, setCoreStatus } from './status';
 
-const CORE_URL = (import.meta.env.VITE_CORE_API_URL ?? 'http://127.0.0.1:8000').replace(/\/$/, '');
 const USER_KEY = 'intervallum:coreUserId';
 
 export const getCoreUserId = (): string => {
@@ -70,19 +70,31 @@ const toGradeResponse = (taskId: string, data: any): GradeResponse => ({
 
 export const createHttpApi = (): MiniGamesApi => ({
   async grade({ taskId, answer }: GradeRequest): Promise<GradeResponse> {
-    const response = await fetch(`${CORE_URL}/v2/grade`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_id: getCoreUserId(),
-        task_id: taskId,
-        answer: coreAnswer(taskId, answer),
-      }),
-    });
-    if (!response.ok) {
-      throw new Error(`[core] grade failed: ${response.status}`);
+    try {
+      const response = await fetchWithTimeout(
+        `${CORE_URL}/v2/grade`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: getCoreUserId(),
+            task_id: taskId,
+            answer: coreAnswer(taskId, answer),
+          }),
+        },
+        2500,
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      setCoreStatus('online', 'подключён');
+      return toGradeResponse(taskId, data);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'нет ответа';
+      setCoreStatus('offline', `локальный режим · ${reason}`);
+      throw error;
     }
-    return toGradeResponse(taskId, await response.json());
   },
 });
 
