@@ -5,6 +5,8 @@ import {
   FormulaTrainerHandle,
 } from '../../formula-trainer/FormulaTrainerModule';
 import { InteractiveTask } from '../domain/types';
+import { GradeResponse } from '../api/contracts';
+import { miniGamesApi } from '../api';
 import { getSectionByTopic, getTopic } from '../domain/sections';
 import { xpForScore } from '../engine/grading';
 import { GameShell } from '../components/GameShell';
@@ -29,6 +31,7 @@ export const InteractiveTaskView: React.FC<TaskViewProps<InteractiveTask>> = ({
     answerLabel: string;
     correctLabel: string;
   } | null>(null);
+  const [remoteGrade, setRemoteGrade] = useState<GradeResponse | null>(null);
   const topic = getTopic(task.topic);
   const section = getSectionByTopic(task.topic);
 
@@ -43,10 +46,10 @@ export const InteractiveTaskView: React.FC<TaskViewProps<InteractiveTask>> = ({
         feedback ? (
           <>
             <FeedbackPanel
-              status={feedback.correct ? 'correct' : 'partial'}
-              title={feedback.correct ? 'Верно!' : 'Не совсем'}
+              status={remoteGrade?.outcome ?? (feedback.correct ? 'correct' : 'partial')}
+              title={remoteGrade?.outcome === 'correct' || feedback.correct ? 'Верно!' : 'Не совсем'}
               explanation={
-                feedback.correct
+                remoteGrade?.outcome === 'correct' || feedback.correct
                   ? 'Ответ совпал с решением. Переходите дальше.'
                   : 'Правильный ответ указан ниже.'
               }
@@ -58,14 +61,16 @@ export const InteractiveTaskView: React.FC<TaskViewProps<InteractiveTask>> = ({
               stretched
               style={{ marginTop: 12 }}
               onClick={() =>
-                onDone({
-                  outcome: feedback.correct ? 'correct' : 'partial',
-                  score: feedback.score,
-                  xpByTopic: {
-                    [task.topic]: xpForScore(feedback.score, task.difficulty),
+                onDone(
+                  remoteGrade ?? {
+                    outcome: feedback.correct ? 'correct' : 'partial',
+                    score: feedback.score,
+                    xpByTopic: {
+                      [task.topic]: xpForScore(feedback.score, task.difficulty),
+                    },
+                    correctAnswer: null,
                   },
-                  correctAnswer: null,
-                })
+                )
               }
             >
               Далее
@@ -95,7 +100,21 @@ export const InteractiveTaskView: React.FC<TaskViewProps<InteractiveTask>> = ({
           ref={solverRef}
           embeddedTask={task.physicsTask}
           onBackToHub={() => undefined}
-          onEmbeddedChecked={setFeedback}
+          onEmbeddedChecked={result => {
+            setFeedback(result);
+            setRemoteGrade(null);
+            const match = result.answerLabel.match(/-?\d+(?:[.,]\d+)?/);
+            if (!match) return;
+            const value = Number(match[0].replace(',', '.'));
+            if (!Number.isFinite(value)) return;
+            void miniGamesApi
+              .grade({
+                taskId: task.id,
+                answer: { type: 'interactive', value, attempts: 1 },
+              })
+              .then(setRemoteGrade)
+              .catch(() => setRemoteGrade(null));
+          }}
         />
       </div>
     </GameShell>

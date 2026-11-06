@@ -25,6 +25,8 @@ const coreAnswer = (taskId: string, answer: TaskAnswer): unknown => {
   if (answer.type === 'single') return { optionId: answer.optionId };
   if (answer.type === 'multi') return { optionIds: answer.optionIds };
   if (answer.type === 'cards') return { selfAssessment: answer.selfAssessment };
+  if (answer.type === 'forces') return { vectors: answer.vectors, attempts: answer.attempts };
+  if (answer.type === 'interactive') return { value: answer.value, attempts: answer.attempts };
 
   if (answer.type === 'matching' && task.type === 'matching') {
     const links: Record<string, string> = {};
