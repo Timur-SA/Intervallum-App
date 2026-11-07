@@ -345,6 +345,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                             'mg-node',
                             'mg-node--boss',
                             bossReady ? 'mg-node--boss-ready' : '',
+                            !bossReady && !defeated ? 'mg-node--boss-locked' : '',
                             defeated ? 'mg-node--boss-done' : '',
                           ]
                             .filter(Boolean)

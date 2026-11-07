@@ -1553,6 +1553,10 @@
   height: 86px;
 }
 
+.mg-node--boss-locked .mg-node__inner--boss {
+  --node-fill: var(--locked-fill, #2f3942);
+}
+
 .mg-node--boss-ready .mg-node__inner--boss {
   animation: mg-pulse 1.8s ease-in-out infinite;
 }
