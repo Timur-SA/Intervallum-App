@@ -21,7 +21,7 @@
   --section-thermal: #f97316;
   --section-electromagnetism: #8b5cf6;
   --boss-color: #f59e0b;
-  --locked-mix: var(--bg-surface);
+  --locked-fill: #2f3942;
 }
 
 [data-theme='light'] .mini-games {
@@ -29,7 +29,7 @@
   --section-thermal: #f97316;
   --section-electromagnetism: #8b5cf6;
   --boss-color: #f59e0b;
-  --locked-mix: #475569;
+  --locked-fill: #475569;
 }
 
 /* ------------------------------------------------------------- Экраны */
@@ -1531,7 +1531,7 @@
 
 /* Закрытые уровни — приглушённый цвет раздела, белый замок */
 .mg-node--locked .mg-node__inner {
-  --node-fill: color-mix(in srgb, var(--node-color) 55%, var(--locked-mix, var(--bg-surface)));
+  --node-fill: var(--locked-fill, #2f3942);
   opacity: 1;
 }
 
