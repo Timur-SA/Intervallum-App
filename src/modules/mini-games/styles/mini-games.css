@@ -15,6 +15,19 @@
   --background-card: var(--bg-card);
   --background-secondary: var(--bg-surface);
   --background-surface: var(--bg-surface);
+
+  /* Цвета разделов: в светлой теме используем более насыщенные варианты */
+  --section-mechanics: #0ea5e9;
+  --section-thermal: #f97316;
+  --section-electromagnetism: #8b5cf6;
+  --boss-color: #f59e0b;
+}
+
+[data-theme='light'] .mini-games {
+  --section-mechanics: #0284c7;
+  --section-thermal: #ea580c;
+  --section-electromagnetism: #7c3aed;
+  --boss-color: #d97706;
 }
 
 /* ------------------------------------------------------------- Экраны */
@@ -1503,10 +1516,16 @@
   border-color: rgba(52, 211, 153, 0.4);
 }
 
+/* Открытые, но ещё не пройденные уровни — в цвете своего раздела */
+.mg-node--open .mg-node__inner {
+  color: var(--node-color);
+  background: color-mix(in srgb, var(--node-color) 16%, var(--bg-surface));
+  border-color: color-mix(in srgb, var(--node-color) 45%, transparent);
+}
+
 .mg-node--current .mg-node__inner {
-  background: var(--accent-bg);
-  color: var(--accent);
-  border-color: var(--border-accent);
+  background: color-mix(in srgb, var(--node-color) 22%, var(--bg-surface));
+  border-color: var(--node-color);
 }
 
 .mg-node--locked .mg-node__ring {
@@ -1534,9 +1553,9 @@
 .mg-node__inner--boss {
   width: 86px;
   height: 86px;
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.35);
+  color: var(--boss-color, #f59e0b);
+  background: color-mix(in srgb, var(--boss-color) 12%, transparent);
+  border-color: color-mix(in srgb, var(--boss-color) 35%, transparent);
 }
 
 .mg-node--boss-ready .mg-node__inner--boss {
@@ -1546,6 +1565,7 @@
 .mg-node--boss-done .mg-node__inner--boss {
   color: var(--success);
   background: var(--success-bg);
+  border-color: color-mix(in srgb, var(--success) 45%, transparent);
 }
 
 .mg-path__caption {

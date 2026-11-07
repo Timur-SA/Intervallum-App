@@ -30,7 +30,7 @@ export const SECTIONS: Section[] = [
     boss: 'лорд Кельвин',
     item: 'Термометр',
     itemId: 'thermometer',
-    color: '#f59e0b',
+    color: '#f97316',
     topics: [
       'heat-amount',
       'aggregate-states',
