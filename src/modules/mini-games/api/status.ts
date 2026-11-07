@@ -1,4 +1,5 @@
-const DEFAULT_URL = 'http://127.0.0.1:8000';
+// Empty means "same origin": the app calls /v2/... and Caddy/Vite proxies it.
+const DEFAULT_URL = '';
 
 export const CORE_URL = (import.meta.env.VITE_CORE_API_URL ?? DEFAULT_URL).replace(/\/$/, '');
 

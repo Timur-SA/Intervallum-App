@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_CORE_API_URL: ${VITE_CORE_API_URL:-http://127.0.0.1:8000}
+        VITE_CORE_API_URL: ${VITE_CORE_API_URL:-}
     container_name: intervallum-app
     restart: unless-stopped
     ports:

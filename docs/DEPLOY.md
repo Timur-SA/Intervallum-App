@@ -48,12 +48,12 @@ Core должен слушать порт `8000`. Наружу его лучше
 
 ```bash
 cd Intervallum-App
-VITE_CORE_API_URL=https://app.example.com \
-  docker compose up -d --build
+docker compose up -d --build
 ```
 
-App будет обращаться к `https://app.example.com/v2/...`, Caddy отправит эти
-запросы в Core.
+`VITE_CORE_API_URL` можно не задавать: App обращается к `/v2` на своём же
+домене, Caddy отправляет эти запросы в Core. Это лучший вариант — браузер
+не ходит на `127.0.0.1` и не спрашивает доступ к локальной сети.
 
 ### Вариант B — отдельный поддомен для Core
 
@@ -149,8 +149,11 @@ docker compose -f docker-compose.dev.yml up
 
 ```bash
 npm ci
-VITE_CORE_API_URL=http://127.0.0.1:8000 npm run dev
+npm run dev
 ```
+
+В dev-режиме Vite сам проксирует `/v2` на `http://127.0.0.1:8000`, поэтому
+`VITE_CORE_API_URL` не нужен.
 
 ## 6. Типовые ошибки
 
