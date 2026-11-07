@@ -21,13 +21,15 @@
   --section-thermal: #f97316;
   --section-electromagnetism: #8b5cf6;
   --boss-color: #f59e0b;
+  --locked-mix: var(--bg-surface);
 }
 
 [data-theme='light'] .mini-games {
-  --section-mechanics: #0284c7;
-  --section-thermal: #ea580c;
-  --section-electromagnetism: #7c3aed;
-  --boss-color: #d97706;
+  --section-mechanics: #0ea5e9;
+  --section-thermal: #f97316;
+  --section-electromagnetism: #8b5cf6;
+  --boss-color: #f59e0b;
+  --locked-mix: #475569;
 }
 
 /* ------------------------------------------------------------- Экраны */
@@ -1498,51 +1500,45 @@
 }
 
 .mg-node__inner {
+  --node-fill: var(--node-color, var(--bg-surface));
+  --node-border: color-mix(in srgb, var(--node-fill) 70%, white);
+
   width: 56px;
   height: 56px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
+  background: var(--node-fill);
+  border: 2px solid var(--node-border);
+  color: #fff;
   font-size: 18px;
   font-weight: 700;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 
 .mg-node--done .mg-node__inner {
-  background: var(--success-bg);
-  color: var(--success);
-  border-color: rgba(52, 211, 153, 0.4);
+  --node-fill: var(--success-fill, var(--success));
 }
 
 /* Открытые, но ещё не пройденные уровни — в цвете своего раздела */
 .mg-node--open .mg-node__inner {
-  color: var(--node-color);
-  background: color-mix(in srgb, var(--node-color) 16%, var(--bg-surface));
-  border-color: color-mix(in srgb, var(--node-color) 45%, transparent);
-}
-
-.mg-node--current .mg-node__inner {
-  background: color-mix(in srgb, var(--node-color) 22%, var(--bg-surface));
-  border-color: var(--node-color);
+  --node-fill: var(--node-color);
 }
 
 .mg-node--locked .mg-node__ring {
   opacity: 0.45;
 }
 
-/* Иконка заблокированного уровня всегда полностью непрозрачная */
+/* Закрытые уровни — приглушённый цвет раздела, белый замок */
 .mg-node--locked .mg-node__inner {
-  color: var(--text-secondary);
-  background: var(--bg-surface);
-  border-color: var(--border);
+  --node-fill: color-mix(in srgb, var(--node-color) 55%, var(--locked-mix, var(--bg-surface)));
   opacity: 1;
 }
 
 .mg-node__inner svg {
   opacity: 1;
   color: inherit;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
 }
 
 .mg-node--boss {
@@ -1551,11 +1547,10 @@
 }
 
 .mg-node__inner--boss {
+  --node-fill: var(--boss-color, #f59e0b);
+
   width: 86px;
   height: 86px;
-  color: var(--boss-color, #f59e0b);
-  background: color-mix(in srgb, var(--boss-color) 12%, transparent);
-  border-color: color-mix(in srgb, var(--boss-color) 35%, transparent);
 }
 
 .mg-node--boss-ready .mg-node__inner--boss {
@@ -1563,9 +1558,7 @@
 }
 
 .mg-node--boss-done .mg-node__inner--boss {
-  color: var(--success);
-  background: var(--success-bg);
-  border-color: color-mix(in srgb, var(--success) 45%, transparent);
+  --node-fill: var(--success-fill, var(--success));
 }
 
 .mg-path__caption {

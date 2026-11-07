@@ -60,7 +60,7 @@ const Ring: React.FC<{ value: number; max: number; size: number; color: string; 
         strokeDasharray={circumference}
         strokeDashoffset={circumference * (1 - ratio)}
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        style={{ stroke: done ? 'var(--success)' : color }}
+        style={{ stroke: done ? 'var(--success-fill, var(--success))' : color }}
       />
     </svg>
   );

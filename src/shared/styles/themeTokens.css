@@ -29,6 +29,7 @@
   --accent-glow: rgba(56, 189, 248, 0.3);
 
   --success: #34d399;
+  --success-fill: #10b981;
   --success-bg: rgba(52, 211, 153, 0.14);
   --warning: #fbbf24;
   --warning-bg: rgba(251, 191, 36, 0.14);
@@ -74,27 +75,28 @@
   --bg-surface-hover: #e2e8f0;
 
   /* Unified Borders */
-  --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.15);
-  --border-accent: rgba(2, 132, 199, 0.5);
+  --border: rgba(15, 23, 42, 0.12);
+  --border-strong: rgba(15, 23, 42, 0.2);
+  --border-accent: rgba(14, 165, 233, 0.5);
 
   /* Unified Typography */
-  --text-primary: #0f172a;
-  --text-secondary: rgba(15, 23, 42, 0.68);
-  --text-muted: rgba(15, 23, 42, 0.45);
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
 
   /* Unified Accents */
-  --accent: #0284c7;
-  --accent-hover: #0369a1;
-  --accent-bg: rgba(2, 132, 199, 0.12);
-  --accent-glow: rgba(2, 132, 199, 0.25);
+  --accent: #0ea5e9;
+  --accent-hover: #0284c7;
+  --accent-bg: rgba(14, 165, 233, 0.12);
+  --accent-glow: rgba(14, 165, 233, 0.25);
 
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.12);
-  --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.12);
-  --danger: #ef4444;
-  --danger-bg: rgba(239, 68, 68, 0.12);
+  --success: #22c55e;
+  --success-fill: #22c55e;
+  --success-bg: rgba(34, 197, 94, 0.12);
+  --warning: #fbbf24;
+  --warning-bg: rgba(251, 191, 36, 0.12);
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.12);
 
   /* Force Lab Tokens Mapped to Unified System */
   --fl-paper: var(--bg-app);
@@ -104,9 +106,9 @@
   --fl-line: var(--border);
   --fl-object: var(--bg-surface);
   --fl-technical: var(--text-muted);
-  --fl-accent: #b45309; /* Warm dark copper for light theme vectors */
-  --fl-wash: rgba(180, 83, 9, 0.1);
-  --fl-reference: #0369a1;
+  --fl-accent: #d97706; /* Warm amber for light theme vectors */
+  --fl-wash: rgba(217, 119, 6, 0.1);
+  --fl-reference: #0284c7;
   --fl-error: var(--danger);
   --fl-pass: var(--success);
   --fl-on-accent: #ffffff;
