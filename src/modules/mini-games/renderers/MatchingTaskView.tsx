@@ -11,7 +11,7 @@ import { GameShell } from '../components/GameShell';
 import { FeedbackPanel } from '../components/FeedbackPanel';
 import { TaskViewProps } from './taskView';
 
-const THREAD_COLORS = ['#38bdf8', '#a78bfa', '#34d399', '#fbbf24', '#fb7185', '#22d3ee'];
+const THREAD_COLORS = ['#38bdf8', '#a78bfa', '#f97316', '#fbbf24', '#fb7185', '#22d3ee'];
 
 const ANCHOR_INSET = 18;
 const DOT_RADIUS = 9;
