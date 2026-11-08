@@ -1566,29 +1566,37 @@
 }
 
 .mg-path__caption {
+  --caption-fill: var(--node-color, var(--boss-color));
+
   display: inline-block;
   width: fit-content;
   max-width: 150px;
   padding: 2px 6px;
-  border: 1px solid color-mix(in srgb, var(--node-color, var(--boss-color)) 55%, transparent);
+  border: 2px solid color-mix(in srgb, var(--caption-fill) 60%, white);
   border-radius: 8px;
-  background: color-mix(
-    in srgb,
-    var(--node-color, var(--boss-color)) 45%,
-    rgba(9, 14, 20, 0.65)
-  );
+  background: var(--caption-fill);
   color: #fff;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
   line-height: 1.25;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-  -webkit-backdrop-filter: blur(10px) saturate(1.1);
-  backdrop-filter: blur(10px) saturate(1.1);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 
 .mg-path__caption--center {
   max-width: 280px;
+}
+
+.mg-path__caption--locked {
+  --caption-fill: var(--locked-fill, #2f3942);
+}
+
+.mg-path__caption--done {
+  --caption-fill: var(--success-fill, var(--success));
+}
+
+.mg-path__caption--boss {
+  --caption-fill: var(--boss-color, #f59e0b);
 }
 
 .mg-path__hint {

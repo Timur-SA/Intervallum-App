@@ -319,7 +319,16 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                                 )}
                               </span>
                             </button>
-                            <span className="mg-path__caption mg-path__caption--center">
+                            <span
+                              className={[
+                                'mg-path__caption',
+                                'mg-path__caption--center',
+                                complete ? 'mg-path__caption--done' : '',
+                                !unlocked ? 'mg-path__caption--locked' : '',
+                              ]
+                                .filter(Boolean)
+                                .join(' ')}
+                            >
                               {topic?.title}
                             </span>
 
@@ -371,7 +380,17 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                             {defeated ? <Trophy size={34} /> : <Flame size={34} />}
                           </span>
                         </button>
-                        <span className="mg-path__caption mg-path__caption--center">
+                        <span
+                          className={[
+                            'mg-path__caption',
+                            'mg-path__caption--center',
+                            defeated
+                              ? 'mg-path__caption--done'
+                              : bossReady
+                                ? 'mg-path__caption--boss'
+                                : 'mg-path__caption--locked',
+                          ].join(' ')}
+                        >
                           {defeated ? `Босс повержен · ${section.item}` : `Босс: ${section.boss}`}
                         </span>
                         {!defeated && !bossReady && (
