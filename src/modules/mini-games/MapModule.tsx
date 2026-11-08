@@ -14,6 +14,7 @@ import {
 } from '../../shared/storage/progressStore';
 import { useNavigation } from '../../shell/HeaderContext';
 import { JourneyMapScreen } from './screens/JourneyMapScreen';
+import { TheoryScreen } from './screens/TheoryScreen';
 import { SessionRunner, SessionSummary } from './renderers/SessionRunner';
 import { ResultScreen } from './components/ResultScreen';
 
@@ -31,6 +32,7 @@ interface SessionConfig {
 
 type Screen =
   | { name: 'journey' }
+  | { name: 'theory'; sectionId: SectionId; topicId: TopicId }
   | { name: 'session'; config: SessionConfig }
   | { name: 'result'; config: SessionConfig; summary: SessionSummary; bossLost?: boolean };
 
@@ -119,6 +121,7 @@ export const MapModule: React.FC = () => {
     }
 
     setProgress(loadUserProgress());
+    setHistory([{ name: 'journey' }]);
     setRoute({ name: 'result', config, summary });
   };
 
@@ -128,6 +131,17 @@ export const MapModule: React.FC = () => {
     setHistory([]);
     setRoute({ name: 'journey' });
   };
+
+  if (route.name === 'theory') {
+    return (
+      <div className="mini-games">
+        <TheoryScreen
+          topicId={route.topicId}
+          onStartPractice={() => startLevel(route.sectionId, route.topicId)}
+        />
+      </div>
+    );
+  }
 
   if (route.name === 'session') {
     return (
@@ -183,7 +197,7 @@ export const MapModule: React.FC = () => {
     <div className="mini-games">
       <JourneyMapScreen
         progress={progress.practice}
-        onStartLevel={startLevel}
+        onStartLevel={(sectionId, topicId) => navigate({ name: 'theory', sectionId, topicId })}
         onStartBoss={startBoss}
         onChooseSection={handleChooseSection}
       />

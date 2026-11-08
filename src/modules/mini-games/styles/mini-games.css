@@ -895,52 +895,117 @@
 
 /* ------------------------------------------------------------- Теория */
 
-.mg-theory {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.mg-lesson {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px clamp(16px, 6vw, 24px) calc(24px + env(safe-area-inset-bottom, 0px));
+  color: var(--text-primary);
 }
 
-.mg-theory__card {
-  padding: 14px;
+.mg-lesson__article,
+.mg-lesson__actions {
+  max-width: 400px;
+  margin-inline: auto;
+}
+
+.mg-lesson__label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 9px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.mg-lesson h1 {
+  margin: 0;
+  font-size: clamp(23px, 7vw, 30px);
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
+  outline: none;
+}
+
+.mg-lesson__text {
+  margin: 16px 0 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.mg-lesson__figure {
+  margin: 18px 0 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
-.mg-theory__question {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.4;
+.mg-lesson__diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 180px;
+  padding: 8px;
+  background-image: radial-gradient(var(--border-strong) 0.75px, transparent 0.75px);
+  background-size: 14px 14px;
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.mg-theory__answer {
-  margin: 0;
+.mg-lesson__diagram text {
+  fill: var(--text-primary);
+  stroke: none;
   font-size: 13px;
-  line-height: 1.5;
+  font-weight: 600;
+}
+
+.mg-lesson__arrow {
+  stroke: var(--accent);
+  stroke-width: 2.4;
+}
+
+.mg-lesson__object {
+  fill: var(--bg-surface);
+  stroke: var(--accent);
+}
+
+.mg-lesson__dot {
+  fill: var(--accent);
+  stroke: none;
+}
+
+.mg-lesson__figure figcaption {
+  border-top: 1px solid var(--border);
+  padding: 9px 12px;
   color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
-.mg-theory__more {
-  color: var(--text-secondary);
-  font-size: 12px;
+.mg-lesson__formula {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 16px;
+  overflow-x: auto;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  font-size: 15px;
 }
 
-.mg-theory__more summary {
-  padding: 6px 0;
-  cursor: pointer;
-}
-
-.mg-theory__details {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--text-muted);
+.mg-lesson__actions {
+  --button-primary: #0064ce;
+  --states-button-primary-hover: #0059b8;
+  --states-button-primary-pressed: #004f9f;
+  margin-top: 22px;
 }
 
 .mg-theory__formula {
@@ -954,12 +1019,6 @@
   color: var(--accent);
   font-size: 14px;
   font-weight: 700;
-}
-
-.mg-theory__empty {
-  margin: 0;
-  font-size: 12.5px;
-  color: var(--text-muted);
 }
 
 /* ------------------------------------------------------------- Результат */
@@ -1729,42 +1788,6 @@
   justify-content: center;
 }
 
-/* Карусель теории */
-.mg-theory-carousel {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.mg-theory-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-}
-
-.mg-theory-nav__btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.mg-theory-nav__btn:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.mg-theory-nav__count {
-  font-size: 11.5px;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
 /* Задание «Расстановка сил» внутри общего каркаса */
 .mg-game__body--force {
   padding: 0;
@@ -1993,37 +2016,6 @@
   background: var(--bg-card);
 }
 
-/* Анимация листания теории */
-.mg-theory__card--next {
-  animation: mg-slide-left 180ms ease-out;
-}
-
-.mg-theory__card--prev {
-  animation: mg-slide-right 180ms ease-out;
-}
-
-@keyframes mg-slide-left {
-  from {
-    opacity: 0;
-    transform: translateX(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes mg-slide-right {
-  from {
-    opacity: 0;
-    transform: translateX(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .mg-result__confetti {
     display: none;
@@ -2032,7 +2024,6 @@
   .mg-game__body,
   .mg-game__fill--new,
   .mg-cards__actions[data-flipped="true"] .mg-cards__grades,
-  .mg-theory__card,
   .mg-result__badge,
   .mg-result__stats,
   .mg-feedback,
