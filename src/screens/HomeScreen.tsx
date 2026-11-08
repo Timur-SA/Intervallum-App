@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@maxhub/max-ui';
-import { ArrowRight, LockKeyhole, Sparkles } from 'lucide-react';
+import { LockKeyhole } from 'lucide-react';
 import {
   PracticeProgress,
   UserProgressData,
@@ -9,7 +9,7 @@ import {
 } from '../shared/storage/progressStore';
 import { StreakFlame } from '../shared/components/StreakFlame';
 import { haptics } from '../shared/motion/haptics';
-import { SECTIONS, getSection } from '../modules/mini-games/domain/sections';
+import { SECTIONS } from '../modules/mini-games/domain/sections';
 import {
   isSectionDefeated,
   isSectionUnlocked,
@@ -23,7 +23,6 @@ import './HomeScreen.css';
 
 interface HomeScreenProps {
   onOpenMap: (focusTopicId: TopicId | null) => void;
-  onOpenProfile: () => void;
 }
 
 const getCurrentTopic = (
@@ -56,7 +55,16 @@ const sectionState = (
   return 'locked';
 };
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap, onOpenProfile }) => {
+const pluralDays = (count: number): string => {
+  const abs = Math.abs(count) % 100;
+  const last = abs % 10;
+  if (abs > 10 && abs < 20) return 'дней';
+  if (last > 1 && last < 5) return 'дня';
+  if (last === 1) return 'день';
+  return 'дней';
+};
+
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap }) => {
   const [data, setData] = useState<UserProgressData>(() => loadUserProgress());
 
   useEffect(() => {
@@ -66,7 +74,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap, onOpenProfile
   }, []);
 
   const progress = data.practice;
-
   const { section: currentSection, topicId: currentTopicId } = useMemo(
     () => getCurrentTopic(progress),
     [progress],
@@ -78,44 +85,37 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap, onOpenProfile
     <div className="home-screen">
       <div className="home-scroll">
         <header className="home-head">
-          <div className="home-head__title-block">
-            <span className="home-head__eyebrow">Твой трек</span>
-            <h1>Подготовка к ОГЭ</h1>
-            <span className="home-head__subtitle">9 класс · физика</span>
-          </div>
-
-          <div className="home-head__right">
-            <span className="home-xp">
-              <Sparkles size={13} />
-              <strong>{xp}</strong>
-              <span>XP</span>
-            </span>
-            <button
-              type="button"
-              className="home-streak"
-              onClick={onOpenProfile}
-              aria-label={`Daily Streak: ${streakDays} дней. Открыть профиль`}
-            >
-              <StreakFlame days={streakDays} size={39} />
-            </button>
-          </div>
+          <h1>Подготовка к ОГЭ</h1>
+          <span className="home-xp">
+            <strong>{xp}</strong>
+            <span>XP</span>
+          </span>
         </header>
 
-        <MiniMapPreview
-          progress={progress}
-          currentTopicId={currentTopicId}
-          onOpen={topicId => {
-            haptics.selection();
-            onOpenMap(topicId);
-          }}
-        />
+        <div className="home-dash">
+          <MiniMapPreview
+            progress={progress}
+            section={currentSection}
+            currentTopicId={currentTopicId}
+            onOpen={topicId => {
+              haptics.selection();
+              onOpenMap(topicId);
+            }}
+          />
+
+          <div className="home-streak-card">
+            <StreakFlame days={streakDays} size={68} />
+            <span className="home-streak-card__label">
+              {pluralDays(streakDays)} подряд
+            </span>
+          </div>
+        </div>
 
         <Button
           variant="primary"
           size="large"
           stretched
           disabled
-          iconBefore={<Sparkles size={17} />}
           className="home-train-btn"
         >
           Начать персональную тренировку
@@ -123,15 +123,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap, onOpenProfile
 
         <section className="home-sections">
           <div className="home-section-head">
-            <div>
-              <span className="home-section-head__eyebrow">Программа</span>
-              <h2>Разделы</h2>
-            </div>
-            {currentSection && (
-              <span className="home-section-head__hint">
-                Сейчас: {currentSection.title}
-              </span>
-            )}
+            <h2>Разделы</h2>
           </div>
 
           <div className="home-section-rail">
@@ -148,7 +140,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap, onOpenProfile
                   className={`home-section-card home-section-card--${state} ${
                     isCurrent ? 'is-current' : ''
                   }`}
-                  style={{ '--home-section-color': `var(--section-${section.id})` } as React.CSSProperties}
+                  style={
+                    {
+                      '--home-section-color': `var(--section-${section.id})`,
+                    } as React.CSSProperties
+                  }
                   disabled={!canOpen}
                   onClick={() => {
                     if (!canOpen) return;
@@ -157,35 +153,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap, onOpenProfile
                   }}
                 >
                   <span className="home-section-card__icon">
-                    {canOpen ? <SectionIcon size={17} /> : <LockKeyhole size={16} />}
+                    {canOpen ? <SectionIcon size={20} /> : <LockKeyhole size={18} />}
                   </span>
                   <span className="home-section-card__title">{section.title}</span>
                   <span className="home-section-card__state">
-                    {state === 'done' ? 'Пройден' : state === 'active' ? 'Активен' : 'Закрыт'}
+                    {state === 'done'
+                      ? 'Пройден'
+                      : state === 'active'
+                        ? 'Активен'
+                        : 'Недоступен'}
                   </span>
-                  {state === 'active' && <span className="home-section-card__pulse" />}
                 </button>
               );
             })}
           </div>
         </section>
-
-        {currentSection && (
-          <button
-            type="button"
-            className="home-continue"
-            onClick={() => {
-              haptics.selection();
-              onOpenMap(currentTopicId);
-            }}
-          >
-            <span>
-              <span className="home-continue__eyebrow">Продолжить путь</span>
-              <strong>{getSection(currentSection.id)?.title ?? 'Карта'}</strong>
-            </span>
-            <ArrowRight size={17} />
-          </button>
-        )}
       </div>
     </div>
   );

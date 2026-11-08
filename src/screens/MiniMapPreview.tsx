@@ -1,12 +1,7 @@
-import React, { useMemo } from 'react';
-import { ArrowUpRight, Map as MapIcon } from 'lucide-react';
+import React from 'react';
 import { PracticeProgress } from '../shared/storage/progressStore';
-import { SECTIONS } from '../modules/mini-games/domain/sections';
 import { Section, TopicId } from '../modules/mini-games/domain/types';
 import {
-  isBossReady,
-  isSectionDefeated,
-  isSectionUnlocked,
   isTopicComplete,
   isTopicUnlocked,
 } from '../modules/mini-games/domain/progression';
@@ -14,81 +9,43 @@ import './MiniMapPreview.css';
 
 interface MiniMapPreviewProps {
   progress: PracticeProgress;
+  section: Section | null;
   currentTopicId: TopicId | null;
   onOpen: (topicId: TopicId | null) => void;
 }
 
-interface MiniNode {
-  id: string;
-  section: Section;
-  topicId: TopicId | null;
-  x: number;
-  y: number;
-  kind: 'topic' | 'boss';
-  done: boolean;
-  current: boolean;
-  available: boolean;
-}
-
-const WIDTH = 340;
-const HEIGHT = 224;
-const TOP = 20;
-const BOTTOM = 204;
+const MAX_LEVELS = 5;
+const WIDTH = 120;
+const HEIGHT = 154;
 
 export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
   progress,
+  section,
   currentTopicId,
   onOpen,
 }) => {
-  const nodes = useMemo(() => {
-    const visible = SECTIONS.filter(section => isSectionUnlocked(progress, section.id));
-    const result: MiniNode[] = [];
-    let index = 0;
-    const totalNodes = visible.reduce((sum, section) => sum + section.topics.length + 1, 0);
-    const step = totalNodes > 1 ? (BOTTOM - TOP) / (totalNodes - 1) : 0;
+  const topics = section?.topics ?? [];
+  const currentIndex = Math.max(
+    0,
+    topics.findIndex(topicId => topicId === currentTopicId),
+  );
+  const start = Math.max(0, currentIndex - 2);
+  const visibleTopics = topics.slice(start, start + MAX_LEVELS);
+  const step = visibleTopics.length > 1 ? 118 / (visibleTopics.length - 1) : 0;
 
-    visible.forEach((section, sectionIndex) => {
-      section.topics.forEach((topicId, topicIndex) => {
-        const y = TOP + index * step;
-        const x = WIDTH / 2 + Math.sin(index * 1.28 + sectionIndex * 0.5) * 82;
-        const complete = isTopicComplete(progress, topicId);
-        const available = isTopicUnlocked(progress, section.id, topicId);
+  const nodes = visibleTopics.map((topicId, index) => {
+    const absoluteIndex = start + index;
+    return {
+      id: topicId,
+      x: WIDTH / 2 + Math.sin((absoluteIndex + 1) * 1.2) * 27,
+      y: 18 + index * step,
+      done: isTopicComplete(progress, topicId),
+      current: topicId === currentTopicId,
+      available: isTopicUnlocked(progress, section?.id ?? 'mechanics', topicId),
+    };
+  });
 
-        result.push({
-          id: topicId,
-          section,
-          topicId,
-          x,
-          y,
-          kind: 'topic',
-          done: complete,
-          current: currentTopicId === topicId,
-          available,
-        });
-        index += 1;
-      });
-
-      const y = TOP + index * step;
-      const x = WIDTH / 2 + Math.sin(index * 1.28 + sectionIndex * 0.5) * 82;
-
-      result.push({
-        id: `${section.id}-boss`,
-        section,
-        topicId: null,
-        x,
-        y,
-        kind: 'boss',
-        done: isSectionDefeated(progress, section.id),
-        current: false,
-        available: isBossReady(progress, section.id),
-      });
-      index += 1;
-    });
-
-    return { nodes: result, visible };
-  }, [progress, currentTopicId]);
-
-  const path = nodes.nodes
+  const path = nodes
     .map((node, index) => `${index === 0 ? 'M' : 'L'} ${node.x.toFixed(1)} ${node.y.toFixed(1)}`)
     .join(' ');
 
@@ -99,73 +56,33 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
       onClick={() => onOpen(currentTopicId)}
       aria-label="Открыть карту"
     >
-      <div className="mini-map__head">
-        <span className="mini-map__label">
-          <MapIcon size={14} />
-          Карта
-        </span>
-        <span className="mini-map__open">
-          Открыть
-          <ArrowUpRight size={14} />
-        </span>
-      </div>
-
       <svg
         className="mini-map__canvas"
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         role="img"
-        aria-label="Мини-карта прогресса"
+        aria-label="Фрагмент карты"
       >
-        <defs>
-          <filter id="mini-map-glow" x="-200%" y="-200%" width="400%" height="400%">
-            <feGaussianBlur stdDeviation="3.2" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
+        {path && <path className="mini-map__path" d={path} />}
 
-        {nodes.visible.map((section, sectionIndex) => {
-          const sectionNodes = nodes.nodes.filter(node => node.section.id === section.id);
-          if (!sectionNodes.length) return null;
-          const first = sectionNodes[0];
-          const last = sectionNodes[sectionNodes.length - 1];
-          return (
-            <rect
-              key={section.id}
-              x="10"
-              y={first.y - 8}
-              width={WIDTH - 20}
-              height={last.y - first.y + 16}
-              rx="18"
-              strokeWidth="1"
-              style={{
-                fill: `color-mix(in srgb, var(--section-${section.id}) 8%, transparent)`,
-                stroke: `color-mix(in srgb, var(--section-${section.id}) 24%, transparent)`,
-              }}
-            />
-          );
-        })}
-
-        <path className="mini-map__path" d={path} />
-
-        {nodes.nodes.map(node => {
+        {nodes.map(node => {
           const color = node.done
             ? 'var(--success)'
             : node.available
-              ? `var(--section-${node.section.id})`
+              ? `var(--section-${section?.id ?? 'mechanics'})`
               : 'var(--locked-fill)';
 
           return (
-            <g key={node.id} className={node.current ? 'mini-map__node is-current' : 'mini-map__node'}>
+            <g
+              key={node.id}
+              className={`mini-map__node ${node.current ? 'is-current' : ''}`}
+            >
               {node.current && (
                 <circle
                   cx={node.x}
                   cy={node.y}
-                  r={node.kind === 'boss' ? 10 : 8}
+                  r="9"
                   fill="none"
-                  stroke={`var(--section-${node.section.id})`}
+                  stroke={`var(--section-${section?.id ?? 'mechanics'})`}
                   strokeWidth="1.8"
                   opacity="0.9"
                 />
@@ -173,22 +90,10 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
               <circle
                 cx={node.x}
                 cy={node.y}
-                r={node.kind === 'boss' ? 5.5 : 4}
+                r={node.current ? 5.3 : 4.2}
                 style={{ fill: color }}
-                opacity={node.available || node.done ? 1 : 0.6}
+                opacity={node.available || node.done ? 1 : 0.62}
               />
-              {node.kind === 'boss' && (
-                <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r="8"
-                  fill="none"
-                  stroke="none"
-                  strokeWidth="1"
-                  opacity="0.65"
-                  style={{ stroke: color }}
-                />
-              )}
             </g>
           );
         })}

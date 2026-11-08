@@ -89,10 +89,7 @@ export const AppTabShell: React.FC<AppTabShellProps> = ({ platform }) => {
     <div className="app-tab-shell">
       <div className="app-tab-shell__content">
         {activeTab === 'home' && (
-          <HomeScreen
-            onOpenMap={openMap}
-            onOpenProfile={() => handleTabChange('profile')}
-          />
+          <HomeScreen onOpenMap={openMap} />
         )}
 
         {activeTab === 'map' && <MapModule focusTopicId={mapFocusTopic} />}

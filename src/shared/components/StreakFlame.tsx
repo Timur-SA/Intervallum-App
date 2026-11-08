@@ -20,7 +20,10 @@ interface StreakFlameProps {
 }
 
 const FLAME_PATH =
-  'M31.5 3.5 C29.5 14.5 20.5 18.5 15 28.5 C8.5 40.5 10 57 20.5 66.5 C28 73 43 73.5 51 64.5 C60 54.5 56 40 48 29 C43.5 23 40.5 15.5 41.5 8.5 C36 12.5 33 19 33 26 C30.5 19.5 31.5 10.5 31.5 3.5 Z';
+  'M36 3 C38 11 42 16 46 23 C53 33 57 42 57 52 C57 65 46 74 32 74 C17 74 7 66 7 52 C7 41 14 33 18 24 C20 18 18 12 21 8 C23 5 26 5 28 9 C30 12 31 9 36 3 Z';
+
+const INNER_FLAME_PATH =
+  'M32 31 C36 36 42 42 43 50 C44 59 38 66 32 66 C25 66 20 60 20 51 C20 43 27 37 32 31 Z';
 
 export const StreakFlame: React.FC<StreakFlameProps> = ({
   days,
@@ -99,7 +102,7 @@ export const StreakFlame: React.FC<StreakFlameProps> = ({
 
         <text
           x="32"
-          y="50"
+          y="51"
           className="streak-flame__number"
           textAnchor="middle"
           fontSize={numberSize}

@@ -34,13 +34,19 @@
 }
 
 .streak-flame__inner {
-  fill: color-mix(in srgb, #fff 45%, #ff8a00);
-  opacity: 0.28;
+  fill: color-mix(in srgb, #fff 58%, #ff9d1c);
+  opacity: 0.58;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
 }
 
 .streak-flame__spark {
   fill: currentColor;
   opacity: 0;
+}
+
+.streak-flame--outline {
+  --streak-speed: 4s;
 }
 
 .streak-flame--yellow {
@@ -49,16 +55,33 @@
   filter: drop-shadow(0 0 5px rgba(255, 212, 59, 0.25));
 }
 
-.streak-flame--yellow .streak-flame__number {
-  fill: #3d2b00;
-  stroke: none;
-}
-
+.streak-flame--yellow .streak-flame__number,
 .streak-flame--orange .streak-flame__number,
 .streak-flame--red .streak-flame__number,
 .streak-flame--purple .streak-flame__number {
   fill: #fff;
-  stroke: rgba(0, 0, 0, 0.18);
+  stroke: rgba(0, 0, 0, 0.28);
+  stroke-width: 1px;
+}
+
+.streak-flame--yellow .streak-flame__inner {
+  fill: #fff07c;
+  opacity: 0.9;
+}
+
+.streak-flame--orange .streak-flame__inner {
+  fill: #ffd84d;
+  opacity: 0.92;
+}
+
+.streak-flame--red .streak-flame__inner {
+  fill: #ffe45c;
+  opacity: 0.92;
+}
+
+.streak-flame--purple .streak-flame__inner {
+  fill: #e9c7ff;
+  opacity: 0.88;
 }
 
 .streak-flame--orange {
@@ -82,6 +105,14 @@
 .streak-flame.is-animated .streak-flame__body {
   transform-origin: 50% 94%;
   animation: streak-flicker var(--streak-speed) ease-in-out infinite;
+}
+
+.streak-flame.is-animated.streak-flame--outline .streak-flame__body {
+  animation: streak-outline-flicker 4s ease-in-out infinite;
+}
+
+.streak-flame.is-animated .streak-flame__inner {
+  animation: streak-inner-flicker var(--streak-speed) ease-in-out infinite;
 }
 
 .streak-flame.is-animated .streak-flame__spark {
@@ -124,6 +155,41 @@
   }
 }
 
+@keyframes streak-inner-flicker {
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 0.72;
+  }
+  38% {
+    transform: scale(0.96, 1.04) translateY(-0.5px);
+    opacity: 0.92;
+  }
+  68% {
+    transform: scale(1.035, 0.97) translateY(0.4px);
+    opacity: 0.78;
+  }
+}
+
+@keyframes streak-outline-flicker {
+  0%,
+  100% {
+    opacity: 0.82;
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(0.985, 1.018) rotate(-0.4deg);
+    filter: drop-shadow(0 0 4px color-mix(in srgb, currentColor 34%, transparent));
+  }
+  72% {
+    opacity: 0.9;
+    transform: scale(1.012, 0.99) rotate(0.35deg);
+    filter: drop-shadow(0 0 2px color-mix(in srgb, currentColor 20%, transparent));
+  }
+}
+
 @keyframes streak-spark {
   0% {
     opacity: 0;
@@ -140,6 +206,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .streak-flame.is-animated .streak-flame__body,
+  .streak-flame.is-animated .streak-flame__inner,
   .streak-flame.is-animated .streak-flame__spark {
     animation: none;
   }
