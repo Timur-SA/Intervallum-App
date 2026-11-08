@@ -21,7 +21,7 @@
   --section-thermal: #f97316;
   --section-electromagnetism: #8b5cf6;
   --boss-color: #f59e0b;
-  --locked-fill: #29323a;
+  --locked-fill: #232c33;
 }
 
 [data-theme='light'] .mini-games {
@@ -29,7 +29,7 @@
   --section-thermal: #f97316;
   --section-electromagnetism: #8b5cf6;
   --boss-color: #f59e0b;
-  --locked-fill: #64748b;
+  --locked-fill: #748399;
 }
 
 /* ------------------------------------------------------------- Экраны */
@@ -1501,7 +1501,7 @@
 
 .mg-node__inner {
   --node-fill: var(--node-color, var(--bg-surface));
-  --node-border: color-mix(in srgb, var(--node-fill) 70%, white);
+  --node-border: color-mix(in srgb, var(--node-fill) 60%, white);
 
   width: 56px;
   height: 56px;
