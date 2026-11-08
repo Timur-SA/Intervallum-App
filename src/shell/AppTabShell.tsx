@@ -24,6 +24,7 @@ export const AppTabShell: React.FC<AppTabShellProps> = ({ platform }) => {
   const [activeTab, setActiveTab] = useState<AppTab>('home');
   const [mapFocusTopic, setMapFocusTopic] = useState<TopicId | null>(null);
   const [streakNotice, setStreakNotice] = useState<StreakNotice | null>(null);
+  const [trainingRequest, setTrainingRequest] = useState(0);
   const lastNoticeKeyRef = useRef<string | null>(null);
   const { navigationConfig } = useNavigation();
 
@@ -83,6 +84,17 @@ export const AppTabShell: React.FC<AppTabShellProps> = ({ platform }) => {
     setActiveTab('map');
   };
 
+  const openTraining = () => {
+    haptics.selection();
+    setMapFocusTopic(null);
+    setTrainingRequest(request => request + 1);
+    setActiveTab('map');
+  };
+
+  const handleTrainingRequest = useCallback(() => {
+    setTrainingRequest(0);
+  }, []);
+
   const tabbarHidden =
     activeTab === 'map' && navigationConfig.canGoBack;
 
@@ -103,10 +115,16 @@ export const AppTabShell: React.FC<AppTabShellProps> = ({ platform }) => {
     <div className="app-tab-shell">
       <div className="app-tab-shell__content">
         {activeTab === 'home' && (
-          <HomeScreen onOpenMap={openMap} />
+          <HomeScreen onOpenMap={openMap} onStartTraining={openTraining} />
         )}
 
-        {activeTab === 'map' && <MapModule focusTopicId={mapFocusTopic} />}
+        {activeTab === 'map' && (
+          <MapModule
+            focusTopicId={mapFocusTopic}
+            trainingRequestId={trainingRequest}
+            onTrainingRequestHandled={handleTrainingRequest}
+          />
+        )}
 
         {activeTab === 'catalog' && (
           <CatalogScreen onGoHome={() => handleTabChange('home')} />
