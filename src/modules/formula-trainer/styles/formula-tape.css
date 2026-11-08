@@ -5,10 +5,10 @@
 .formula-tape {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 14px 70px; /* Отступ снизу под нижний док */
+  padding: 8px 10px 44px; /* Отступ снизу под компактный нижний док */
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
   position: relative;
 }
 
@@ -77,10 +77,10 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--r-card);
-  padding: 12px 14px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
   box-shadow: var(--shadow-card);
   transition: border-color var(--transition);
   position: relative;
@@ -94,7 +94,7 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
+  padding-bottom: 4px;
 }
 .card-title-group {
   display: flex;
@@ -103,18 +103,18 @@
 }
 .card-index {
   font-family: monospace;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--accent-light);
 }
 .card-law-name {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-primary);
 }
 .card-actions {
   display: flex;
-  gap: 4px;
+  gap: 3px;
 }
 .btn-card-swap,
 .btn-card-reset,
@@ -122,14 +122,14 @@
   background: none;
   border: none;
   color: var(--text-muted);
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--r-xs);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   transition: all var(--transition);
 }
 .btn-card-swap:hover {
@@ -152,9 +152,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 12px 14px;
-  min-height: 84px;
+  gap: 12px;
+  padding: 6px 10px;
+  min-height: 48px;
   background: var(--bg-surface);
   border-radius: var(--r-sm);
   position: relative;
@@ -221,8 +221,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 34px;
+  gap: 5px;
+  min-height: 30px;
 }
 
 .math-operator {
@@ -267,15 +267,15 @@
   background: var(--token-bg, #2b2e36);
   border: 1.5px solid var(--token-border, var(--border-strong));
   color: var(--token-text, #ffffff);
-  min-width: 34px;
-  height: 34px;
-  padding: 0 10px;
-  border-radius: var(--r-sm);
+  min-width: 32px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: var(--r-xs);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  font-size: 15px;
+  gap: 4px;
+  font-size: 14px;
   font-weight: 600;
   cursor: grab;
   touch-action: none;
@@ -309,8 +309,8 @@
   background: rgba(0, 122, 255, 0.18);
   border-color: var(--accent);
   color: #fff;
-  height: 34px;
-  padding: 0 8px 0 10px;
+  height: 30px;
+  padding: 0 6px 0 8px;
 }
 .token-symbol {
   font-weight: 700;
@@ -350,7 +350,7 @@
   position: relative;
   width: 3px;
   min-width: 3px;
-  height: 30px;
+  height: 26px;
   margin: 0 3px;
   background: var(--accent, #007aff);
   border-radius: 2px;
@@ -430,9 +430,9 @@
 .card-out-cell {
   background: var(--token-out-bg, rgba(0, 0, 0, 0.25));
   border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  padding: 8px 12px;
-  font-size: 13px;
+  border-radius: var(--r-xs);
+  padding: 4px 8px;
+  font-size: 11.5px;
   display: flex;
   align-items: center;
   justify-content: space-between;
