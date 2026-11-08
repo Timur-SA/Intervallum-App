@@ -1567,27 +1567,28 @@
 
 .mg-path__caption {
   display: inline-block;
+  width: fit-content;
   max-width: 150px;
-  padding: 4px 9px;
+  padding: 2px 6px;
   border: 1px solid color-mix(in srgb, var(--node-color, var(--boss-color)) 55%, transparent);
-  border-radius: 9px;
+  border-radius: 8px;
   background: color-mix(
     in srgb,
     var(--node-color, var(--boss-color)) 45%,
     rgba(9, 14, 20, 0.65)
   );
   color: #fff;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   text-align: center;
-  line-height: 1.3;
+  line-height: 1.25;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
   -webkit-backdrop-filter: blur(10px) saturate(1.1);
   backdrop-filter: blur(10px) saturate(1.1);
 }
 
 .mg-path__caption--center {
-  max-width: 220px;
+  max-width: 280px;
 }
 
 .mg-path__hint {
