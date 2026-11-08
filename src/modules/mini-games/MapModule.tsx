@@ -15,6 +15,8 @@ import {
   unlockSection,
 } from '../../shared/storage/progressStore';
 import { useNavigation } from '../../shell/HeaderContext';
+import { haptics } from '../../shared/motion/haptics';
+import { playSound } from '../../shared/audio/soundEffects';
 import { JourneyMapScreen } from './screens/JourneyMapScreen';
 import { TheoryScreen } from './screens/TheoryScreen';
 import { SessionRunner, SessionSummary } from './renderers/SessionRunner';
@@ -171,6 +173,17 @@ export const MapModule: React.FC<MapModuleProps> = ({ focusTopicId = null }) => 
   const handleComplete = (summary: SessionSummary) => {
     if (route.name !== 'session') return;
     const { config } = route;
+    const sessionSucceeded =
+      !summary.timeout &&
+      (config.kind !== 'boss' || summary.solved >= BOSS_WIN_SCORE);
+
+    if (sessionSucceeded) {
+      haptics.notification('success');
+      playSound('level-complete');
+    } else {
+      haptics.notification('error');
+      playSound('wrong');
+    }
 
     if (config.kind === 'boss') {
       const section = getSection(config.sectionId);

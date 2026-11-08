@@ -12,6 +12,7 @@ import {
   updateAppSettings,
 } from '../shared/storage/progressStore';
 import { setHapticsEnabled } from '../shared/motion/haptics';
+import { setSoundEnabled as setSoundEffectsEnabled } from '../shared/audio/soundEffects';
 
 type ResolvedTheme = 'light' | 'dark';
 
@@ -50,6 +51,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [settings.haptics]);
 
   useEffect(() => {
+    setSoundEffectsEnabled(settings.sound);
+  }, [settings.sound]);
+
+  useEffect(() => {
     const webApp = (window as unknown as { WebApp?: { colorScheme?: string } }).WebApp;
     if (webApp?.colorScheme === 'light' || webApp?.colorScheme === 'dark') {
       setSystemTheme(webApp.colorScheme);
@@ -64,6 +69,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     const next = updateAppSettings(patch);
     setSettings(next);
     if (patch.haptics !== undefined) setHapticsEnabled(patch.haptics);
+    if (patch.sound !== undefined) setSoundEffectsEnabled(patch.sound);
   }, []);
 
   const setTheme = useCallback(

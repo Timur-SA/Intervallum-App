@@ -7,6 +7,7 @@ import { getSectionByTopic, getTopic } from '../domain/sections';
 import { ANSWER_KIND_LABELS } from '../data/cards';
 import { MathText, MathView } from '../../../shared/components/MathView';
 import { haptics } from '../../../shared/motion/haptics';
+import { playSound } from '../../../shared/audio/soundEffects';
 import { GameShell } from '../components/GameShell';
 import { TaskViewProps } from './taskView';
 
@@ -99,6 +100,7 @@ export const CardTaskView: React.FC<TaskViewProps<TheoryCard>> = ({
     setExit(direction);
     setOffsetX(direction === 'left' ? -window.innerWidth : window.innerWidth);
     haptics.notification(direction === 'right' ? 'success' : 'error');
+    playSound(direction === 'right' ? 'correct' : 'wrong');
 
     try {
       const result = await miniGamesApi.grade({

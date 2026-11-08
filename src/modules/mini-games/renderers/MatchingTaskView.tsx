@@ -7,6 +7,7 @@ import { MatchingTask } from '../domain/types';
 import { getSectionByTopic, getTopic } from '../domain/sections';
 import { shuffleBySeed } from '../engine/shuffle';
 import { haptics } from '../../../shared/motion/haptics';
+import { playSound } from '../../../shared/audio/soundEffects';
 import { GameShell } from '../components/GameShell';
 import { FeedbackPanel } from '../components/FeedbackPanel';
 import { TaskViewProps } from './taskView';
@@ -509,11 +510,13 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
     if (!wrong.length) {
       setSolved(true);
       haptics.notification('success');
+      playSound('correct');
       return;
     }
 
     setErrors(previous => previous + wrong.length);
     haptics.notification('error');
+    playSound('wrong');
   };
 
   const draggingThreadId = drag

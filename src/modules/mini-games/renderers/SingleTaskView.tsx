@@ -7,6 +7,7 @@ import { getSectionByTopic, getTopic } from '../domain/sections';
 import { shuffleBySeed } from '../engine/shuffle';
 import { MathText } from '../../../shared/components/MathView';
 import { haptics } from '../../../shared/motion/haptics';
+import { playSound } from '../../../shared/audio/soundEffects';
 import { GameShell } from '../components/GameShell';
 import { AnswerOption } from '../components/AnswerOption';
 import { FeedbackPanel } from '../components/FeedbackPanel';
@@ -57,6 +58,7 @@ export const SingleTaskView: React.FC<TaskViewProps<SingleChoiceTask>> = ({
     if (!result) return;
     setGrade(result);
     haptics.notification(result.outcome === 'correct' ? 'success' : 'error');
+    playSound(result.outcome === 'correct' ? 'correct' : 'wrong');
   };
 
   return (
