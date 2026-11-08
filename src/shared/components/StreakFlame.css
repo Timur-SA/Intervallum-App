@@ -60,28 +60,28 @@
 .streak-flame--red .streak-flame__number,
 .streak-flame--purple .streak-flame__number {
   fill: #fff;
-  stroke: rgba(0, 0, 0, 0.28);
-  stroke-width: 1px;
+  stroke: rgba(0, 0, 0, 0.32);
+  stroke-width: 1.3px;
 }
 
 .streak-flame--yellow .streak-flame__inner {
-  fill: #fff07c;
-  opacity: 0.9;
+  fill: #fff8c9;
+  opacity: 0.98;
 }
 
 .streak-flame--orange .streak-flame__inner {
-  fill: #ffd84d;
-  opacity: 0.92;
+  fill: #ffe17c;
+  opacity: 0.96;
 }
 
 .streak-flame--red .streak-flame__inner {
-  fill: #ffe45c;
-  opacity: 0.92;
+  fill: #fff0a6;
+  opacity: 0.96;
 }
 
 .streak-flame--purple .streak-flame__inner {
-  fill: #e9c7ff;
-  opacity: 0.88;
+  fill: #f1ddff;
+  opacity: 0.94;
 }
 
 .streak-flame--orange {
