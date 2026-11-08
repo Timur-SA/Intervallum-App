@@ -274,7 +274,7 @@ export const ProfileScreen: React.FC = () => {
             <span>дней выполняет задания</span>
           </div>
           <div className="profile-stat profile-stat--streak">
-            <StreakFlame days={bestStreak} size={38} />
+            <StreakFlame days={bestStreak} size={40} />
             <span>лучшая серия</span>
           </div>
           <div className="profile-stat">

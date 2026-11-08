@@ -80,6 +80,11 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
     )
     .join(' ');
 
+  const bossVisible = Boolean(
+    section &&
+      visibleTopics.length > 0 &&
+      start + visibleTopics.length >= topics.length,
+  );
   const bossReady = section ? isBossReady(progress, section.id) : false;
   const bossDone = section ? isSectionDefeated(progress, section.id) : false;
   const bossColor = bossDone
@@ -115,7 +120,7 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
         aria-label="Фрагмент карты"
       >
         {path && <path className="mini-map__path" d={path} />}
-        {section && lastPoint && (
+        {bossVisible && lastPoint && (
           <path
             className="mini-map__boss-link"
             d={`M ${lastPoint.x.toFixed(1)} ${lastPoint.y.toFixed(1)} Q ${WIDTH / 2} ${
@@ -135,6 +140,7 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
             <g
               key={node.id}
               className={`mini-map__node ${node.current ? 'is-current' : ''}`}
+              style={{ '--mini-node-color': color } as React.CSSProperties}
             >
               {node.current && (
                 <circle
@@ -167,7 +173,7 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
           );
         })}
 
-        {section && (
+        {bossVisible && (
           <g className={`mini-map__boss ${bossReady ? 'is-ready' : ''} ${bossDone ? 'is-done' : ''}`}>
             {bossReady && (
               <circle

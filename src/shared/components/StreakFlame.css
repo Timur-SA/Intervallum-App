@@ -1,6 +1,5 @@
 .streak-flame {
   --streak-speed: 3s;
-  --streak-glow: transparent;
 
   position: relative;
   display: inline-flex;
@@ -33,23 +32,6 @@
   stroke-width: 0.8px;
 }
 
-.streak-flame__middle {
-  fill: #ffb21e;
-  opacity: 0.78;
-}
-
-.streak-flame__inner {
-  fill: #fff6c8;
-  opacity: 0.92;
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-}
-
-.streak-flame__spark {
-  fill: currentColor;
-  opacity: 0;
-}
-
 .streak-flame--outline {
   --streak-speed: 4s;
 }
@@ -67,42 +49,6 @@
   fill: #fff;
   stroke: rgba(0, 0, 0, 0.32);
   stroke-width: 1.3px;
-}
-
-.streak-flame--yellow .streak-flame__middle {
-  fill: #ffe066;
-}
-
-.streak-flame--yellow .streak-flame__inner {
-  fill: #fff8c9;
-  opacity: 0.98;
-}
-
-.streak-flame--orange .streak-flame__middle {
-  fill: #ffd84d;
-}
-
-.streak-flame--orange .streak-flame__inner {
-  fill: #ffe17c;
-  opacity: 0.96;
-}
-
-.streak-flame--red .streak-flame__middle {
-  fill: #ffae32;
-}
-
-.streak-flame--red .streak-flame__inner {
-  fill: #fff0a6;
-  opacity: 0.96;
-}
-
-.streak-flame--purple .streak-flame__middle {
-  fill: #b36cff;
-}
-
-.streak-flame--purple .streak-flame__inner {
-  fill: #f1ddff;
-  opacity: 0.94;
 }
 
 .streak-flame--orange {
@@ -126,30 +72,6 @@
 .streak-flame.is-animated .streak-flame__body {
   transform-origin: 50% 94%;
   animation: streak-flicker var(--streak-speed) ease-in-out infinite;
-}
-
-.streak-flame.is-animated .streak-flame__middle {
-  animation: streak-middle-flicker var(--streak-speed) ease-in-out infinite;
-}
-
-.streak-flame.is-animated .streak-flame__inner {
-  animation: streak-inner-flicker var(--streak-speed) ease-in-out infinite;
-}
-
-.streak-flame.is-animated .streak-flame__spark {
-  animation: streak-spark calc(var(--streak-speed) * 0.75) ease-out infinite;
-}
-
-.streak-flame.is-animated .spark-a {
-  animation-delay: -0.3s;
-}
-
-.streak-flame.is-animated .spark-b {
-  animation-delay: -0.6s;
-}
-
-.streak-flame.is-animated .spark-c {
-  animation-delay: -0.15s;
 }
 
 .streak-flame.is-static .streak-flame__body {
@@ -176,47 +98,8 @@
   }
 }
 
-@keyframes streak-middle-flicker {
-  0%, 100% { opacity: 0.74; transform: scale(1); }
-  36% { opacity: 0.9; transform: scale(0.985, 1.018); }
-  68% { opacity: 0.8; transform: scale(1.018, 0.985); }
-}
-
-@keyframes streak-inner-flicker {
-  0%,
-  100% {
-    transform: scale(1) translateY(0);
-    opacity: 0.72;
-  }
-  38% {
-    transform: scale(0.96, 1.04) translateY(-0.5px);
-    opacity: 0.92;
-  }
-  68% {
-    transform: scale(1.035, 0.97) translateY(0.4px);
-    opacity: 0.78;
-  }
-}
-
-@keyframes streak-spark {
-  0% {
-    opacity: 0;
-    transform: translateY(0) scale(0.7);
-  }
-  22% {
-    opacity: 0.65;
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-8px) scale(1.1);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .streak-flame.is-animated .streak-flame__body,
-  .streak-flame.is-animated .streak-flame__middle,
-  .streak-flame.is-animated .streak-flame__inner,
-  .streak-flame.is-animated .streak-flame__spark {
+  .streak-flame.is-animated .streak-flame__body {
     animation: none;
   }
 }

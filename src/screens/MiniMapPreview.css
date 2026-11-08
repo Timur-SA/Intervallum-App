@@ -64,7 +64,9 @@
 }
 
 .mini-map__node.is-current {
-  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 45%, transparent));
+  filter: drop-shadow(
+    0 0 5px color-mix(in srgb, var(--mini-node-color, var(--accent)) 45%, transparent)
+  );
 }
 
 .mini-map__node.is-current circle:first-child {
@@ -114,30 +116,6 @@
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--boss-color) 22%, transparent));
 }
 
-.mini-map__boss.is-ready circle:first-child {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: mini-map-boss-pulse 2.2s ease-in-out infinite;
-}
-
 .mini-map__boss.is-done {
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--success) 30%, transparent));
-}
-
-@keyframes mini-map-boss-pulse {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.16);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mini-map__boss.is-ready circle:first-child {
-    animation: none;
-  }
 }
