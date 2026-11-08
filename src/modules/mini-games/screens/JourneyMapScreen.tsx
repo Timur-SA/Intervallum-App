@@ -338,7 +338,10 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                     })}
 
                     <div className="mg-path__row mg-path__row--center">
-                      <div className="mg-path__node-wrap">
+                      <div
+                        className="mg-path__node-wrap"
+                        style={{ '--node-color': sectionColor(section.id) } as React.CSSProperties}
+                      >
                         <button
                           type="button"
                           className={[
