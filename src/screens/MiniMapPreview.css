@@ -116,6 +116,24 @@
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--boss-color) 22%, transparent));
 }
 
+.mini-map__boss.is-current {
+  filter: drop-shadow(
+    0 0 5px color-mix(in srgb, var(--mini-node-color, var(--boss-color)) 45%, transparent)
+  );
+}
+
+.mini-map__boss.is-current circle:first-child {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mini-map-current-pulse 2.1s ease-in-out infinite;
+}
+
 .mini-map__boss.is-done {
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--success) 30%, transparent));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mini-map__boss.is-current circle:first-child {
+    animation: none;
+  }
 }

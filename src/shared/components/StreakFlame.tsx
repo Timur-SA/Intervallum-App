@@ -34,7 +34,8 @@ export const StreakFlame: React.FC<StreakFlameProps> = ({
   const isOutline = tier === 'outline';
   const shouldAnimate = animate && days >= 5;
   const height = Math.round((size * 96) / 64);
-  const numberSize = days >= 100 ? 20 : days >= 10 ? 22 : 24;
+  const numberSize = days >= 100 ? 30 : days >= 10 ? 33 : 36;
+  const numberY = 65.5 + (numberSize - 24) * 0.35;
 
   const outerFill = isOutline
     ? 'none'
@@ -89,7 +90,7 @@ export const StreakFlame: React.FC<StreakFlameProps> = ({
 
         <text
           x="32"
-          y="65.5"
+          y={numberY}
           className="streak-flame__number"
           textAnchor="middle"
           fontSize={numberSize}

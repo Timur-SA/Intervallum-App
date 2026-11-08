@@ -145,7 +145,7 @@ const createDefaultProfile = (): UserProfileData => ({
 });
 
 const createDefaultSettings = (): AppSettings => ({
-  theme: 'auto',
+  theme: 'light',
   sound: true,
   haptics: true,
 });
@@ -203,7 +203,7 @@ const booleanValue = (value: unknown, fallback: boolean): boolean =>
   typeof value === 'boolean' ? value : fallback;
 
 const themePreference = (value: unknown): ThemePreference =>
-  value === 'light' || value === 'dark' || value === 'auto' ? value : 'auto';
+  value === 'light' || value === 'dark' || value === 'auto' ? value : 'light';
 
 const taskStatsRecord = (value: unknown): Record<string, TaskStat> => {
   if (!value || typeof value !== 'object') return {};

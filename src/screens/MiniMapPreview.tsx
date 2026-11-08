@@ -42,6 +42,16 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
   const visibleTopics = topics.slice(start, start + MAX_LEVELS);
   const step = visibleTopics.length > 1 ? (LEVEL_BOTTOM - LEVEL_TOP) / (visibleTopics.length - 1) : 0;
 
+  const bossDone = Boolean(section && isSectionDefeated(progress, section.id));
+  const bossReady = section ? isBossReady(progress, section.id) : false;
+  // Босс становится активным, когда все уровни раздела уже пройдены.
+  const bossCurrent = Boolean(
+    section &&
+      !bossDone &&
+      topics.length > 0 &&
+      topics.every(topicId => isTopicComplete(progress, topicId)),
+  );
+
   const nodes = visibleTopics.map((topicId, index) => {
     const absoluteIndex = start + index;
     return {
@@ -50,7 +60,7 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
       x: WIDTH / 2 + Math.sin((absoluteIndex + 1) * 1.2) * 30,
       y: LEVEL_TOP + index * step,
       done: isTopicComplete(progress, topicId),
-      current: topicId === currentTopicId,
+      current: topicId === currentTopicId && !bossCurrent,
       available: isTopicUnlocked(progress, section?.id ?? 'mechanics', topicId),
     };
   });
@@ -59,14 +69,14 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
   const previousPoint = start > 0
     ? {
         x: WIDTH / 2 + Math.sin(start * 1.2) * 30,
-        y: LEVEL_TOP - step,
+        y: 0,
       }
     : null;
 
   const nextPoint = start + visibleTopics.length < topics.length
     ? {
         x: WIDTH / 2 + Math.sin((start + visibleTopics.length + 1) * 1.2) * 30,
-        y: LEVEL_TOP + visibleTopics.length * step,
+        y: HEIGHT,
       }
     : null;
 
@@ -85,8 +95,6 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
       visibleTopics.length > 0 &&
       start + visibleTopics.length >= topics.length,
   );
-  const bossReady = section ? isBossReady(progress, section.id) : false;
-  const bossDone = section ? isSectionDefeated(progress, section.id) : false;
   const bossColor = bossDone
     ? 'var(--success)'
     : bossReady
@@ -174,8 +182,13 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
         })}
 
         {bossVisible && (
-          <g className={`mini-map__boss ${bossReady ? 'is-ready' : ''} ${bossDone ? 'is-done' : ''}`}>
-            {bossReady && (
+          <g
+            className={`mini-map__boss ${bossReady ? 'is-ready' : ''} ${
+              bossDone ? 'is-done' : ''
+            } ${bossCurrent ? 'is-current' : ''}`}
+            style={{ '--mini-node-color': bossColor } as React.CSSProperties}
+          >
+            {(bossReady || bossCurrent) && (
               <circle
                 cx={WIDTH / 2}
                 cy={BOSS_Y}
