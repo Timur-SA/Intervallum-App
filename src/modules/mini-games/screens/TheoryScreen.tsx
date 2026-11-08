@@ -10,10 +10,11 @@ import type { TopicId } from '../domain/types';
 
 interface TheoryScreenProps {
   topicId: TopicId;
-  onStartPractice: () => void;
+  alreadyRead: boolean;
+  onFinish: () => void;
 }
 
-export function TheoryScreen({ topicId, onStartPractice }: TheoryScreenProps) {
+export function TheoryScreen({ topicId, alreadyRead, onFinish }: TheoryScreenProps) {
   const lesson = THEORY_LESSONS[topicId];
   const titleRef = useRef<HTMLHeadingElement>(null);
 
@@ -53,10 +54,10 @@ export function TheoryScreen({ topicId, onStartPractice }: TheoryScreenProps) {
           iconAfter={<ArrowRight size={18} aria-hidden="true" />}
           onClick={() => {
             haptics.impact('light');
-            onStartPractice();
+            onFinish();
           }}
         >
-          Перейти к заданиям
+          {alreadyRead ? 'К карте' : 'Добавить тему в тренировку'}
         </Button>
       </div>
     </main>

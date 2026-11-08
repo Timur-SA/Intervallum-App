@@ -11,7 +11,7 @@ import { VariablePopover } from './components/VariablePopover';
 import { ResultModal } from './components/ResultModal';
 import { CelebrationSparks } from '../../shared/components/CelebrationSparks';
 import { haptics } from '../../shared/motion/haptics';
-import { loadUserProgress, markFormulaTaskCompleted, saveUserProgress } from '../../shared/storage/progressStore';
+import { hasSeenTaskGuide, loadUserProgress, markFormulaTaskCompleted, markTaskGuideSeen, saveUserProgress } from '../../shared/storage/progressStore';
 import { MathText } from '../../shared/components/MathView';
 import { getFormulaGuideStep, hasFormulaGuide } from './utils/formulaGuide';
 import { useNavigation } from '../../shell/HeaderContext';
@@ -67,7 +67,7 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
     if (!embeddedTask || !autoShowGuide) return false;
     const progress = loadUserProgress();
     return !progress.formulaGuideDismissed &&
-      !progress.practice.exploredTypes.includes('interactive') &&
+      !hasSeenTaskGuide(progress.practice, 'interactive') &&
       progress.formulaTrainer.completedTaskIds.length === 0;
   });
 
@@ -96,6 +96,10 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
   const [hoveredCandidate, setHoveredCandidate] = useState<{ cardId: number; symbol: string } | null>(
     null
   );
+
+  useEffect(() => {
+    if (guideOpen && currentTask && hasFormulaGuide(currentTask)) markTaskGuideSeen('interactive');
+  }, [currentTask, guideOpen]);
 
   useLayoutEffect(() => {
     const tape = tapeRef.current;

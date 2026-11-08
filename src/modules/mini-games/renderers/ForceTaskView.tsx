@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, StatusBadge } from '@maxhub/max-ui';
 import { BookOpen } from 'lucide-react';
 import { ForceCanvas } from '../../force-lab/components/ForceCanvas';
@@ -12,7 +12,7 @@ import { getSectionByTopic, getTopic } from '../domain/sections';
 import { xpForScore } from '../engine/grading';
 import { GradeResponse } from '../api/contracts';
 import { haptics } from '../../../shared/motion/haptics';
-import { loadUserProgress, saveUserProgress } from '../../../shared/storage/progressStore';
+import { hasSeenTaskGuide, loadUserProgress, markTaskGuideSeen, saveUserProgress } from '../../../shared/storage/progressStore';
 import { GameShell } from '../components/GameShell';
 import { TaskViewProps } from './taskView';
 import { getForceGuideStep } from './forceGuide';
@@ -42,9 +42,13 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
     const progress = loadUserProgress();
     return headerRight === undefined &&
       !progress.forceGuideDismissed &&
-      !progress.practice.exploredTypes.includes('forces') &&
+      !hasSeenTaskGuide(progress.practice, 'forces') &&
       progress.forceLab.completedTaskIds.length === 0;
   });
+
+  useEffect(() => {
+    if (guideOpen) markTaskGuideSeen('forces');
+  }, [guideOpen]);
 
   const checked = validationResult !== null;
   const passed = validationResult?.passed ?? false;

@@ -2887,3 +2887,113 @@
   color: #04120b;
   border: 1.5px solid var(--bg-card);
 }
+
+.mg-personal-training {
+  --button-primary: #0064ce;
+  --states-button-primary-hover: #0059b8;
+  --states-button-primary-pressed: #004f9f;
+  display: grid;
+  flex: none;
+  gap: 10px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.mg-personal-training h2,
+.mg-format-intro h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.mg-personal-training p,
+.mg-format-intro p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.mg-path__row--chaos .mg-path__caption--center {
+  max-width: min(280px, calc(100vw - 110px));
+  overflow-wrap: anywhere;
+}
+
+.mg-path__mastery {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.mg-format-intro {
+  display: grid;
+  gap: 8px;
+  margin: auto 0;
+  padding: 18px;
+  border: 1px solid var(--border-accent);
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+.mg-format-intro svg {
+  color: var(--accent);
+}
+
+.mg-result:has(.mg-training-results) {
+  justify-content: safe center;
+}
+
+.mg-training-results {
+  display: grid;
+  flex: none;
+  gap: 8px;
+  width: 100%;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.mg-training-results li {
+  display: grid;
+  gap: 5px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.mg-training-results__topic {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.mg-training-results__topic strong {
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.mg-training-results__topic strong[data-change="1"] {
+  color: var(--success);
+}
+
+.mg-training-results__topic strong[data-change="-1"] {
+  color: var(--danger);
+}
+
+.mg-training-results progress {
+  width: 100%;
+  height: 6px;
+  accent-color: var(--accent);
+}
+
+.mg-training-results__scale {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
