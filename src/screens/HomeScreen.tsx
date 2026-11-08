@@ -104,7 +104,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap }) => {
           />
 
           <div className="home-streak-card">
-            <StreakFlame days={streakDays} size={78} />
+            <StreakFlame days={streakDays} size={72} />
             <span className="home-streak-card__label">
               {pluralDays(streakDays)} подряд
             </span>

@@ -112,15 +112,6 @@ const pluralTasks = (count: number): string => {
   return 'заданий';
 };
 
-const pluralDays = (count: number): string => {
-  const abs = Math.abs(count) % 100;
-  const last = abs % 10;
-  if (abs > 10 && abs < 20) return 'дней';
-  if (last > 1 && last < 5) return 'дня';
-  if (last === 1) return 'день';
-  return 'дней';
-};
-
 export const ProfileScreen: React.FC = () => {
   const [data, setData] = useState<UserProgressData>(() => loadUserProgress());
   const [badgeSheetOpen, setBadgeSheetOpen] = useState(false);
@@ -224,7 +215,7 @@ export const ProfileScreen: React.FC = () => {
               aria-label="Изменить аватар"
             >
               <Avatar.Container
-                size={128}
+                size={144}
                 rightBottomCorner={
                   <button
                     type="button"
@@ -280,10 +271,10 @@ export const ProfileScreen: React.FC = () => {
         <section className="profile-stats" aria-label="Основная статистика">
           <div className="profile-stat">
             <strong>{activeDays}</strong>
-            <span>{pluralDays(activeDays)} в приложении</span>
+            <span>дней выполняет задания</span>
           </div>
           <div className="profile-stat profile-stat--streak">
-            <StreakFlame days={bestStreak} size={44} />
+            <StreakFlame days={bestStreak} size={38} />
             <span>лучшая серия</span>
           </div>
           <div className="profile-stat">

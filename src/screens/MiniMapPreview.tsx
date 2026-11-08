@@ -169,19 +169,27 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
 
         {section && (
           <g className={`mini-map__boss ${bossReady ? 'is-ready' : ''} ${bossDone ? 'is-done' : ''}`}>
+            {bossReady && (
+              <circle
+                cx={WIDTH / 2}
+                cy={BOSS_Y}
+                r="11.5"
+                fill="none"
+                stroke={bossColor}
+                strokeWidth="2"
+                opacity="0.88"
+              />
+            )}
             <circle
               cx={WIDTH / 2}
               cy={BOSS_Y}
-              r={bossDone ? 9 : 8.5}
-              fill="none"
-              stroke={bossColor}
-              strokeWidth="1.4"
-              opacity="0.78"
+              r={bossReady ? 8 : 6.8}
+              style={{ fill: bossColor }}
+              opacity={bossReady || bossDone ? 1 : 0.72}
             />
-            <circle cx={WIDTH / 2} cy={BOSS_Y} r="6.8" style={{ fill: bossColor }} />
             <path
-              d="M66 35 C64.8 39 61.8 40.4 61.8 44.2 C61.8 47.8 64.5 50 67.5 50 C70.8 50 73.2 47.6 73.2 44.1 C73.2 40.8 70.4 39.5 69 36.2 C68.8 38 67.8 39.2 66.8 39.8 C66.6 38.3 66.3 36.7 66 35 Z"
-              transform={`translate(${WIDTH / 2 - 67.5} ${BOSS_Y - 42.5})`}
+              d="M6 1 C4.8 3.8 2 4.8 2 7.2 C2 9.7 4 11.2 6 11.2 C8.4 11.2 10.2 9.5 10.2 7.3 C10.2 5.2 8.4 4 7.2 1.8 C7.1 3.1 6.5 3.9 5.8 4.3 C5.8 3.2 5.9 2.2 6 1 Z"
+              transform={`translate(${WIDTH / 2 - 6} ${BOSS_Y - 6})`}
               fill="#fff"
             />
           </g>
