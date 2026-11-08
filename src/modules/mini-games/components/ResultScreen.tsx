@@ -1,6 +1,8 @@
 import React, { CSSProperties, ReactNode } from 'react';
 import { Button } from '@maxhub/max-ui';
 import { RotateCcw } from 'lucide-react';
+import { SECTION_ICONS } from '../config/sectionIcons';
+import { getSectionByTopic, getTopic } from '../domain/sections';
 import { SessionSummary } from '../renderers/SessionRunner';
 
 interface ResultScreenProps {
@@ -8,7 +10,10 @@ interface ResultScreenProps {
   color: string;
   icon: ReactNode;
   summary: SessionSummary;
-  onRetry: () => void;
+  progressHint?: string;
+  onRetry?: () => void;
+  retryLabel?: string;
+  retryPending?: boolean;
   onBack: () => void;
   backLabel?: string;
   title?: string;
@@ -31,7 +36,10 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   color,
   icon,
   summary,
+  progressHint,
   onRetry,
+  retryLabel = 'Ещё раз',
+  retryPending = false,
   onBack,
   backLabel = 'Продолжить',
   title = 'Раунд завершён',
@@ -87,20 +95,49 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
         )}
       </div>
 
+      {summary.topicChanges.length > 0 && (
+        <ul className="mg-training-results" aria-label="Прогресс по темам">
+          {summary.topicChanges.map(({ topicId, before, after, max }) => {
+            const topic = getTopic(topicId);
+            const section = getSectionByTopic(topicId);
+            const Icon = section ? SECTION_ICONS[section.id] : undefined;
+            const delta = after - before;
+            return (
+              <li key={topicId}>
+                <div className="mg-training-results__topic">
+                  {Icon && <Icon size={16} aria-hidden="true" />}
+                  <span>{topic?.title}</span>
+                  <strong data-change={Math.sign(delta)}>
+                    {delta > 0 ? '+' : ''}{delta} XP
+                  </strong>
+                </div>
+                <progress value={after} max={max} aria-label={topic?.title} />
+                <span className="mg-training-results__scale">{after} / {max} XP</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {progressHint && <p className="mg-result__hint">{progressHint}</p>}
+
       <div className="mg-result__actions">
         <Button variant="primary" size="large" stretched onClick={onBack}>
           {backLabel}
         </Button>
 
-        <Button
-          variant="secondary"
-          size="large"
-          stretched
-          iconBefore={<RotateCcw size={16} />}
-          onClick={onRetry}
-        >
-          Ещё раз
-        </Button>
+        {onRetry && (
+          <Button
+            variant="secondary"
+            size="large"
+            stretched
+            disabled={retryPending}
+            iconBefore={<RotateCcw size={16} />}
+            onClick={onRetry}
+          >
+            {retryPending ? 'Подбираем задачи…' : retryLabel}
+          </Button>
+        )}
       </div>
     </div>
   );

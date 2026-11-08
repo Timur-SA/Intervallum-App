@@ -2,10 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnyTask } from '../domain/types';
 import { GradeResponse } from '../api/contracts';
 import { getSectionByTopic } from '../domain/sections';
-import { recordTaskResult } from '../../../shared/storage/progressStore';
+import { Button } from '@maxhub/max-ui';
+import { BookOpen } from 'lucide-react';
+import { loadUserProgress, markTaskGuideSeen, recordTaskResult } from '../../../shared/storage/progressStore';
+import { GameShell } from '../components/GameShell';
+import { recordTrainingResult, type TopicXpChange } from '../domain/training';
 import { CardTaskView } from './CardTaskView';
 import { TASK_RENDERERS } from './registry';
-import { sumXp } from './taskView';
 
 export interface SessionSummary {
   tasks: number;
@@ -15,12 +18,14 @@ export interface SessionSummary {
   xp: number;
   bestStreak: number;
   timeout?: boolean;
+  topicChanges: TopicXpChange[];
 }
 
 interface SessionRunnerProps {
   tasks: AnyTask[];
   timerSeconds?: number;
   seed?: string;
+  personalTraining?: boolean;
   onComplete: (summary: SessionSummary) => void;
 }
 
@@ -31,7 +36,15 @@ interface Accumulator {
   solved: number;
   streak: number;
   bestStreak: number;
+  topicChanges: TopicXpChange[];
 }
+
+const FORMAT_INTROS = {
+  single: ['Один верный ответ', 'Прочитай условие, выбери один вариант и нажми «Проверить». После проверки появится объяснение.'],
+  multi: ['Несколько верных ответов', 'Проверь каждое утверждение отдельно и отметь все верные. Лишний или пропущенный вариант снизит результат.'],
+  matching: ['Соотнеси пары', 'Соедини каждый элемент слева с подходящим вариантом справа. Нажми на любой элемент пары, чтобы убрать связь.'],
+  cards: ['Вспомни ответ', 'Сначала попробуй ответить по памяти. Открой ответ и смахни вправо, если вспомнил, или влево, если нужно повторить.'],
+} as const;
 
 const formatTime = (seconds: number): string => {
   const safe = Math.max(0, seconds);
@@ -44,6 +57,7 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
   tasks,
   timerSeconds,
   seed,
+  personalTraining = false,
   onComplete,
 }) => {
   const practice = useMemo(() => tasks.filter(task => task.type !== 'cards'), [tasks]);
@@ -61,7 +75,13 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
     solved: 0,
     streak: 0,
     bestStreak: 0,
+    topicChanges: [],
   });
+  const [seenFormats, setSeenFormats] = useState(() => {
+    const progress = loadUserProgress().practice;
+    return new Set([...progress.exploredTypes, ...(progress.introducedTypes ?? [])]);
+  });
+  const handled = useRef(new Set<number>());
   const [remaining, setRemaining] = useState(timerSeconds ?? 0);
 
   const accRef = useRef(acc);
@@ -84,6 +104,7 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
       xp: current.xp,
       bestStreak: current.bestStreak,
       timeout,
+      topicChanges: current.topicChanges,
     });
   };
 
@@ -108,69 +129,58 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
   const isCardsPhase = phase === 'cards';
   const task = isCardsPhase ? cards[cardIndex] : practice[acc.index];
 
+  const taskIndex = isCardsPhase ? practice.length + cardIndex : acc.index;
+  const intro = personalTraining && task && !seenFormats.has(task.type) && task.type in FORMAT_INTROS
+    ? FORMAT_INTROS[task.type as keyof typeof FORMAT_INTROS]
+    : null;
+
+  useEffect(() => {
+    if (intro && task) markTaskGuideSeen(task.type);
+  }, [intro, task]);
+
   const handleDone = (grade: GradeResponse) => {
-    if (!task) return;
+    if (!task || finishedRef.current || handled.current.has(taskIndex)) return;
+    handled.current.add(taskIndex);
 
-    if (isCardsPhase) {
-      const gainedXp = sumXp(grade.xpByTopic);
-
+    let gainedXp = 0;
+    let topicChanges = acc.topicChanges;
+    if (personalTraining) {
+      const change = recordTrainingResult(task, grade.score);
+      gainedXp = change.after - change.before;
+      const prior = topicChanges.find(item => item.topicId === task.topic);
+      topicChanges = prior
+        ? topicChanges.map(item => item === prior ? { ...item, after: change.after } : item)
+        : [...topicChanges, change];
+    } else {
       recordTaskResult({
         taskId: task.id,
         taskType: task.type,
         topicId: task.topic,
         sectionId: getSectionByTopic(task.topic)?.id ?? 'mechanics',
-        xp: gainedXp,
+        xp: 0,
         score: grade.score,
       });
-
-      const next: Accumulator = {
-        ...acc,
-        xp: acc.xp + gainedXp,
-        correct: acc.correct + grade.score,
-        solved: acc.solved + (grade.score >= 1 ? 1 : 0),
-      };
-      accRef.current = next;
-      setAcc(next);
-
-      const nextCard = cardIndex + 1;
-      if (nextCard >= cards.length) {
-        finish(false);
-      } else {
-        setCardIndex(nextCard);
-      }
-      return;
     }
 
-    const gainedXp = sumXp(grade.xpByTopic);
-    const nextStreak = grade.score >= 1 ? acc.streak + 1 : 0;
-
-    recordTaskResult({
-      taskId: task.id,
-      taskType: task.type,
-      topicId: task.topic,
-      sectionId: getSectionByTopic(task.topic)?.id ?? 'mechanics',
-      xp: gainedXp,
-      score: grade.score,
-    });
-
+    const nextStreak = isCardsPhase ? acc.streak : grade.score >= 1 ? acc.streak + 1 : 0;
     const next: Accumulator = {
-      index: acc.index + 1,
+      index: isCardsPhase ? acc.index : acc.index + 1,
       xp: acc.xp + gainedXp,
       correct: acc.correct + grade.score,
       solved: acc.solved + (grade.score >= 1 ? 1 : 0),
       streak: nextStreak,
       bestStreak: Math.max(acc.bestStreak, nextStreak),
+      topicChanges,
     };
-
     accRef.current = next;
     setAcc(next);
 
-    if (next.index >= practice.length) {
-      if (cards.length) {
-        setPhase('cards');
-      } else {
-        finish(false);
-      }
+    if (isCardsPhase) {
+      if (cardIndex + 1 === cards.length) finish(false);
+      else setCardIndex(cardIndex + 1);
+    } else if (next.index === practice.length) {
+      if (cards.length) setPhase('cards');
+      else finish(false);
     }
   };
 
@@ -182,6 +192,32 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
         {formatTime(remaining)}
       </span>
     ) : undefined;
+
+  if (intro) {
+    return (
+      <GameShell
+        title="Новый формат"
+        step={taskIndex}
+        total={totalTasks}
+        footer={
+          <Button
+            variant="primary"
+            size="large"
+            stretched
+            onClick={() => setSeenFormats(previous => new Set([...previous, task.type]))}
+          >
+            К заданию
+          </Button>
+        }
+      >
+        <div className="mg-format-intro">
+          <BookOpen size={22} aria-hidden="true" />
+          <h2>{intro[0]}</h2>
+          <p>{intro[1]}</p>
+        </div>
+      </GameShell>
+    );
+  }
 
   const viewProps = {
     streak: acc.streak,

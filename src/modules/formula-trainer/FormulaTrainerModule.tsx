@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, forwardRef, useImperativeHandle } from 'react';
 import { Typography, Button } from '@maxhub/max-ui';
+import { BookOpen } from 'lucide-react';
 import { PhysicsTask, FormulaCard, PhysicalLaw, ComputedResult } from './types/physics';
 import { PHYSICS_TASKS } from './data/tasksDb';
 import { TaskScreen } from './components/TaskScreen';
@@ -10,7 +11,9 @@ import { VariablePopover } from './components/VariablePopover';
 import { ResultModal } from './components/ResultModal';
 import { CelebrationSparks } from '../../shared/components/CelebrationSparks';
 import { haptics } from '../../shared/motion/haptics';
-import { loadUserProgress, markFormulaTaskCompleted } from '../../shared/storage/progressStore';
+import { hasSeenTaskGuide, loadUserProgress, markFormulaTaskCompleted, markTaskGuideSeen, saveUserProgress } from '../../shared/storage/progressStore';
+import { MathText } from '../../shared/components/MathView';
+import { getFormulaGuideStep, hasFormulaGuide } from './utils/formulaGuide';
 import { useNavigation } from '../../shell/HeaderContext';
 import {
   moveTokenInCard,
@@ -38,6 +41,7 @@ interface FormulaTrainerModuleProps {
   onBackToHub: () => void;
   /** Встроенный режим: одна задача внутри общего каркаса уровня. */
   embeddedTask?: PhysicsTask;
+  autoShowGuide?: boolean;
   onEmbeddedDone?: (score: number) => void;
   onEmbeddedChecked?: (result: {
     correct: boolean;
@@ -52,12 +56,20 @@ export interface FormulaTrainerHandle {
 }
 
 export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrainerModuleProps>(
-  ({ onBackToHub, embeddedTask, onEmbeddedDone, onEmbeddedChecked }, ref) => {
+  ({ onBackToHub, embeddedTask, autoShowGuide, onEmbeddedDone, onEmbeddedChecked }, ref) => {
   const embedded = Boolean(embeddedTask);
   const [currentTask, setCurrentTask] = useState<PhysicsTask | null>(embeddedTask ?? null);
   const [answer, setAnswer] = useState<{ symbol: string; value: number; unit?: string } | null>(null);
   const [cards, setCards] = useState<FormulaCard[]>([]);
   const [cardCounter, setCardCounter] = useState(0);
+  const tapeRef = useRef<HTMLDivElement>(null);
+  const [guideOpen, setGuideOpen] = useState(() => {
+    if (!embeddedTask || !autoShowGuide) return false;
+    const progress = loadUserProgress();
+    return !progress.formulaGuideDismissed &&
+      !hasSeenTaskGuide(progress.practice, 'interactive') &&
+      progress.formulaTrainer.completedTaskIds.length === 0;
+  });
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -84,6 +96,24 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
   const [hoveredCandidate, setHoveredCandidate] = useState<{ cardId: number; symbol: string } | null>(
     null
   );
+
+  useEffect(() => {
+    if (guideOpen && currentTask && hasFormulaGuide(currentTask)) markTaskGuideSeen('interactive');
+  }, [currentTask, guideOpen]);
+
+  useLayoutEffect(() => {
+    const tape = tapeRef.current;
+    if (guideOpen && cardCounter > 1 && tape) tape.scrollTop = tape.scrollHeight;
+  }, [cardCounter, guideOpen]);
+
+  const toggleGuide = () => {
+    if (guideOpen) {
+      const progress = loadUserProgress();
+      progress.formulaGuideDismissed = true;
+      saveUserProgress(progress);
+    }
+    setGuideOpen(!guideOpen);
+  };
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -440,6 +470,7 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
     const score = correct ? 1 : 0.5;
 
     if (embedded) {
+      setGuideOpen(false);
       haptics.notification(correct ? 'success' : 'error');
       onEmbeddedChecked?.({
         correct,
@@ -490,7 +521,10 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
   };
 
   const { setNavigationConfig } = useNavigation();
+  const guide = guideOpen && currentTask ? getFormulaGuideStep(currentTask, cards, answer) : null;
   const hasComputedResults = cards.some(c => c.computed && c.computed.value !== null);
+  const showAnswerSlot = !guide || answer ||
+    cards.some(card => card.computed?.symbol === currentTask?.find.symbol);
 
   useImperativeHandle(ref, () => ({ check: handleCheckClick }));
 
@@ -538,7 +572,7 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
           </div>
         </div>
       ) : (
-        <div className="app-screen-solver" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <div className={guide ? "app-screen-solver app-screen-solver--guided" : "app-screen-solver"} style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {/* Solver In-App Header */}
           {!embedded && (
           <div className="inapp-header">
@@ -568,24 +602,49 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
           </div>
           )}
 
-          <CollapsibleProblemPanel task={currentTask} onPointerDownGiven={handlePointerDownGiven} />
+          <CollapsibleProblemPanel
+            task={currentTask}
+            compact={Boolean(guide)}
+            onPointerDownGiven={handlePointerDownGiven}
+            guideControl={embedded && hasFormulaGuide(currentTask) && (
+              <button
+                type="button"
+                className="formula-guide-toggle"
+                aria-expanded={Boolean(guide)}
+                aria-controls={guide ? 'mg-formula-guide' : undefined}
+                onClick={toggleGuide}
+              >
+                <BookOpen size={14} aria-hidden="true" />
+                {guide ? 'Свернуть помощь' : 'Как решать'}
+              </button>
+            )}
+          />
 
-          <div className="mg-answer-slot">
-            <span className="mg-answer-slot__label">Ответ:</span>
-            <div className={`mg-answer-slot__drop ${answer ? 'is-filled' : ''}`}>
-              {answer ? (
-                <span className="given-chip mg-answer-slot__pill">
-                  <b>{answer.symbol}</b> ={' '}
-                  {Number.isInteger(answer.value)
-                    ? answer.value
-                    : parseFloat(answer.value.toFixed(3))}{' '}
-                  {answer.unit}
-                </span>
-              ) : (
-                <span className="mg-answer-slot__hint">Перетащите сюда величину</span>
-              )}
+          {guide && (
+            <div id="mg-formula-guide" className="formula-guide" role="status">
+              <strong>{guide.title}</strong>
+              <MathText text={guide.text} />
             </div>
-          </div>
+          )}
+
+          {showAnswerSlot && (
+            <div className="mg-answer-slot">
+              <span className="mg-answer-slot__label">Ответ:</span>
+              <div className={`mg-answer-slot__drop ${answer ? 'is-filled' : ''}`}>
+                {answer ? (
+                  <span className="given-chip mg-answer-slot__pill">
+                    <b>{answer.symbol}</b> ={' '}
+                    {Number.isInteger(answer.value)
+                      ? answer.value
+                      : parseFloat(answer.value.toFixed(3))}{' '}
+                    {answer.unit}
+                  </span>
+                ) : (
+                  <span className="mg-answer-slot__hint">Перетащите сюда величину</span>
+                )}
+              </div>
+            </div>
+          )}
 
           {selectionMode && (
             <div className="tape-prompt-bar visible">
@@ -602,7 +661,7 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
             </div>
           )}
 
-          <div className="formula-tape" style={{ flex: 1, overflowY: 'auto' }}>
+          <div ref={tapeRef} className="formula-tape" style={{ flex: 1, overflowY: 'auto' }}>
             {cards.length === 0 ? (
               <div className="tape-placeholder">
                 <div className="placeholder-icon">📐</div>

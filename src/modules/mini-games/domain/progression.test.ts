@@ -39,21 +39,15 @@ describe('разделы', () => {
     ).toBe(true);
   });
 
-  it('босс открывается, когда все темы добрали порог опыта', () => {
+  it('босс открывается только при 100% по каждой теме', () => {
     const section = getSection('thermal')!;
-    const xpByTopic: Record<string, number> = {};
-    for (const topicId of section.topics) {
-      xpByTopic[topicId] = topicUnlockXp(topicId);
-    }
+    const xpByTopic = Object.fromEntries(section.topics.map(topic => [topic, topicMaxXp(topic)]));
+    const unlockedSections = ['thermal'];
+    expect(isBossReady(makeProgress({ unlockedSections, xpByTopic }), 'thermal')).toBe(true);
 
-    const progress = makeProgress({ unlockedSections: ['thermal'], xpByTopic });
-    expect(isBossReady(progress, 'thermal')).toBe(true);
-
-    const almost = makeProgress({
-      unlockedSections: ['thermal'],
-      xpByTopic: { ...xpByTopic, [section.topics[0]]: topicUnlockXp(section.topics[0]) - 1 },
-    });
-    expect(isBossReady(almost, 'thermal')).toBe(false);
+    const [first, second] = section.topics;
+    const unbalanced = { ...xpByTopic, [first]: xpByTopic[first] - 1, [second]: xpByTopic[second] + 100 };
+    expect(isBossReady(makeProgress({ unlockedSections, xpByTopic: unbalanced }), 'thermal')).toBe(false);
   });
 
   it('побеждённый босс больше не открывается', () => {
