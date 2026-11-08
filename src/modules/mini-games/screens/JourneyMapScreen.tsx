@@ -31,6 +31,7 @@ import { haptics } from '../../../shared/motion/haptics';
 interface JourneyMapScreenProps {
   progress: PracticeProgress;
   onStartLevel: (sectionId: SectionId, topicId: TopicId) => void;
+  onSkipOnboarding?: () => void;
   onStartBoss: (sectionId: SectionId) => void;
   onChooseSection: (sectionId: SectionId) => void;
 }
@@ -100,11 +101,13 @@ const turnSide = (
 export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
   progress,
   onStartLevel,
+  onSkipOnboarding,
   onStartBoss,
   onChooseSection,
 }) => {
   const [collapsedOverrides, setCollapsedOverrides] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<{ sectionId: SectionId; topicId: TopicId } | null>(null);
+  const firstLevelRef = useRef<HTMLButtonElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const [road, setRoad] = useState('');
 
@@ -226,6 +229,35 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                     ))}
                 </button>
 
+                {sectionIndex === 0 && onSkipOnboarding && (
+                  <section className="mg-map-welcome" aria-labelledby="mg-map-welcome-title">
+                    <h2 id="mg-map-welcome-title">Начни с равномерного движения</h2>
+                    <p>Прочитай короткую теорию и реши несколько задач.</p>
+                    <div className="mg-map-welcome__actions">
+                      <Button
+                        variant="primary"
+                        size="small"
+                        onClick={() => {
+                          haptics.selection();
+                          onStartLevel(section.id, section.topics[0]);
+                        }}
+                      >
+                        Начать первый уровень
+                      </Button>
+                      <button
+                        type="button"
+                        className="mg-map-welcome__skip"
+                        onClick={() => {
+                          onSkipOnboarding();
+                          firstLevelRef.current?.focus({ preventScroll: true });
+                        }}
+                      >
+                        Пропустить
+                      </button>
+                    </div>
+                  </section>
+                )}
+
                 {isExpanded && (
                   <div className="mg-path">
                     <div
@@ -264,6 +296,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                             }
                           >
                             <button
+                              ref={sectionIndex === 0 && index === 0 ? firstLevelRef : undefined}
                               type="button"
                               className={[
                                 'mg-node',

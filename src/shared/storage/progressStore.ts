@@ -38,6 +38,7 @@ export interface PracticeProgress {
 }
 
 export interface UserProgressData {
+  onboarding?: 'started' | 'skipped' | 'completed';
   forceLab: {
     completedTaskIds: string[];
     savedVectors: Record<string, ForceVectorSave[]>;
@@ -135,6 +136,7 @@ export const loadUserProgress = (): UserProgressData => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return fallback;
     const parsed = JSON.parse(raw);
+    const onboarding = parsed?.onboarding;
 
     const forceCompleted = stringArray(parsed?.forceLab?.completedTaskIds);
     const formulaCompleted = stringArray(parsed?.formulaTrainer?.completedTaskIds);
@@ -160,6 +162,9 @@ export const loadUserProgress = (): UserProgressData => {
     }
 
     return {
+      onboarding: onboarding === 'started' || onboarding === 'skipped' || onboarding === 'completed'
+        ? onboarding
+        : undefined,
       forceLab: {
         completedTaskIds: forceCompleted,
         savedVectors: parsed?.forceLab?.savedVectors || {},

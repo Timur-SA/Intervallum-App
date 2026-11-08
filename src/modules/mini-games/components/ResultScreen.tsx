@@ -8,6 +8,7 @@ interface ResultScreenProps {
   color: string;
   icon: ReactNode;
   summary: SessionSummary;
+  progressHint?: string;
   onRetry: () => void;
   onBack: () => void;
   backLabel?: string;
@@ -31,6 +32,7 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
   color,
   icon,
   summary,
+  progressHint,
   onRetry,
   onBack,
   backLabel = 'Продолжить',
@@ -86,6 +88,8 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({
           </div>
         )}
       </div>
+
+      {progressHint && <p className="mg-result__hint">{progressHint}</p>}
 
       <div className="mg-result__actions">
         <Button variant="primary" size="large" stretched onClick={onBack}>

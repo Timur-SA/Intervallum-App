@@ -2,14 +2,16 @@ import React, { useEffect, useRef, useState } from 'react';
 import './styles/mini-games.css';
 import { Flame, Swords } from 'lucide-react';
 import { AnyTask, SectionId, TopicId } from './domain/types';
-import { getSection, getTopic } from './domain/sections';
-import { BOSS_TIME_SECONDS, BOSS_WIN_SCORE } from './domain/progression';
+import { SECTIONS, getSection, getTopic } from './domain/sections';
+import { BOSS_TIME_SECONDS, BOSS_WIN_SCORE, topicUnlockXp } from './domain/progression';
 import { TASK_BANK } from './data';
 import { shuffleBySeed } from './engine/shuffle';
 import { selectBossTasks } from './api/select';
 import {
   defeatBoss,
   loadUserProgress,
+  saveUserProgress,
+  totalXp,
   unlockSection,
 } from '../../shared/storage/progressStore';
 import { useNavigation } from '../../shell/HeaderContext';
@@ -19,6 +21,9 @@ import { SessionRunner, SessionSummary } from './renderers/SessionRunner';
 import { ResultScreen } from './components/ResultScreen';
 
 type SessionKind = 'level' | 'boss';
+
+const firstSection = SECTIONS[0];
+const [firstTopicId, nextTopicId] = firstSection.topics;
 
 interface SessionConfig {
   kind: SessionKind;
@@ -34,7 +39,7 @@ type Screen =
   | { name: 'journey' }
   | { name: 'theory'; sectionId: SectionId; topicId: TopicId }
   | { name: 'session'; config: SessionConfig }
-  | { name: 'result'; config: SessionConfig; summary: SessionSummary; bossLost?: boolean };
+  | { name: 'result'; config: SessionConfig; summary: SessionSummary; bossLost?: boolean; progressHint?: string };
 
 export const MapModule: React.FC = () => {
   const [route, setRoute] = useState<Screen>({ name: 'journey' });
@@ -42,6 +47,15 @@ export const MapModule: React.FC = () => {
   const [progress, setProgress] = useState(() => loadUserProgress());
 
   const { setNavigationConfig } = useNavigation();
+  const { practice, onboarding } = progress;
+  const showOnboarding = onboarding === 'started' || (
+    !onboarding &&
+    totalXp(practice) === 0 &&
+    Object.keys(practice.taskStats).length === 0 &&
+    practice.exploredTypes.length === 0 &&
+    practice.unlockedSections.length === 0 &&
+    practice.defeatedBosses.length === 0
+  );
 
   const back = () => {
     setProgress(loadUserProgress());
@@ -61,6 +75,22 @@ export const MapModule: React.FC = () => {
   const navigate = (next: Screen) => {
     setHistory(items => [...items, route]);
     setRoute(next);
+  };
+
+  const setOnboarding = (status: 'started' | 'skipped') => {
+    const latest = loadUserProgress();
+    if (status === 'skipped' || !latest.onboarding) {
+      latest.onboarding = status;
+      saveUserProgress(latest);
+    }
+    setProgress(latest);
+  };
+
+  const openTheory = (sectionId: SectionId, topicId: TopicId) => {
+    if (showOnboarding && !onboarding && sectionId === firstSection.id && topicId === firstTopicId) {
+      setOnboarding('started');
+    }
+    navigate({ name: 'theory', sectionId, topicId });
   };
 
   const startLevel = (sectionId: SectionId, topicId: TopicId) => {
@@ -120,9 +150,28 @@ export const MapModule: React.FC = () => {
       return;
     }
 
-    setProgress(loadUserProgress());
+    const latest = loadUserProgress();
+    let progressHint: string | undefined;
+    if (
+      !summary.timeout &&
+      config.sectionId === firstSection.id &&
+      config.topicId === firstTopicId &&
+      (latest.onboarding ?? onboarding) === 'started'
+    ) {
+      const nextTopic = getTopic(nextTopicId);
+      if (nextTopic) {
+        const remainingXp = topicUnlockXp(firstTopicId) - (latest.practice.xpByTopic[firstTopicId] ?? 0);
+        progressHint = remainingXp > 0
+          ? `До темы «${nextTopic.title}» осталось ${remainingXp} XP.`
+          : `Открылась следующая тема «${nextTopic.title}».`;
+      }
+      latest.onboarding = 'completed';
+      saveUserProgress(latest);
+    }
+
+    setProgress(latest);
     setHistory([{ name: 'journey' }]);
-    setRoute({ name: 'result', config, summary });
+    setRoute({ name: 'result', config, summary, progressHint });
   };
 
   const handleChooseSection = (sectionId: SectionId) => {
@@ -157,7 +206,7 @@ export const MapModule: React.FC = () => {
   }
 
   if (route.name === 'result') {
-    const { config, summary, bossLost } = route;
+    const { config, summary, bossLost, progressHint } = route;
     const section = getSection(config.sectionId);
 
     return (
@@ -185,6 +234,7 @@ export const MapModule: React.FC = () => {
                 : 'Уровень завершён'
           }
           summary={summary}
+          progressHint={progressHint}
           onRetry={() => setRoute({ name: 'session', config })}
           onBack={back}
           backLabel="Перейти к карте"
@@ -197,7 +247,8 @@ export const MapModule: React.FC = () => {
     <div className="mini-games">
       <JourneyMapScreen
         progress={progress.practice}
-        onStartLevel={(sectionId, topicId) => navigate({ name: 'theory', sectionId, topicId })}
+        onStartLevel={openTheory}
+        onSkipOnboarding={showOnboarding ? () => setOnboarding('skipped') : undefined}
         onStartBoss={startBoss}
         onChooseSection={handleChooseSection}
       />
