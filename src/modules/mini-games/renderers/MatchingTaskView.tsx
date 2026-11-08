@@ -94,12 +94,9 @@ const anchorForRect = (rect: DOMRect, side: Side, base: DOMRect): Point => ({
 
 const oppositeSide = (side: Side): Side => (side === 'left' ? 'right' : 'left');
 
-/** Цвет заливки блока-пары: тот же цвет нитки, но глубже — для белого текста. */
+/** Цвет блока-пары; тему (тёмная/светлая) CSS выбирает сам. */
 const linkedTileStyle = (color: string): React.CSSProperties =>
-  ({
-    '--tile-fill': `color-mix(in srgb, ${color} 70%, #0f172a)`,
-    '--tile-border': `color-mix(in srgb, ${color} 78%, white)`,
-  }) as React.CSSProperties;
+  ({ '--tile-color': color }) as React.CSSProperties;
 
 /**
  * Магнитная зона делится между плитками по серединам промежутков.

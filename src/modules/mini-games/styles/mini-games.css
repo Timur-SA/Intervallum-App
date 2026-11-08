@@ -418,8 +418,11 @@
   border-color: rgba(15, 23, 42, 0.16) !important;
 }
 
-/* Связанный блок: заливка цветом нитки, яркая обводка, белый текст */
+/* Связанный блок: в тёмной теме — глубокий цвет нитки, белый текст */
 .mg-tile--linked {
+  --tile-fill: color-mix(in srgb, var(--tile-color) 70%, #0f172a);
+  --tile-border: color-mix(in srgb, var(--tile-color) 78%, white);
+
   background: var(--tile-fill) !important;
   border: 2px solid var(--tile-border) !important;
   color: #fff !important;
@@ -430,6 +433,19 @@
 
 .mg-tile--linked .mg-tile__content {
   color: #fff !important;
+}
+
+/* В светлой теме — те же пастельные заливки, что и у проверки, но в цвете нитки */
+[data-theme='light'] .mg-tile--linked {
+  --tile-fill: color-mix(in srgb, var(--tile-color) 26%, white);
+  --tile-border: var(--tile-color);
+
+  color: color-mix(in srgb, var(--tile-color) 38%, #0f172a) !important;
+  text-shadow: none;
+}
+
+[data-theme='light'] .mg-tile--linked .mg-tile__content {
+  color: inherit !important;
 }
 
 .mg-tile--selected {
