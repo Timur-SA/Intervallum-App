@@ -40,21 +40,54 @@ export const CardTaskView: React.FC<TaskViewProps<TheoryCard>> = ({
   const [dragging, setDragging] = useState(false);
   const [exit, setExit] = useState<'left' | 'right' | null>(null);
   const [dragWidth, setDragWidth] = useState(320);
+  const [cueInteracted, setCueInteracted] = useState(false);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<SwipeDrag | null>(null);
+  const suppressClickRef = useRef(false);
 
   const topic = getTopic(task.topic);
   const section = getSectionByTopic(task.topic);
 
   const threshold = Math.max(SWIPE_MIN_DISTANCE, dragWidth * SWIPE_COMMIT_RATIO);
-  const glowProgress = Math.min(1, Math.abs(offsetX) / threshold);
+  const edgeStrength = Math.pow(
+    Math.min(1, Math.abs(offsetX) / Math.max(1, dragWidth * 0.95)),
+    0.7,
+  );
+  const cuePull = Math.min(1, Math.abs(offsetX) / threshold);
   const activeSide = offsetX < -12 ? 'left' : offsetX > 12 ? 'right' : null;
 
   const reveal = () => {
     if (busy || flipped) return;
+    setCueInteracted(false);
     haptics.selection();
     setFlipped(true);
+  };
+
+  const revealFromCard = () => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    reveal();
+  };
+
+  const flipBack = () => {
+    if (!flipped || busy || exit) return;
+
+    dragRef.current = null;
+    setDragging(false);
+    setOffsetX(0);
+    setCueInteracted(false);
+    setFlipped(false);
+    haptics.selection();
+
+    // После pointerup браузер может дослать click по карточке.
+    // Не даём ему снова перевернуть карточку.
+    suppressClickRef.current = true;
+    window.setTimeout(() => {
+      suppressClickRef.current = false;
+    }, 80);
   };
 
   const commitSwipe = async (direction: 'left' | 'right') => {
@@ -132,6 +165,10 @@ export const CardTaskView: React.FC<TaskViewProps<TheoryCard>> = ({
 
     if (drag.axis !== 'x') return;
 
+    if (!cueInteracted) {
+      setCueInteracted(true);
+    }
+
     drag.lastX = event.clientX;
     drag.lastTime = performance.now();
     setOffsetX(Math.max(-drag.width * 1.2, Math.min(drag.width * 1.2, dx)));
@@ -159,8 +196,13 @@ export const CardTaskView: React.FC<TaskViewProps<TheoryCard>> = ({
       return;
     }
 
+    const moved = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
     setDragging(false);
     setOffsetX(0);
+
+    if (moved < SWIPE_DEAD_ZONE) {
+      flipBack();
+    }
   };
 
   const cancelSwipe = () => {
@@ -178,128 +220,149 @@ export const CardTaskView: React.FC<TaskViewProps<TheoryCard>> = ({
   };
 
   return (
-    <GameShell
-      title="Карточки"
-      step={step}
-      total={total}
-      headerRight={headerRight}
-      footer={
-        flipped ? (
-          <div className={`mg-cards__swipe-bar ${activeSide ? `is-${activeSide}` : ''}`}>
+    <div className="mg-cards-screen">
+      <GameShell
+        title="Карточки"
+        step={step}
+        total={total}
+        headerRight={headerRight}
+        footer={
+          flipped ? (
             <div
-              className={`mg-cards__swipe-side mg-cards__swipe-side--left ${
-                activeSide === 'left' ? 'is-active' : ''
+              className={`mg-cards__swipe-bar ${cueInteracted ? 'is-interacted' : ''} ${
+                activeSide ? `is-${activeSide}` : ''
               }`}
             >
-              <span className="mg-cards__swipe-icon" aria-hidden>
-                <X size={18} />
-              </span>
-              <ArrowLeft className="mg-cards__swipe-arrow" size={22} aria-hidden />
-            </div>
-
-            <span className="mg-cards__swipe-hint">Смахните влево или вправо</span>
-
-            <div
-              className={`mg-cards__swipe-side mg-cards__swipe-side--right ${
-                activeSide === 'right' ? 'is-active' : ''
-              }`}
-            >
-              <ArrowRight className="mg-cards__swipe-arrow" size={22} aria-hidden />
-              <span className="mg-cards__swipe-icon" aria-hidden>
-                <Check size={18} />
-              </span>
-            </div>
-          </div>
-        ) : (
-          <Button
-            variant="primary"
-            size="large"
-            stretched
-            disabled={busy}
-            onClick={reveal}
-          >
-            Показать ответ
-          </Button>
-        )
-      }
-    >
-      <div className="mg-cards__counter">
-        Карточка {cardIndex + 1} из {cardTotal}
-      </div>
-
-      <div className="mg-swipe-stage">
-        <div
-          className="mg-swipe-glow mg-swipe-glow--left"
-          style={{ opacity: offsetX < 0 ? glowProgress * 0.8 : 0 }}
-          aria-hidden
-        />
-        <div
-          className="mg-swipe-glow mg-swipe-glow--right"
-          style={{ opacity: offsetX > 0 ? glowProgress * 0.8 : 0 }}
-          aria-hidden
-        />
-
-        <div className="mg-swipe-card">
-          <div
-            ref={cardRef}
-            role="button"
-            tabIndex={0}
-            aria-expanded={flipped}
-            aria-label={
-              flipped
-                ? 'Карточка с ответом. Смахните влево или вправо'
-                : 'Карточка. Показать ответ'
-            }
-            className={`mg-flash ${flipped ? 'is-flipped' : ''} ${
-              dragging ? 'is-dragging' : ''
-            } ${exit ? `is-exiting-${exit}` : ''}`}
-            style={cardStyle}
-            onClick={reveal}
-            onKeyDown={event => {
-              if (!flipped && (event.key === 'Enter' || event.key === ' ')) {
-                event.preventDefault();
-                reveal();
-                return;
-              }
-              if (flipped && event.key === 'ArrowLeft') {
-                event.preventDefault();
-                void commitSwipe('left');
-              }
-              if (flipped && event.key === 'ArrowRight') {
-                event.preventDefault();
-                void commitSwipe('right');
-              }
-            }}
-          >
-            <span className="mg-flash__inner">
-              <span className="mg-flash__face" aria-hidden={flipped}>
-                <span className="mg-flash__deck">{section?.title ?? 'Физика'}</span>
-                <span className="mg-flash__question">
-                  <MathText text={task.question} />
-                  {task.answerKind && ` (${ANSWER_KIND_LABELS[task.answerKind]})`}
+              <div
+                className={`mg-cards__swipe-side mg-cards__swipe-side--left ${
+                  activeSide === 'left' ? 'is-active' : ''
+                }`}
+                style={
+                  {
+                    '--cue-pull': activeSide === 'left' ? cuePull : 0,
+                  } as React.CSSProperties
+                }
+              >
+                <span className="mg-cards__swipe-icon" aria-hidden>
+                  <X size={20} />
                 </span>
-                <span className="mg-flash__tap">Показать ответ</span>
-              </span>
-              <span className="mg-flash__face mg-flash__face--back" aria-hidden={!flipped}>
-                <span className="mg-flash__deck">{topic?.title ?? 'Физика'}</span>
-                {task.formula && <MathView className="mg-theory__formula" latex={task.formula} />}
-                <MathText className="mg-flash__answer" text={task.answer} />
-              </span>
-            </span>
-          </div>
+                <ArrowLeft className="mg-cards__swipe-arrow" size={26} aria-hidden />
+              </div>
 
-          {flipped && !exit && (
-            <div
-              className={`mg-swipe-catcher ${dragging ? 'is-dragging' : ''}`}
-              aria-hidden
-              onPointerDown={beginSwipe}
-              onPointerMove={moveSwipe}
-              onPointerUp={endSwipe}
-              onPointerCancel={cancelSwipe}
-            />
-          )}
+              <span className="mg-cards__swipe-hint">Смахните влево или вправо</span>
+
+              <div
+                className={`mg-cards__swipe-side mg-cards__swipe-side--right ${
+                  activeSide === 'right' ? 'is-active' : ''
+                }`}
+                style={
+                  {
+                    '--cue-pull': activeSide === 'right' ? cuePull : 0,
+                  } as React.CSSProperties
+                }
+              >
+                <ArrowRight className="mg-cards__swipe-arrow" size={26} aria-hidden />
+                <span className="mg-cards__swipe-icon" aria-hidden>
+                  <Check size={20} />
+                </span>
+              </div>
+            </div>
+          ) : (
+            <Button
+              variant="primary"
+              size="large"
+              stretched
+              disabled={busy}
+              onClick={reveal}
+            >
+              Показать ответ
+            </Button>
+          )
+        }
+      >
+        <div className="mg-cards__counter">
+          Карточка {cardIndex + 1} из {cardTotal}
         </div>
-      </div>
-    </GameShell>
+
+        <div className="mg-swipe-stage">
+          <div className="mg-swipe-card">
+            <div
+              ref={cardRef}
+              role="button"
+              tabIndex={0}
+              aria-expanded={flipped}
+              aria-label={
+                flipped
+                  ? 'Карточка с ответом. Смахните влево или вправо или нажмите, чтобы вернуть вопрос'
+                  : 'Карточка. Показать ответ'
+              }
+              className={`mg-flash ${flipped ? 'is-flipped' : ''} ${
+                dragging ? 'is-dragging' : ''
+              } ${exit ? `is-exiting-${exit}` : ''}`}
+              style={cardStyle}
+              onClick={revealFromCard}
+              onKeyDown={event => {
+                if (!flipped && (event.key === 'Enter' || event.key === ' ')) {
+                  event.preventDefault();
+                  reveal();
+                  return;
+                }
+                if (flipped && (event.key === 'Enter' || event.key === ' ')) {
+                  event.preventDefault();
+                  flipBack();
+                  return;
+                }
+                if (flipped && event.key === 'ArrowLeft') {
+                  event.preventDefault();
+                  void commitSwipe('left');
+                }
+                if (flipped && event.key === 'ArrowRight') {
+                  event.preventDefault();
+                  void commitSwipe('right');
+                }
+              }}
+            >
+              <span className="mg-flash__inner">
+                <span className="mg-flash__face" aria-hidden={flipped}>
+                  <span className="mg-flash__deck">{section?.title ?? 'Физика'}</span>
+                  <span className="mg-flash__question">
+                    <MathText text={task.question} />
+                    {task.answerKind && ` (${ANSWER_KIND_LABELS[task.answerKind]})`}
+                  </span>
+                  <span className="mg-flash__tap">Показать ответ</span>
+                </span>
+                <span className="mg-flash__face mg-flash__face--back" aria-hidden={!flipped}>
+                  <span className="mg-flash__deck">{topic?.title ?? 'Физика'}</span>
+                  {task.formula && <MathView className="mg-theory__formula" latex={task.formula} />}
+                  <MathText className="mg-flash__answer" text={task.answer} />
+                </span>
+              </span>
+            </div>
+
+            {flipped && !exit && (
+              <div
+                className={`mg-swipe-catcher ${dragging ? 'is-dragging' : ''}`}
+                aria-hidden
+                onPointerDown={beginSwipe}
+                onPointerMove={moveSwipe}
+                onPointerUp={endSwipe}
+                onPointerCancel={cancelSwipe}
+              />
+            )}
+          </div>
+        </div>
+      </GameShell>
+
+      <div
+        className="mg-card-edge mg-card-edge--left"
+        style={{ '--edge-strength': offsetX < 0 ? edgeStrength : 0 } as React.CSSProperties}
+        aria-hidden
+      />
+      <div
+        className="mg-card-edge mg-card-edge--right"
+        style={{ '--edge-strength': offsetX > 0 ? edgeStrength : 0 } as React.CSSProperties}
+        aria-hidden
+      />
+    </div>
   );
 };

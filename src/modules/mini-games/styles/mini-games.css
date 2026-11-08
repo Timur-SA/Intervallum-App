@@ -524,6 +524,28 @@
 
 /* ------------------------------------------------------------- Карточки */
 
+.mg-cards-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.mg-cards-screen > .mg-game {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.mg-cards-screen .mg-game__header,
+.mg-cards-screen .mg-game__footer {
+  position: relative;
+  z-index: 7;
+}
+
 .mg-cards__counter {
   text-align: center;
   font-size: 12px;
@@ -570,85 +592,213 @@
   cursor: grabbing;
 }
 
-.mg-swipe-glow {
+/* Свет у самых краёв экрана: ярче и шире в середине, тоньше и слабее к верху и низу */
+.mg-card-edge {
+  --edge-strength: 0;
+
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 56px;
-  z-index: 3;
-  opacity: 0;
+  z-index: 5;
+  width: calc(52px + var(--edge-strength) * 34px);
+  max-width: 26vw;
+  opacity: var(--edge-strength);
   pointer-events: none;
-  transition: opacity 90ms linear;
+  transition:
+    opacity 80ms linear,
+    width 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  filter: saturate(1.12);
+  will-change: opacity, width;
 }
 
-.mg-swipe-glow--left {
+.mg-card-edge--left {
   left: 0;
+  --edge-color: var(--danger);
+}
+
+.mg-card-edge--right {
+  right: 0;
+  --edge-color: var(--success);
+}
+
+/* Широкое сияние: форма линзы — толще в центре, тоньше к верху и низу. */
+.mg-card-edge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.mg-card-edge--left::after {
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--danger) 62%, transparent),
-    transparent
+    color-mix(in srgb, var(--edge-color) 95%, transparent) 0%,
+    color-mix(in srgb, var(--edge-color) 58%, transparent) 25%,
+    color-mix(in srgb, var(--edge-color) 18%, transparent) 62%,
+    transparent 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 100% 48% at 0% 50%,
+    #000 0%,
+    #000 28%,
+    transparent 74%
+  );
+  mask-image: radial-gradient(
+    ellipse 100% 48% at 0% 50%,
+    #000 0%,
+    #000 28%,
+    transparent 74%
   );
 }
 
-.mg-swipe-glow--right {
-  right: 0;
+.mg-card-edge--right::after {
   background: linear-gradient(
     270deg,
-    color-mix(in srgb, var(--success) 62%, transparent),
-    transparent
+    color-mix(in srgb, var(--edge-color) 95%, transparent) 0%,
+    color-mix(in srgb, var(--edge-color) 58%, transparent) 25%,
+    color-mix(in srgb, var(--edge-color) 18%, transparent) 62%,
+    transparent 100%
   );
+  -webkit-mask-image: radial-gradient(
+    ellipse 100% 48% at 100% 50%,
+    #000 0%,
+    #000 28%,
+    transparent 74%
+  );
+  mask-image: radial-gradient(
+    ellipse 100% 48% at 100% 50%,
+    #000 0%,
+    #000 28%,
+    transparent 74%
+  );
+}
+
+/* Тонкая яркая жилка прямо на границе — проходит вдоль всего края. */
+.mg-card-edge::before {
+  content: '';
+  position: absolute;
+  top: 3%;
+  bottom: 3%;
+  z-index: 1;
+  width: 3px;
+  background: var(--edge-color);
+  opacity: 0.86;
+  filter: blur(1.1px);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 10%,
+    #000 90%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 10%,
+    #000 90%,
+    transparent 100%
+  );
+}
+
+.mg-card-edge--left::before {
+  left: 0;
+}
+
+.mg-card-edge--right::before {
+  right: 0;
 }
 
 .mg-cards__swipe-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  min-height: 42px;
+  gap: 8px;
+  min-height: 50px;
 }
 
 .mg-cards__swipe-side {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 9px;
   opacity: 0.62;
-  transition: opacity 140ms ease, filter 140ms ease;
+  transition: opacity 140ms ease;
+  color: var(--edge-color);
 }
 
 .mg-cards__swipe-side--left {
-  color: var(--danger);
+  --edge-color: var(--danger);
 }
 
 .mg-cards__swipe-side--right {
-  color: var(--success);
+  --edge-color: var(--success);
 }
 
 .mg-cards__swipe-side.is-active {
   opacity: 1;
-  filter: drop-shadow(0 0 7px currentColor);
+}
+
+.mg-cards__swipe-bar.is-left .mg-cards__swipe-side--right,
+.mg-cards__swipe-bar.is-right .mg-cards__swipe-side--left {
+  opacity: 0.42;
 }
 
 .mg-cards__swipe-icon {
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   border: 2px solid currentColor;
   border-radius: 50%;
   display: grid;
   place-items: center;
   background: var(--bg-card);
   flex-shrink: 0;
+  transition:
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 160ms ease,
+    filter 160ms ease;
 }
 
 .mg-cards__swipe-arrow {
   flex-shrink: 0;
+  transition:
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 140ms ease;
 }
 
+/* Спокойное положение: стрелка чуть отходит от кружка. */
 .mg-cards__swipe-side--left .mg-cards__swipe-arrow {
-  animation: mg-card-arrow-left 440ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform: translateX(calc(4px - var(--cue-pull, 0) * 10px));
 }
 
 .mg-cards__swipe-side--right .mg-cards__swipe-arrow {
-  animation: mg-card-arrow-right 440ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform: translateX(calc(-4px + var(--cue-pull, 0) * 10px));
+}
+
+/* Стартовая анимация после переворота: подъехать — вспыхнуть — отойти. */
+.mg-cards__swipe-bar:not(.is-interacted) .mg-cards__swipe-side--left .mg-cards__swipe-arrow {
+  animation: mg-card-arrow-left 680ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both;
+}
+
+.mg-cards__swipe-bar:not(.is-interacted) .mg-cards__swipe-side--right .mg-cards__swipe-arrow {
+  animation: mg-card-arrow-right 680ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both;
+}
+
+.mg-cards__swipe-bar:not(.is-interacted) .mg-cards__swipe-icon {
+  animation: mg-card-cue-pulse 680ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both;
+}
+
+.mg-cards__swipe-side.is-active .mg-cards__swipe-arrow,
+.mg-cards__swipe-side.is-active .mg-cards__swipe-icon {
+  animation: none;
+}
+
+.mg-cards__swipe-side.is-active .mg-cards__swipe-icon {
+  transform: scale(calc(1 + 0.08 * var(--cue-pull, 0)));
+  box-shadow:
+    0 0 0 calc(2px + 2px * var(--cue-pull, 0))
+      color-mix(in srgb, var(--edge-color) 20%, transparent),
+    0 0 calc(10px + 14px * var(--cue-pull, 0))
+      color-mix(in srgb, var(--edge-color) 46%, transparent);
+  filter: drop-shadow(0 0 calc(1px + 7px * var(--cue-pull, 0)) var(--edge-color));
 }
 
 .mg-cards__swipe-hint {
@@ -660,24 +810,73 @@
 }
 
 @keyframes mg-card-arrow-left {
-  from {
+  0% {
     opacity: 0;
-    transform: translateX(28px);
+    transform: translateX(24px);
   }
-  to {
+  30% {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(-7px);
+  }
+  48% {
+    transform: translateX(-3px);
+  }
+  72% {
+    transform: translateX(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(4px);
   }
 }
 
 @keyframes mg-card-arrow-right {
-  from {
+  0% {
     opacity: 0;
-    transform: translateX(-28px);
+    transform: translateX(-24px);
   }
-  to {
+  30% {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(7px);
+  }
+  48% {
+    transform: translateX(3px);
+  }
+  72% {
+    transform: translateX(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-4px);
+  }
+}
+
+@keyframes mg-card-cue-pulse {
+  0%,
+  22% {
+    transform: scale(1);
+    box-shadow: none;
+    filter: none;
+  }
+  36%,
+  50% {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--edge-color) 20%, transparent),
+      0 0 18px color-mix(in srgb, var(--edge-color) 46%, transparent);
+    filter: drop-shadow(0 0 7px var(--edge-color));
+  }
+  66% {
+    transform: scale(1.03);
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--edge-color) 14%, transparent),
+      0 0 10px color-mix(in srgb, var(--edge-color) 28%, transparent);
+    filter: drop-shadow(0 0 3px var(--edge-color));
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: none;
+    filter: none;
   }
 }
 
@@ -2352,8 +2551,10 @@
 
   .mg-flash,
   .mg-flash__inner,
-  .mg-swipe-glow,
+  .mg-card-edge,
   .mg-cards__swipe-side,
+  .mg-cards__swipe-icon,
+  .mg-cards__swipe-arrow,
   .mg-option,
   .mg-row {
     transition: none;
