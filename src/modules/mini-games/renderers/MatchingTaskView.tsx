@@ -13,6 +13,23 @@ import { TaskViewProps } from './taskView';
 
 const THREAD_COLORS = ['#38bdf8', '#a78bfa', '#34d399', '#fbbf24', '#fb7185', '#22d3ee'];
 
+const ANCHOR_INSET = 18;
+const DOT_RADIUS = 9;
+const HALO_RADIUS = 14;
+const DRAG_THRESHOLD = 8;
+const SNAP_MARGIN_X = 24;
+const SNAP_MARGIN_Y = 16;
+const LINK_DRAW_MS = 420;
+const EXIT_MS = 420;
+const BURST_MS = 900;
+
+type Side = 'left' | 'right';
+
+interface Point {
+  x: number;
+  y: number;
+}
+
 interface Thread {
   id: string;
   x1: number;
@@ -22,15 +39,111 @@ interface Thread {
   color: string;
 }
 
+interface SnapTarget extends Point {
+  id: string;
+  side: Side;
+}
+
 interface DragState {
   id: string;
-  side: 'left' | 'right';
+  side: Side;
+  pointerId: number;
   originX: number;
   originY: number;
+  sourceX: number;
+  sourceY: number;
   x: number;
   y: number;
   active: boolean;
+  snap: SnapTarget | null;
 }
+
+interface ExitingThread extends Thread {
+  key: string;
+}
+
+interface Burst {
+  key: number;
+  x: number;
+  y: number;
+  color: string;
+  delayed: boolean;
+}
+
+interface TileInfo {
+  id: string;
+  rect: DOMRect;
+  anchor: Point;
+}
+
+/** Одна геометрия и для готовой нитки, и для временной. */
+const buildThreadPath = (x1: number, y1: number, x2: number, y2: number): string => {
+  const dx = Math.abs(x2 - x1);
+  const bend = Math.max(18, Math.min(72, dx * 0.45));
+  const direction = x2 >= x1 ? 1 : -1;
+
+  return `M ${x1} ${y1} C ${x1 + direction * bend} ${y1}, ${
+    x2 - direction * bend
+  } ${y2}, ${x2} ${y2}`;
+};
+
+const anchorForRect = (rect: DOMRect, side: Side, base: DOMRect): Point => ({
+  x: (side === 'left' ? rect.right - ANCHOR_INSET : rect.left + ANCHOR_INSET) - base.left,
+  y: rect.top + rect.height / 2 - base.top,
+});
+
+const oppositeSide = (side: Side): Side => (side === 'left' ? 'right' : 'left');
+
+/**
+ * Магнитная зона делится между плитками по серединам промежутков.
+ * Поэтому соседние зоны точно касаются и никогда не перекрывают друг друга.
+ */
+const findSnapTarget = (
+  container: HTMLElement,
+  clientX: number,
+  clientY: number,
+  sourceSide: Side,
+): SnapTarget | null => {
+  const targetSide = oppositeSide(sourceSide);
+  const selector = targetSide === 'right' ? '[data-tile-right]' : '[data-tile-left]';
+  const base = container.getBoundingClientRect();
+
+  const tiles = [...container.querySelectorAll<HTMLElement>(selector)]
+    .map((element): TileInfo | null => {
+      const id =
+        targetSide === 'right' ? element.dataset.tileRight : element.dataset.tileLeft;
+      if (!id) return null;
+      const rect = element.getBoundingClientRect();
+      return { id, rect, anchor: anchorForRect(rect, targetSide, base) };
+    })
+    .filter((tile): tile is TileInfo => tile !== null)
+    .sort((left, right) => left.rect.top - right.rect.top);
+
+  if (!tiles.length) return null;
+
+  const zoneLeft = Math.min(...tiles.map(tile => tile.rect.left)) - SNAP_MARGIN_X;
+  const zoneRight = Math.max(...tiles.map(tile => tile.rect.right)) + SNAP_MARGIN_X;
+  if (clientX < zoneLeft || clientX > zoneRight) return null;
+
+  for (let index = 0; index < tiles.length; index += 1) {
+    const tile = tiles[index];
+    const previous = tiles[index - 1];
+    const next = tiles[index + 1];
+
+    const zoneTop = previous
+      ? (previous.rect.bottom + tile.rect.top) / 2
+      : tile.rect.top - SNAP_MARGIN_Y;
+    const zoneBottom = next
+      ? (tile.rect.bottom + next.rect.top) / 2
+      : tile.rect.bottom + SNAP_MARGIN_Y;
+
+    if (clientY >= zoneTop && clientY <= zoneBottom) {
+      return { id: tile.id, side: targetSide, ...tile.anchor };
+    }
+  }
+
+  return null;
+};
 
 export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
   task,
@@ -40,7 +153,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
   seed,
   onDone,
 }) => {
-  const [selected, setSelected] = useState<{ side: 'left' | 'right'; id: string } | null>(null);
+  const [selected, setSelected] = useState<{ side: Side; id: string } | null>(null);
   const [links, setLinks] = useState<Record<string, string>>({});
   const [checked, setChecked] = useState(false);
   const [wrongIds, setWrongIds] = useState<string[]>([]);
@@ -57,16 +170,27 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
   dragRef.current = drag;
   const suppressClickRef = useRef(false);
 
+  const [animatedLinkId, setAnimatedLinkId] = useState<string | null>(null);
+  const [exitingThreads, setExitingThreads] = useState<ExitingThread[]>([]);
+  const [burst, setBurst] = useState<Burst | null>(null);
+  const burstKeyRef = useRef(0);
+
   const topic = getTopic(task.topic);
   const section = getSectionByTopic(task.topic);
 
-  const rightItems = useMemo(() => shuffleBySeed(task.pairs, `${seed ?? 'session'}:${task.id}`), [task, seed]);
+  const rightItems = useMemo(
+    () => shuffleBySeed(task.pairs, `${seed ?? 'session'}:${task.id}`),
+    [task, seed],
+  );
   const allLinked = Object.keys(links).length === task.pairs.length;
 
   const colorFor = (leftId: string): string => {
     const index = task.pairs.findIndex(pair => pair.id === leftId);
     return THREAD_COLORS[(index < 0 ? 0 : index) % THREAD_COLORS.length];
   };
+
+  const rightOwner = (rightId: string) =>
+    Object.entries(links).find(([, linkedRight]) => linkedRight === rightId)?.[0];
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -83,15 +207,15 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
       const rightEl = container.querySelector<HTMLElement>(`[data-tile-right="${rightId}"]`);
       if (!leftEl || !rightEl) return;
 
-      const leftRect = leftEl.getBoundingClientRect();
-      const rightRect = rightEl.getBoundingClientRect();
+      const left = anchorForRect(leftEl.getBoundingClientRect(), 'left', base);
+      const right = anchorForRect(rightEl.getBoundingClientRect(), 'right', base);
 
       next.push({
         id: pair.id,
-        x1: leftRect.right - base.left,
-        y1: leftRect.top + leftRect.height / 2 - base.top,
-        x2: rightRect.left - base.left,
-        y2: rightRect.top + rightRect.height / 2 - base.top,
+        x1: left.x,
+        y1: left.y,
+        x2: right.x,
+        y2: right.y,
         color: colorFor(pair.id),
       });
     });
@@ -100,11 +224,11 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
   }, [links, task, measureTick]);
 
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
+    const element = containerRef.current;
+    if (!element || typeof ResizeObserver === 'undefined') return;
 
     const observer = new ResizeObserver(() => setMeasureTick(previous => previous + 1));
-    observer.observe(el);
+    observer.observe(element);
     return () => observer.disconnect();
   }, []);
 
@@ -113,56 +237,140 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
     setWrongIds([]);
   };
 
-  const applyLink = (leftId: string, rightId: string) => {
-    if (solved) return;
-    resetCheck();
-    haptics.selection();
+  const addExitingThread = (thread: Thread) => {
+    const key = `${thread.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setExitingThreads(previous => [...previous, { ...thread, key }]);
+    window.setTimeout(() => {
+      setExitingThreads(previous => previous.filter(item => item.key !== key));
+    }, EXIT_MS);
+  };
 
-    const next: Record<string, string> = {};
+  const applyLink = (
+    leftId: string,
+    rightId: string,
+    method: 'drag' | 'tap',
+    effectSide: Side,
+  ) => {
+    if (solved) return;
+
+    const removedLeftIds = new Set<string>();
     for (const [linkedLeft, linkedRight] of Object.entries(links)) {
-      if (linkedLeft !== leftId && linkedRight !== rightId) {
-        next[linkedLeft] = linkedRight;
+      if (linkedLeft === leftId || linkedRight === rightId) {
+        removedLeftIds.add(linkedLeft);
       }
     }
-    next[leftId] = rightId;
 
-    setLinks(next);
+    removedLeftIds.forEach(removedId => {
+      const thread = threads.find(item => item.id === removedId);
+      if (thread) addExitingThread(thread);
+    });
+
+    const nextLinks: Record<string, string> = {};
+    for (const [linkedLeft, linkedRight] of Object.entries(links)) {
+      if (linkedLeft !== leftId && linkedRight !== rightId) {
+        nextLinks[linkedLeft] = linkedRight;
+      }
+    }
+    nextLinks[leftId] = rightId;
+
+    setLinks(nextLinks);
     setSelected(null);
+    resetCheck();
+    haptics.selection();
+
+    if (method === 'tap') {
+      setAnimatedLinkId(leftId);
+      window.setTimeout(() => {
+        setAnimatedLinkId(current => (current === leftId ? null : current));
+      }, LINK_DRAW_MS);
+    } else {
+      setAnimatedLinkId(current => (current === leftId ? null : current));
+    }
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const effectTileId = effectSide === 'right' ? rightId : leftId;
+    const effectElement = container.querySelector<HTMLElement>(
+      effectSide === 'right'
+        ? `[data-tile-right="${effectTileId}"]`
+        : `[data-tile-left="${effectTileId}"]`,
+    );
+    if (!effectElement) return;
+
+    const base = container.getBoundingClientRect();
+    const anchor = anchorForRect(effectElement.getBoundingClientRect(), effectSide, base);
+    const key = ++burstKeyRef.current;
+
+    setBurst({
+      key,
+      x: anchor.x,
+      y: anchor.y,
+      color: colorFor(leftId),
+      delayed: method === 'tap',
+    });
+    window.setTimeout(() => {
+      setBurst(current => (current?.key === key ? null : current));
+    }, BURST_MS);
   };
 
-  const handleTapLeft = (id: string) => {
-    if (suppressClickRef.current) {
+  const detachLink = (leftId: string) => {
+    if (solved) return;
+
+    const thread = threads.find(item => item.id === leftId);
+    if (thread) addExitingThread(thread);
+
+    setLinks(previous => {
+      if (!(leftId in previous)) return previous;
+      const next = { ...previous };
+      delete next[leftId];
+      return next;
+    });
+    setAnimatedLinkId(current => (current === leftId ? null : current));
+    setSelected(null);
+    resetCheck();
+    haptics.selection();
+  };
+
+  const handleTapLeft = (id: string, fromPointer = false) => {
+    if (!fromPointer && suppressClickRef.current) {
       suppressClickRef.current = false;
       return;
     }
     if (solved) return;
 
+    if (links[id]) {
+      detachLink(id);
+      return;
+    }
+
     if (selected?.side === 'right') {
-      applyLink(id, selected.id);
+      applyLink(id, selected.id, 'tap', 'right');
       return;
     }
 
     resetCheck();
     haptics.selection();
-
-    if (links[id]) {
-      const next = { ...links };
-      delete next[id];
-      setLinks(next);
-    }
-
-    setSelected(previous => (previous?.side === 'left' && previous.id === id ? null : { side: 'left', id }));
+    setSelected(previous =>
+      previous?.side === 'left' && previous.id === id ? null : { side: 'left', id },
+    );
   };
 
-  const handleTapRight = (rightId: string) => {
-    if (suppressClickRef.current) {
+  const handleTapRight = (rightId: string, fromPointer = false) => {
+    if (!fromPointer && suppressClickRef.current) {
       suppressClickRef.current = false;
       return;
     }
     if (solved) return;
 
+    const owner = rightOwner(rightId);
+    if (owner) {
+      detachLink(owner);
+      return;
+    }
+
     if (selected?.side === 'left') {
-      applyLink(selected.id, rightId);
+      applyLink(selected.id, rightId, 'tap', 'right');
       return;
     }
 
@@ -173,24 +381,35 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
     );
   };
 
-  const beginDrag = (event: React.PointerEvent, id: string, side: 'left' | 'right') => {
-    if (solved) return;
+  const beginDrag = (event: React.PointerEvent, id: string, side: Side) => {
+    if (solved || event.button > 0) return;
+
     const container = containerRef.current;
     if (!container) return;
 
+    const element = event.currentTarget as HTMLElement;
     const base = container.getBoundingClientRect();
-    const tile = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const y = tile.top + tile.height / 2 - base.top;
+    const anchor = anchorForRect(element.getBoundingClientRect(), side, base);
 
     setDrag({
       id,
       side,
+      pointerId: event.pointerId,
       originX: event.clientX,
       originY: event.clientY,
-      x: (side === 'left' ? tile.right : tile.left) - base.left,
-      y,
+      sourceX: anchor.x,
+      sourceY: anchor.y,
+      x: anchor.x,
+      y: anchor.y,
       active: false,
+      snap: null,
     });
+
+    try {
+      element.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer capture не поддерживается — останется обычное поведение.
+    }
   };
 
   const moveDrag = (event: React.PointerEvent) => {
@@ -198,42 +417,67 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
     const container = containerRef.current;
     if (!current || !container) return;
 
-    const base = container.getBoundingClientRect();
     const moved =
       current.active ||
-      Math.hypot(event.clientX - current.originX, event.clientY - current.originY) > 8;
-
+      Math.hypot(event.clientX - current.originX, event.clientY - current.originY) >
+        DRAG_THRESHOLD;
     if (!moved) return;
+
+    if (!current.active) {
+      setSelected(null);
+    }
+
+    const base = container.getBoundingClientRect();
+    const snap = findSnapTarget(container, event.clientX, event.clientY, current.side);
 
     setDrag({
       ...current,
       active: true,
-      x: event.clientX - base.left,
-      y: event.clientY - base.top,
+      x: snap ? snap.x : event.clientX - base.left,
+      y: snap ? snap.y : event.clientY - base.top,
+      snap,
     });
   };
 
   const endDrag = (event: React.PointerEvent) => {
     const current = dragRef.current;
     if (!current) return;
+
+    const container = containerRef.current;
     setDrag(null);
 
-    if (!current.active) return;
+    if (!current.active) {
+      // Обрабатываем тап на pointerup: клик по формулам внутри KaTeX
+      // иногда не досылается браузером после pointer capture.
+      if (current.side === 'left') {
+        handleTapLeft(current.id, true);
+      } else {
+        handleTapRight(current.id, true);
+      }
+      suppressClickRef.current = true;
+      window.setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 80);
+      return;
+    }
 
     suppressClickRef.current = true;
-    const target = document
-      .elementFromPoint(event.clientX, event.clientY)
-      ?.closest<HTMLElement>('[data-tile-left], [data-tile-right]');
+    window.setTimeout(() => {
+      suppressClickRef.current = false;
+    }, 80);
 
-    if (!target) return;
+    const snap =
+      current.snap ??
+      (container
+        ? findSnapTarget(container, event.clientX, event.clientY, current.side)
+        : null);
 
-    const leftId = target.dataset.tileLeft;
-    const rightId = target.dataset.tileRight;
+    if (!snap) return;
 
-    if (current.side === 'left' && rightId) {
-      applyLink(current.id, rightId);
-    } else if (current.side === 'right' && leftId) {
-      applyLink(leftId, current.id);
+    if (current.side === 'left' && snap.side === 'right') {
+      applyLink(current.id, snap.id, 'drag', 'right');
+    } else if (current.side === 'right' && snap.side === 'left') {
+      applyLink(snap.id, current.id, 'drag', 'left');
     }
   };
 
@@ -268,27 +512,50 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
     haptics.notification('error');
   };
 
-  const rightOwner = (rightId: string) =>
-    Object.entries(links).find(([, linkedRight]) => linkedRight === rightId)?.[0];
-
-  const dragSource = drag?.active
-    ? (() => {
-        const container = containerRef.current;
-        if (!container) return null;
-        const el = container.querySelector<HTMLElement>(
-          drag.side === 'left'
-            ? `[data-tile-left="${drag.id}"]`
-            : `[data-tile-right="${drag.id}"]`,
-        );
-        if (!el) return null;
-        const tile = el.getBoundingClientRect();
-        const base = container.getBoundingClientRect();
-        return {
-          x: (drag.side === 'left' ? tile.right : tile.left) - base.left,
-          y: tile.top + tile.height / 2 - base.top,
-        };
-      })()
+  const draggingThreadId = drag
+    ? drag.side === 'left'
+      ? drag.id
+      : rightOwner(drag.id)
     : null;
+
+  const tempPath = drag
+    ? drag.side === 'left'
+      ? buildThreadPath(drag.sourceX, drag.sourceY, drag.x, drag.y)
+      : buildThreadPath(drag.x, drag.y, drag.sourceX, drag.sourceY)
+    : '';
+
+  const renderDots = (thread: Thread, dotClass = '') => (
+    <>
+      <circle
+        cx={thread.x1}
+        cy={thread.y1}
+        r={HALO_RADIUS}
+        fill={thread.color}
+        className="mg-thread__halo"
+      />
+      <circle
+        cx={thread.x1}
+        cy={thread.y1}
+        r={DOT_RADIUS}
+        fill={thread.color}
+        className={`mg-thread__dot ${dotClass}`}
+      />
+      <circle
+        cx={thread.x2}
+        cy={thread.y2}
+        r={HALO_RADIUS}
+        fill={thread.color}
+        className="mg-thread__halo"
+      />
+      <circle
+        cx={thread.x2}
+        cy={thread.y2}
+        r={DOT_RADIUS}
+        fill={thread.color}
+        className={`mg-thread__dot ${dotClass}`}
+      />
+    </>
+  );
 
   return (
     <GameShell
@@ -336,62 +603,129 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
     >
       <div className="mg-question__meta">
         <StatusBadge status="neutral" text={section ? section.title : 'Физика'} />
-        <span className="mg-question__meta-text">
-          {topic?.title}
-        </span>
+        <span className="mg-question__meta-text">{topic?.title}</span>
       </div>
 
-      <p className="mg-question__prompt"><MathText text={task.prompt} /></p>
+      <p className="mg-question__prompt">
+        <MathText text={task.prompt} />
+      </p>
       <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-muted)' }}>
-        Соедините пары: нажмите на две плитки или протяните нитку от одной к другой
+        Соедините пары: нажмите на две плитки или протяните нитку. Повторное нажатие
+        на связанную плитку отвязывает её.
         {errors > 0 ? ` · ошибок: ${errors}` : ''}
       </p>
 
       <div className="mg-match" ref={containerRef}>
         <svg className="mg-match__threads" aria-hidden>
           {threads.map(thread => (
-            <g key={thread.id}>
+            <g
+              key={thread.id}
+              className={
+                drag?.active && thread.id === draggingThreadId
+                  ? 'mg-thread__group--dragging'
+                  : undefined
+              }
+            >
               <path
-                className="mg-thread"
+                className={`mg-thread ${
+                  animatedLinkId === thread.id ? 'mg-thread--draw' : ''
+                }`}
                 pathLength={1}
-                d={`M ${thread.x1} ${thread.y1} C ${thread.x1 + 22} ${thread.y1}, ${
-                  thread.x2 - 22
-                } ${thread.y2}, ${thread.x2} ${thread.y2}`}
+                d={buildThreadPath(thread.x1, thread.y1, thread.x2, thread.y2)}
                 stroke={thread.color}
                 strokeWidth={2.5}
                 fill="none"
                 strokeLinecap="round"
               />
-              <circle cx={thread.x1} cy={thread.y1} r={3.5} fill={thread.color} className="mg-thread__dot" />
-              <circle cx={thread.x2} cy={thread.y2} r={3.5} fill={thread.color} className="mg-thread__dot" />
+              {renderDots(thread)}
             </g>
           ))}
 
-          {dragSource && drag && (
-            <path
-              className="mg-thread--temp"
-              d={`M ${dragSource.x} ${dragSource.y} Q ${(dragSource.x + drag.x) / 2} ${
-                (dragSource.y + drag.y) / 2 - 10
-              }, ${drag.x} ${drag.y}`}
-              stroke={drag.side === 'left' ? colorFor(drag.id) : 'var(--accent)'}
-              strokeWidth={2.5}
+          {exitingThreads.map(thread => (
+            <g key={thread.key}>
+              <path
+                className="mg-thread mg-thread--exit"
+                pathLength={1}
+                d={buildThreadPath(thread.x1, thread.y1, thread.x2, thread.y2)}
+                stroke={thread.color}
+                strokeWidth={2.5}
+                fill="none"
+                strokeLinecap="round"
+              />
+              {renderDots(thread, 'mg-thread__dot--exit')}
+            </g>
+          ))}
+
+          {drag?.active && (
+            <g>
+              <path
+                className="mg-thread mg-thread--temp"
+                d={tempPath}
+                stroke={colorFor(drag.id)}
+                strokeWidth={2.5}
+                fill="none"
+                strokeLinecap="round"
+              />
+              <circle
+                cx={drag.side === 'left' ? drag.sourceX : drag.x}
+                cy={drag.side === 'left' ? drag.sourceY : drag.y}
+                r={HALO_RADIUS}
+                fill={colorFor(drag.id)}
+                className="mg-thread__halo"
+              />
+              <circle
+                cx={drag.side === 'left' ? drag.sourceX : drag.x}
+                cy={drag.side === 'left' ? drag.sourceY : drag.y}
+                r={DOT_RADIUS}
+                fill={colorFor(drag.id)}
+                className="mg-thread__dot"
+              />
+              <circle
+                cx={drag.side === 'left' ? drag.x : drag.sourceX}
+                cy={drag.side === 'left' ? drag.y : drag.sourceY}
+                r={HALO_RADIUS}
+                fill={colorFor(drag.id)}
+                className="mg-thread__halo"
+              />
+              <circle
+                cx={drag.side === 'left' ? drag.x : drag.sourceX}
+                cy={drag.side === 'left' ? drag.y : drag.sourceY}
+                r={DOT_RADIUS}
+                fill={colorFor(drag.id)}
+                className="mg-thread__dot"
+              />
+            </g>
+          )}
+
+          {burst && (
+            <circle
+              key={burst.key}
+              cx={burst.x}
+              cy={burst.y}
+              r={DOT_RADIUS}
+              stroke={burst.color}
+              strokeWidth={2}
               fill="none"
-              strokeLinecap="round"
+              className={`mg-thread__burst ${
+                burst.delayed ? 'mg-thread__burst--delayed' : ''
+              }`}
             />
           )}
         </svg>
 
         <div className="mg-match__col">
-          <div className="mg-match__col-title">Слева</div>
           {task.pairs.map(pair => {
             const linkedRightId = links[pair.id];
             const color = colorFor(pair.id);
             const isSelected = selected?.side === 'left' && selected.id === pair.id;
+            const isSnapTarget = drag?.snap?.side === 'left' && drag.snap.id === pair.id;
 
             const className = [
               'mg-tile',
+              'mg-tile--left',
               linkedRightId ? 'mg-tile--linked' : '',
               isSelected ? 'mg-tile--selected' : '',
+              isSnapTarget ? 'mg-tile--snap' : '',
               wrongIds.includes(pair.id) ? 'mg-tile--wrong' : '',
               solved && links[pair.id] === pair.id ? 'mg-tile--correct' : '',
             ]
@@ -425,16 +759,18 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
         </div>
 
         <div className="mg-match__col">
-          <div className="mg-match__col-title">Справа</div>
           {rightItems.map(pair => {
             const owner = rightOwner(pair.id);
             const color = owner ? colorFor(owner) : undefined;
             const isSelected = selected?.side === 'right' && selected.id === pair.id;
+            const isSnapTarget = drag?.snap?.side === 'right' && drag.snap.id === pair.id;
 
             const className = [
               'mg-tile',
+              'mg-tile--right',
               owner ? 'mg-tile--taken' : '',
               isSelected ? 'mg-tile--selected' : '',
+              isSnapTarget ? 'mg-tile--snap' : '',
               owner && wrongIds.includes(owner) ? 'mg-tile--wrong' : '',
               solved && owner ? 'mg-tile--correct' : '',
             ]
