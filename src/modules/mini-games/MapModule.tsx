@@ -36,7 +36,12 @@ type Screen =
   | { name: 'session'; config: SessionConfig }
   | { name: 'result'; config: SessionConfig; summary: SessionSummary; bossLost?: boolean };
 
-export const MapModule: React.FC = () => {
+interface MapModuleProps {
+  /** Куда прокрутить карту после перехода с главного экрана. */
+  focusTopicId?: TopicId | null;
+}
+
+export const MapModule: React.FC<MapModuleProps> = ({ focusTopicId = null }) => {
   const [route, setRoute] = useState<Screen>({ name: 'journey' });
   const [history, setHistory] = useState<Screen[]>([]);
   const [progress, setProgress] = useState(() => loadUserProgress());
@@ -197,6 +202,7 @@ export const MapModule: React.FC = () => {
     <div className="mini-games">
       <JourneyMapScreen
         progress={progress.practice}
+        focusTopicId={focusTopicId}
         onStartLevel={(sectionId, topicId) => navigate({ name: 'theory', sectionId, topicId })}
         onStartBoss={startBoss}
         onChooseSection={handleChooseSection}

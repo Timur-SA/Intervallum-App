@@ -1,0 +1,146 @@
+.streak-flame {
+  --streak-speed: 3s;
+  --streak-glow: transparent;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--text-muted) 65%, var(--warning));
+  filter: drop-shadow(0 0 0 transparent);
+  vertical-align: middle;
+}
+
+.streak-flame__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.streak-flame__body {
+  stroke-linejoin: round;
+}
+
+.streak-flame__number {
+  fill: var(--text-primary);
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  font-family: inherit;
+  paint-order: stroke fill;
+  stroke: color-mix(in srgb, var(--bg-card) 65%, transparent);
+  stroke-width: 0.8px;
+}
+
+.streak-flame__inner {
+  fill: color-mix(in srgb, #fff 45%, #ff8a00);
+  opacity: 0.28;
+}
+
+.streak-flame__spark {
+  fill: currentColor;
+  opacity: 0;
+}
+
+.streak-flame--yellow {
+  color: #ffd43b;
+  --streak-speed: 3s;
+  filter: drop-shadow(0 0 5px rgba(255, 212, 59, 0.25));
+}
+
+.streak-flame--yellow .streak-flame__number {
+  fill: #3d2b00;
+  stroke: none;
+}
+
+.streak-flame--orange .streak-flame__number,
+.streak-flame--red .streak-flame__number,
+.streak-flame--purple .streak-flame__number {
+  fill: #fff;
+  stroke: rgba(0, 0, 0, 0.18);
+}
+
+.streak-flame--orange {
+  color: #ff9d1c;
+  --streak-speed: 2.1s;
+  filter: drop-shadow(0 0 7px rgba(255, 157, 28, 0.35));
+}
+
+.streak-flame--red {
+  color: #ff4d22;
+  --streak-speed: 1.4s;
+  filter: drop-shadow(0 0 9px rgba(255, 77, 34, 0.4));
+}
+
+.streak-flame--purple {
+  color: #a76bff;
+  --streak-speed: 0.9s;
+  filter: drop-shadow(0 0 10px rgba(167, 107, 255, 0.48));
+}
+
+.streak-flame.is-animated .streak-flame__body {
+  transform-origin: 50% 94%;
+  animation: streak-flicker var(--streak-speed) ease-in-out infinite;
+}
+
+.streak-flame.is-animated .streak-flame__spark {
+  animation: streak-spark calc(var(--streak-speed) * 0.75) ease-out infinite;
+}
+
+.streak-flame.is-animated .spark-a {
+  animation-delay: -0.3s;
+}
+
+.streak-flame.is-animated .spark-b {
+  animation-delay: -0.6s;
+}
+
+.streak-flame.is-animated .spark-c {
+  animation-delay: -0.15s;
+}
+
+.streak-flame.is-static .streak-flame__body {
+  animation: none;
+}
+
+@keyframes streak-flicker {
+  0%,
+  100% {
+    transform: scale(1, 1) rotate(0deg);
+    filter: brightness(1);
+  }
+  25% {
+    transform: scale(0.985, 1.025) rotate(-0.7deg);
+    filter: brightness(1.06);
+  }
+  50% {
+    transform: scale(1.02, 0.985) rotate(0.6deg);
+    filter: brightness(0.98);
+  }
+  75% {
+    transform: scale(0.99, 1.015) rotate(-0.35deg);
+    filter: brightness(1.04);
+  }
+}
+
+@keyframes streak-spark {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.7);
+  }
+  22% {
+    opacity: 0.65;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-flame.is-animated .streak-flame__body,
+  .streak-flame.is-animated .streak-flame__spark {
+    animation: none;
+  }
+}

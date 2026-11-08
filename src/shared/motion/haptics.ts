@@ -8,6 +8,15 @@
 
 type HapticCall = () => unknown;
 
+let hapticsEnabled = true;
+
+/** Глобальный выключатель вибрации/хаптики. */
+export const setHapticsEnabled = (enabled: boolean): void => {
+  hapticsEnabled = enabled;
+};
+
+export const isHapticsEnabled = (): boolean => hapticsEnabled;
+
 const invokeSafely = (call: HapticCall): boolean => {
   try {
     const result = call();
@@ -32,6 +41,7 @@ const vibrate = (pattern: number | number[]) => {
 
 export const haptics = {
   impact: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft' = 'light') => {
+    if (!hapticsEnabled) return;
     const haptic = (window as unknown as { WebApp?: { HapticFeedback?: {
       impactOccurred?: (value: string) => unknown;
     } } })?.WebApp?.HapticFeedback;
@@ -45,6 +55,7 @@ export const haptics = {
   },
 
   notification: (type: 'error' | 'success' | 'warning' = 'success') => {
+    if (!hapticsEnabled) return;
     const haptic = (window as unknown as { WebApp?: { HapticFeedback?: {
       notificationOccurred?: (value: string) => unknown;
     } } })?.WebApp?.HapticFeedback;
@@ -60,6 +71,7 @@ export const haptics = {
   },
 
   selection: () => {
+    if (!hapticsEnabled) return;
     const haptic = (window as unknown as { WebApp?: { HapticFeedback?: {
       selectionChanged?: () => unknown;
     } } })?.WebApp?.HapticFeedback;

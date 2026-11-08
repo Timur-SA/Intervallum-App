@@ -1,3 +1,5 @@
+import { getDateKey, shiftDateKey } from '../dev/timeTravel';
+
 /**
  * Unified Progress & Session persistence store
  * Force lab и тренажёр формул награждают звёздами, практика ОГЭ — опытом и звёздами.
@@ -37,6 +39,35 @@ export interface PracticeProgress {
   items: string[];
 }
 
+export type ThemePreference = 'auto' | 'light' | 'dark';
+
+export interface AppSettings {
+  theme: ThemePreference;
+  sound: boolean;
+  haptics: boolean;
+}
+
+export interface UserProfileData {
+  avatarDataUrl: string | null;
+  badgeId: string | null;
+}
+
+/**
+ * Активность по дням и Daily Streak.
+ * Ключи дат — локальные YYYY-MM-DD.
+ */
+export interface DailyActivityState {
+  counts: Record<string, number>;
+  currentStreak: number;
+  bestStreak: number;
+  lastActiveDate: string | null;
+  /** Нужно показать анимацию обновления серии. */
+  pendingCelebrationDate: string | null;
+  /** Пользователь пропустил день; нужно показать сообщение о потере серии. */
+  pendingBreakDate: string | null;
+  pendingBreakLostDays: number;
+}
+
 export interface UserProgressData {
   forceLab: {
     completedTaskIds: string[];
@@ -48,6 +79,9 @@ export interface UserProgressData {
     stars: number;
   };
   practice: PracticeProgress;
+  activity: DailyActivityState;
+  profile: UserProfileData;
+  settings: AppSettings;
 }
 
 export const FORCE_DIFFICULTIES: Record<string, number> = {
@@ -77,6 +111,13 @@ export const totalXp = (practice: PracticeProgress): number =>
 export const calcFormulaStars = (taskIds: string[]): number =>
   taskIds.reduce((sum, id) => sum + (FORMULA_DIFFICULTIES[id] || 1), 0);
 
+export const activeDaysCount = (activity: DailyActivityState): number =>
+  Object.values(activity.counts).filter(count => count > 0).length;
+
+/** Уникальные задания, которые пользователь хотя бы раз выполнял. */
+export const completedTasksCount = (practice: PracticeProgress): number =>
+  Object.values(practice.taskStats).filter(stat => stat.attempts > 0).length;
+
 const createDefaultPractice = (): PracticeProgress => ({
   xpByTopic: {},
   exploredTypes: [],
@@ -86,6 +127,27 @@ const createDefaultPractice = (): PracticeProgress => ({
   defeatedBosses: [],
   unlockedSections: [],
   items: [],
+});
+
+const createDefaultActivity = (): DailyActivityState => ({
+  counts: {},
+  currentStreak: 0,
+  bestStreak: 0,
+  lastActiveDate: null,
+  pendingCelebrationDate: null,
+  pendingBreakDate: null,
+  pendingBreakLostDays: 0,
+});
+
+const createDefaultProfile = (): UserProfileData => ({
+  avatarDataUrl: null,
+  badgeId: null,
+});
+
+const createDefaultSettings = (): AppSettings => ({
+  theme: 'auto',
+  sound: true,
+  haptics: true,
 });
 
 const createDefaultProgress = (): UserProgressData => ({
@@ -99,19 +161,49 @@ const createDefaultProgress = (): UserProgressData => ({
     stars: 0,
   },
   practice: createDefaultPractice(),
+  activity: createDefaultActivity(),
+  profile: createDefaultProfile(),
+  settings: createDefaultSettings(),
 });
 
 const numericRecord = (value: unknown): Record<string, number> => {
   if (!value || typeof value !== 'object') return {};
   return Object.fromEntries(
     Object.entries(value as Record<string, unknown>).filter(
-      (entry): entry is [string, number] => typeof entry[1] === 'number',
+      (entry): entry is [string, number] =>
+        typeof entry[1] === 'number' && Number.isFinite(entry[1]),
     ),
+  );
+};
+
+const positiveIntegerRecord = (value: unknown): Record<string, number> => {
+  if (!value || typeof value !== 'object') return {};
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .filter(
+        (entry): entry is [string, number] =>
+          typeof entry[1] === 'number' && Number.isFinite(entry[1]) && entry[1] > 0,
+      )
+      .map(([key, count]) => [key, Math.floor(count)]),
   );
 };
 
 const stringArray = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+
+const stringOrNull = (value: unknown): string | null =>
+  typeof value === 'string' && value.length > 0 ? value : null;
+
+const nonNegativeInteger = (value: unknown): number =>
+  typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? Math.floor(value)
+    : 0;
+
+const booleanValue = (value: unknown, fallback: boolean): boolean =>
+  typeof value === 'boolean' ? value : fallback;
+
+const themePreference = (value: unknown): ThemePreference =>
+  value === 'light' || value === 'dark' || value === 'auto' ? value : 'auto';
 
 const taskStatsRecord = (value: unknown): Record<string, TaskStat> => {
   if (!value || typeof value !== 'object') return {};
@@ -126,6 +218,11 @@ const taskStatsRecord = (value: unknown): Record<string, TaskStat> => {
     };
   }
   return result;
+};
+
+const emitProgressChanged = (): void => {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('intervallum:progress-changed'));
 };
 
 export const loadUserProgress = (): UserProgressData => {
@@ -159,11 +256,32 @@ export const loadUserProgress = (): UserProgressData => {
       practice.exploredTypes = stringArray(parsed.quizLab.completedGameIds);
     }
 
+    const activityRaw = parsed?.activity;
+    const activity: DailyActivityState = {
+      counts: positiveIntegerRecord(activityRaw?.counts),
+      currentStreak: nonNegativeInteger(activityRaw?.currentStreak),
+      bestStreak: nonNegativeInteger(activityRaw?.bestStreak),
+      lastActiveDate: stringOrNull(activityRaw?.lastActiveDate),
+      pendingCelebrationDate: stringOrNull(activityRaw?.pendingCelebrationDate),
+      pendingBreakDate: stringOrNull(activityRaw?.pendingBreakDate),
+      pendingBreakLostDays: nonNegativeInteger(activityRaw?.pendingBreakLostDays),
+    };
+
+    const profile: UserProfileData = {
+      avatarDataUrl: stringOrNull(parsed?.profile?.avatarDataUrl),
+      badgeId: stringOrNull(parsed?.profile?.badgeId),
+    };
+
+    const settings: AppSettings = {
+      theme: themePreference(parsed?.settings?.theme),
+      sound: booleanValue(parsed?.settings?.sound, true),
+      haptics: booleanValue(parsed?.settings?.haptics, true),
+    };
+
     return {
       forceLab: {
         completedTaskIds: forceCompleted,
         savedVectors: parsed?.forceLab?.savedVectors || {},
-        // Compute stars deterministically according to 1/2/3 difficulty
         stars: calcForceStars(forceCompleted),
       },
       formulaTrainer: {
@@ -171,6 +289,9 @@ export const loadUserProgress = (): UserProgressData => {
         stars: calcFormulaStars(formulaCompleted),
       },
       practice,
+      activity,
+      profile,
+      settings,
     };
   } catch {
     return fallback;
@@ -181,6 +302,7 @@ export const saveUserProgress = (data: UserProgressData): void => {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    emitProgressChanged();
   } catch {
     // Ignore quota errors
   }
@@ -190,9 +312,125 @@ export const resetUserProgress = (): void => {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(STORAGE_KEY);
+    emitProgressChanged();
   } catch {
     // ignore
   }
+};
+
+/** Dev-действие: имитирует одно выполненное задание для проверки активности. */
+export const recordDevActivity = (): UserProgressData => {
+  const current = loadUserProgress();
+  registerActivity(current);
+  saveUserProgress(current);
+  return current;
+};
+
+/** Удаляет учебный прогресс, но сохраняет настройки и аватар. */
+export const resetLearningProgress = (): UserProgressData => {
+  const current = loadUserProgress();
+  const avatarDataUrl = current.profile.avatarDataUrl;
+
+  current.forceLab = {
+    completedTaskIds: [],
+    savedVectors: {},
+    stars: 0,
+  };
+  current.formulaTrainer = {
+    completedTaskIds: [],
+    stars: 0,
+  };
+  current.practice = createDefaultPractice();
+  current.activity = createDefaultActivity();
+  current.profile = {
+    avatarDataUrl,
+    badgeId: null,
+  };
+
+  saveUserProgress(current);
+  return current;
+};
+
+export const updateAppSettings = (patch: Partial<AppSettings>): AppSettings => {
+  const current = loadUserProgress();
+  current.settings = {
+    ...current.settings,
+    ...patch,
+  };
+  saveUserProgress(current);
+  return current.settings;
+};
+
+export const updateUserProfile = (patch: Partial<UserProfileData>): UserProfileData => {
+  const current = loadUserProgress();
+  current.profile = {
+    ...current.profile,
+    ...patch,
+  };
+  saveUserProgress(current);
+  return current.profile;
+};
+
+const registerActivity = (current: UserProgressData): void => {
+  const today = getDateKey();
+  const yesterday = shiftDateKey(today, -1);
+  const activity = current.activity;
+
+  activity.counts[today] = (activity.counts[today] ?? 0) + 1;
+
+  if (activity.lastActiveDate === today) return;
+
+  const isConsecutive = activity.lastActiveDate === yesterday;
+  activity.currentStreak = isConsecutive ? activity.currentStreak + 1 : 1;
+  activity.bestStreak = Math.max(activity.bestStreak, activity.currentStreak);
+  activity.lastActiveDate = today;
+  activity.pendingCelebrationDate = today;
+  activity.pendingBreakDate = null;
+  activity.pendingBreakLostDays = 0;
+};
+
+/**
+ * Проверка на старте: если после последней активности прошло больше дня,
+ * фиксируем потерю серии. Анимацию показывает AppShell/Home.
+ */
+export const prepareStreakOnLaunch = (): UserProgressData => {
+  const current = loadUserProgress();
+  const today = getDateKey();
+  const yesterday = shiftDateKey(today, -1);
+  const activity = current.activity;
+
+  if (activity.pendingBreakDate) {
+    return current;
+  }
+
+  if (
+    activity.currentStreak > 0 &&
+    activity.lastActiveDate &&
+    activity.lastActiveDate < yesterday
+  ) {
+    activity.pendingBreakDate = today;
+    activity.pendingBreakLostDays = activity.currentStreak;
+    activity.pendingCelebrationDate = null;
+    activity.currentStreak = 0;
+    saveUserProgress(current);
+  }
+
+  return current;
+};
+
+export const acknowledgeStreakBreak = (): UserProgressData => {
+  const current = loadUserProgress();
+  current.activity.pendingBreakDate = null;
+  current.activity.pendingBreakLostDays = 0;
+  saveUserProgress(current);
+  return current;
+};
+
+export const acknowledgeStreakCelebration = (): UserProgressData => {
+  const current = loadUserProgress();
+  current.activity.pendingCelebrationDate = null;
+  saveUserProgress(current);
+  return current;
 };
 
 export const markForceTaskCompleted = (
@@ -223,7 +461,7 @@ export const markFormulaTaskCompleted = (taskId: string): UserProgressData => {
 
 /**
  * Записывает результат задания: опыт по теме, статистику задачи,
- * лучшую долю по типу и звёзды за сложные/новые задачи.
+ * лучшую долю по типу и активность за день.
  */
 export const recordTaskResult = (params: {
   taskId: string;
@@ -234,7 +472,7 @@ export const recordTaskResult = (params: {
   score: number;
 }): UserProgressData => {
   const current = loadUserProgress();
-  const { taskId, taskType, topicId, sectionId, xp, score } = params;
+  const { taskId, taskType, topicId, xp, score } = params;
   const previousStat = current.practice.taskStats[taskId];
 
   const previousBestXp = current.practice.bestXpByTask[taskId] ?? 0;
@@ -260,6 +498,7 @@ export const recordTaskResult = (params: {
     bestScore: Math.max(previousStat?.bestScore ?? 0, Math.max(0, Math.min(1, score))),
   };
 
+  registerActivity(current);
   saveUserProgress(current);
   return current;
 };

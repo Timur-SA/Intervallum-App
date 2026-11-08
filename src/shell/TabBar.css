@@ -1,0 +1,148 @@
+.app-tabbar {
+  position: relative;
+  z-index: 40;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.app-tabbar__rail {
+  display: flex;
+  align-items: stretch;
+}
+
+.app-tabbar__item {
+  position: relative;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 5px 4px;
+  transition:
+    color 160ms ease,
+    transform 160ms ease,
+    background-color 160ms ease;
+}
+
+.app-tabbar__item:active {
+  transform: scale(0.94);
+}
+
+.app-tabbar__item.is-active {
+  color: var(--accent);
+}
+
+.app-tabbar__item.is-locked:not(.is-active) {
+  color: var(--text-muted);
+}
+
+.app-tabbar__icon-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.app-tabbar__label {
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.app-tabbar__lock {
+  position: absolute;
+  right: -5px;
+  top: -4px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+}
+
+/* iOS: floating glass capsule above the home indicator */
+.app-tabbar--ios {
+  padding: 6px 14px calc(8px + env(safe-area-inset-bottom, 0px));
+  background:
+    linear-gradient(to top, var(--bg-app) 0%, color-mix(in srgb, var(--bg-app) 72%, transparent) 62%, transparent 100%);
+}
+
+.app-tabbar--ios .app-tabbar__rail {
+  width: 100%;
+  max-width: 390px;
+  margin: 0 auto;
+  padding: 5px 7px;
+  border-radius: 25px;
+  background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 72%, transparent);
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 color-mix(in srgb, #fff 8%, transparent);
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+}
+
+.app-tabbar--ios .app-tabbar__item {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 19px;
+}
+
+.app-tabbar--ios .app-tabbar__item.is-active {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+}
+
+.app-tabbar--ios .app-tabbar__item.is-active .app-tabbar__icon-wrap {
+  color: var(--accent);
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 45%, transparent));
+}
+
+.app-tabbar--ios .app-tabbar__label {
+  font-size: 10px;
+}
+
+/* Android: full-width material-style bottom bar */
+.app-tabbar--android {
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+}
+
+.app-tabbar--android .app-tabbar__rail {
+  width: 100%;
+  gap: 2px;
+}
+
+.app-tabbar--android .app-tabbar__item {
+  flex: 1;
+  min-height: 52px;
+  border-radius: 12px;
+}
+
+.app-tabbar--android .app-tabbar__item.is-active {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.app-tabbar--android .app-tabbar__item.is-active .app-tabbar__icon-wrap {
+  transform: translateY(-1px);
+}
+
+.app-tabbar--android .app-tabbar__label {
+  font-size: 10.5px;
+}
+
+.app-tabbar--android .app-tabbar__lock {
+  background: var(--bg-card);
+}

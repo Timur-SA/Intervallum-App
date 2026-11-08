@@ -30,6 +30,7 @@ import { haptics } from '../../../shared/motion/haptics';
 
 interface JourneyMapScreenProps {
   progress: PracticeProgress;
+  focusTopicId?: TopicId | null;
   onStartLevel: (sectionId: SectionId, topicId: TopicId) => void;
   onStartBoss: (sectionId: SectionId) => void;
   onChooseSection: (sectionId: SectionId) => void;
@@ -99,6 +100,7 @@ const turnSide = (
 
 export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
   progress,
+  focusTopicId = null,
   onStartLevel,
   onStartBoss,
   onChooseSection,
@@ -107,6 +109,19 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
   const [selected, setSelected] = useState<{ sectionId: SectionId; topicId: TopicId } | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const [road, setRoad] = useState('');
+
+  useEffect(() => {
+    if (!focusTopicId) return;
+
+    const timer = window.setTimeout(() => {
+      const node = mapRef.current?.querySelector<HTMLElement>(
+        `[data-topic-id="${focusTopicId}"]`,
+      );
+      node?.scrollIntoView({ block: 'center', inline: 'nearest' });
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+  }, [focusTopicId, progress.unlockedSections, progress.defeatedBosses]);
 
   // Порядок разделов — порядок, в котором игрок их открывал.
   const visibleSections = ['mechanics', ...progress.unlockedSections.filter(id => id !== 'mechanics')]
@@ -274,6 +289,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                               ]
                                 .filter(Boolean)
                                 .join(' ')}
+                              data-topic-id={topicId}
                               disabled={!unlocked}
                               onClick={() => {
                                 haptics.selection();
