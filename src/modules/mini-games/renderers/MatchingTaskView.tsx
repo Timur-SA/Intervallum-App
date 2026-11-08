@@ -20,7 +20,7 @@ const DRAG_THRESHOLD = 8;
 const SNAP_MARGIN_X = 24;
 const SNAP_MARGIN_Y = 16;
 const LINK_DRAW_MS = 420;
-const EXIT_MS = 420;
+const EXIT_MS = 600;
 const BURST_MS = 900;
 
 type Side = 'left' | 'right';
@@ -93,6 +93,13 @@ const anchorForRect = (rect: DOMRect, side: Side, base: DOMRect): Point => ({
 });
 
 const oppositeSide = (side: Side): Side => (side === 'left' ? 'right' : 'left');
+
+/** Цвет заливки блока-пары: тот же цвет нитки, но глубже — для белого текста. */
+const linkedTileStyle = (color: string): React.CSSProperties =>
+  ({
+    '--tile-fill': `color-mix(in srgb, ${color} 70%, #0f172a)`,
+    '--tile-border': `color-mix(in srgb, ${color} 78%, white)`,
+  }) as React.CSSProperties;
 
 /**
  * Магнитная зона делится между плитками по серединам промежутков.
@@ -524,35 +531,35 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
       : buildThreadPath(drag.x, drag.y, drag.sourceX, drag.sourceY)
     : '';
 
-  const renderDots = (thread: Thread, dotClass = '') => (
+  const renderDots = (thread: Thread, exiting = false) => (
     <>
       <circle
         cx={thread.x1}
         cy={thread.y1}
         r={HALO_RADIUS}
         fill={thread.color}
-        className="mg-thread__halo"
+        className={`mg-thread__halo ${exiting ? 'mg-thread__halo--exit' : ''}`}
       />
       <circle
         cx={thread.x1}
         cy={thread.y1}
         r={DOT_RADIUS}
         fill={thread.color}
-        className={`mg-thread__dot ${dotClass}`}
+        className={`mg-thread__dot ${exiting ? 'mg-thread__dot--exit' : ''}`}
       />
       <circle
         cx={thread.x2}
         cy={thread.y2}
         r={HALO_RADIUS}
         fill={thread.color}
-        className="mg-thread__halo"
+        className={`mg-thread__halo ${exiting ? 'mg-thread__halo--exit' : ''}`}
       />
       <circle
         cx={thread.x2}
         cy={thread.y2}
         r={DOT_RADIUS}
         fill={thread.color}
-        className={`mg-thread__dot ${dotClass}`}
+        className={`mg-thread__dot ${exiting ? 'mg-thread__dot--exit' : ''}`}
       />
     </>
   );
@@ -652,7 +659,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
                 fill="none"
                 strokeLinecap="round"
               />
-              {renderDots(thread, 'mg-thread__dot--exit')}
+              {renderDots(thread, true)}
             </g>
           ))}
 
@@ -741,11 +748,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
                 stretched
                 className={className}
                 innerClassNames={{ content: 'mg-tile__content' }}
-                style={
-                  linkedRightId && !wrongIds.includes(pair.id)
-                    ? { boxShadow: `inset 0 0 0 1.5px ${color}` }
-                    : undefined
-                }
+                style={linkedRightId ? linkedTileStyle(color) : undefined}
                 onPointerDown={event => beginDrag(event, pair.id, 'left')}
                 onPointerMove={moveDrag}
                 onPointerUp={endDrag}
@@ -769,6 +772,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
               'mg-tile',
               'mg-tile--right',
               owner ? 'mg-tile--taken' : '',
+              owner ? 'mg-tile--linked' : '',
               isSelected ? 'mg-tile--selected' : '',
               isSnapTarget ? 'mg-tile--snap' : '',
               owner && wrongIds.includes(owner) ? 'mg-tile--wrong' : '',
@@ -786,11 +790,7 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
                 stretched
                 className={className}
                 innerClassNames={{ content: 'mg-tile__content' }}
-                style={
-                  owner && !wrongIds.includes(owner)
-                    ? { boxShadow: `inset 0 0 0 1.5px ${color}` }
-                    : undefined
-                }
+                style={owner && color ? linkedTileStyle(color) : undefined}
                 onPointerDown={event => beginDrag(event, pair.id, 'right')}
                 onPointerMove={moveDrag}
                 onPointerUp={endDrag}

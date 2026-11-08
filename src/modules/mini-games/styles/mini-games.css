@@ -412,6 +412,26 @@
   opacity: 0.5;
 }
 
+/* В светлой теме нейтральные блоки делаем белыми и контрастнее */
+[data-theme='light'] .mg-tile:not(.mg-tile--linked):not(.mg-tile--selected) {
+  background: var(--bg-card) !important;
+  border-color: rgba(15, 23, 42, 0.16) !important;
+}
+
+/* Связанный блок: заливка цветом нитки, яркая обводка, белый текст */
+.mg-tile--linked {
+  background: var(--tile-fill) !important;
+  border: 2px solid var(--tile-border) !important;
+  color: #fff !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.mg-tile--linked .mg-tile__content {
+  color: #fff !important;
+}
+
 .mg-tile--selected {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
@@ -1380,6 +1400,12 @@
 .mg-thread__halo {
   opacity: 0.18;
   pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.mg-thread__halo--exit {
+  animation: mg-thread-halo-exit 580ms ease-out forwards;
 }
 
 .mg-thread__dot {
@@ -1389,13 +1415,13 @@
 }
 
 .mg-thread__dot--exit {
-  animation: mg-thread-dot-exit 280ms ease-in forwards;
+  animation: mg-thread-dot-exit 560ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 .mg-thread--exit {
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
-  animation: mg-thread-exit 300ms ease-in forwards;
+  animation: mg-thread-exit 480ms ease-in forwards;
 }
 
 .mg-thread__group--dragging {
@@ -1427,9 +1453,28 @@
 }
 
 @keyframes mg-thread-dot-exit {
-  to {
-    transform: scale(0);
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(0.82);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(0.35);
     opacity: 0;
+  }
+}
+
+@keyframes mg-thread-halo-exit {
+  from {
+    opacity: 0.18;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.6);
   }
 }
 
@@ -2094,11 +2139,17 @@
   .mg-thread--draw,
   .mg-thread--exit,
   .mg-thread__dot--exit,
+  .mg-thread__halo--exit,
   .mg-thread__burst,
   .mg-thread__burst--delayed,
   .mg-section-node--selectable,
   .mg-node--boss-ready .mg-node__inner--boss {
     animation: none;
+  }
+
+  .mg-thread--exit .mg-thread__dot,
+  .mg-thread--exit .mg-thread__halo {
+    display: none;
   }
 
   .mg-thread--draw {
