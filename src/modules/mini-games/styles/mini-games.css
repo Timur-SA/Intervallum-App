@@ -752,7 +752,9 @@
   background: var(--bg-card);
   flex-shrink: 0;
   transition:
+    opacity 160ms ease,
     transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 160ms ease,
     box-shadow 160ms ease,
     filter 160ms ease;
 }
@@ -774,16 +776,20 @@
 }
 
 /* Стартовая анимация после переворота: подъехать — вспыхнуть — отойти. */
+.mg-cards__swipe-bar:not(.is-interacted) .mg-cards__swipe-side {
+  animation: mg-card-side-intro 920ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
+}
+
 .mg-cards__swipe-bar:not(.is-interacted) .mg-cards__swipe-side--left .mg-cards__swipe-arrow {
-  animation: mg-card-arrow-left 680ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both;
+  animation: mg-card-arrow-left 920ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
 }
 
 .mg-cards__swipe-bar:not(.is-interacted) .mg-cards__swipe-side--right .mg-cards__swipe-arrow {
-  animation: mg-card-arrow-right 680ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both;
+  animation: mg-card-arrow-right 920ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
 }
 
 .mg-cards__swipe-bar:not(.is-interacted) .mg-cards__swipe-icon {
-  animation: mg-card-cue-pulse 680ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both;
+  animation: mg-card-cue-pulse 920ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
 }
 
 .mg-cards__swipe-side.is-active .mg-cards__swipe-arrow,
@@ -812,17 +818,20 @@
 @keyframes mg-card-arrow-left {
   0% {
     opacity: 0;
-    transform: translateX(24px);
+    transform: translateX(18px) translateY(2px) scale(0.94);
   }
-  30% {
+  18% {
     opacity: 1;
-    transform: translateX(-7px);
+    transform: translateX(9px) translateY(0) scale(1);
   }
-  48% {
-    transform: translateX(-3px);
+  32% {
+    transform: translateX(7px);
   }
-  72% {
-    transform: translateX(2px);
+  56% {
+    transform: translateX(-6px);
+  }
+  68% {
+    transform: translateX(-4px);
   }
   100% {
     opacity: 1;
@@ -833,17 +842,20 @@
 @keyframes mg-card-arrow-right {
   0% {
     opacity: 0;
-    transform: translateX(-24px);
+    transform: translateX(-18px) translateY(2px) scale(0.94);
   }
-  30% {
+  18% {
     opacity: 1;
-    transform: translateX(7px);
+    transform: translateX(-9px) translateY(0) scale(1);
   }
-  48% {
-    transform: translateX(3px);
+  32% {
+    transform: translateX(-7px);
   }
-  72% {
-    transform: translateX(-2px);
+  56% {
+    transform: translateX(6px);
+  }
+  68% {
+    transform: translateX(4px);
   }
   100% {
     opacity: 1;
@@ -853,30 +865,54 @@
 
 @keyframes mg-card-cue-pulse {
   0%,
-  22% {
+  44% {
+    opacity: 0;
+    transform: scale(0.55);
+    background-color: var(--bg-card);
+    box-shadow: none;
+    filter: blur(2px);
+  }
+  56% {
+    opacity: 1;
+    transform: scale(1.14);
+    background-color: color-mix(in srgb, var(--edge-color) 16%, var(--bg-card));
+    box-shadow:
+      0 0 0 5px color-mix(in srgb, var(--edge-color) 20%, transparent),
+      0 0 24px color-mix(in srgb, var(--edge-color) 48%, transparent);
+    filter: drop-shadow(0 0 9px var(--edge-color));
+  }
+  68% {
+    opacity: 1;
+    transform: scale(1.07);
+    background-color: color-mix(in srgb, var(--edge-color) 10%, var(--bg-card));
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--edge-color) 16%, transparent),
+      0 0 16px color-mix(in srgb, var(--edge-color) 34%, transparent);
+    filter: drop-shadow(0 0 6px var(--edge-color));
+  }
+  82%,
+  100% {
+    opacity: 1;
     transform: scale(1);
+    background-color: var(--bg-card);
     box-shadow: none;
     filter: none;
   }
-  36%,
-  50% {
-    transform: scale(1.08);
-    box-shadow:
-      0 0 0 4px color-mix(in srgb, var(--edge-color) 20%, transparent),
-      0 0 18px color-mix(in srgb, var(--edge-color) 46%, transparent);
-    filter: drop-shadow(0 0 7px var(--edge-color));
+}
+
+@keyframes mg-card-side-intro {
+  0%,
+  44% {
+    opacity: 0.62;
   }
-  66% {
-    transform: scale(1.03);
-    box-shadow:
-      0 0 0 2px color-mix(in srgb, var(--edge-color) 14%, transparent),
-      0 0 10px color-mix(in srgb, var(--edge-color) 28%, transparent);
-    filter: drop-shadow(0 0 3px var(--edge-color));
+  56% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 0.8;
   }
   100% {
-    transform: scale(1);
-    box-shadow: none;
-    filter: none;
+    opacity: 0.62;
   }
 }
 
@@ -2511,6 +2547,7 @@
 
   .mg-game__body,
   .mg-game__fill--new,
+  .mg-cards__swipe-side,
   .mg-cards__swipe-arrow,
   .mg-cards__swipe-icon,
   .mg-result__badge,
