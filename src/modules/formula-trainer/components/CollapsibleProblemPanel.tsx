@@ -4,21 +4,29 @@ import { MathText } from '../../../shared/components/MathView';
 
 interface CollapsibleProblemPanelProps {
   task: PhysicsTask;
+  compact?: boolean;
+  guideControl?: React.ReactNode;
   onPointerDownGiven: (e: React.PointerEvent, symbol: string, value: number, unit: string) => void;
 }
 
 export const CollapsibleProblemPanel: React.FC<CollapsibleProblemPanelProps> = ({
   task,
+  compact = false,
+  guideControl,
   onPointerDownGiven
 }) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsedOverride, setCollapsed] = useState<boolean | null>(null);
+  const collapsed = collapsedOverride ?? compact;
 
   return (
     <div className={`problem-panel ${collapsed ? 'collapsed' : ''}`}>
       <div className="problem-panel-bar">
         <span className="panel-bar-title">Условие задачи</span>
+        {guideControl}
         <button
+          type="button"
           className="btn-toggle-panel"
+          aria-expanded={!collapsed}
           onClick={() => setCollapsed(!collapsed)}
           title={collapsed ? 'Развернуть условие' : 'Свернуть условие'}
         >

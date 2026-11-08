@@ -70,6 +70,10 @@
   overflow: hidden;
   box-shadow: var(--shadow-lg);
 }
+.formula-laws-sheet:not(.open) {
+  visibility: hidden;
+}
+
 .bottom-sheet.open {
   transform: translateY(0);
 }

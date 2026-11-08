@@ -2798,6 +2798,10 @@
   overflow: hidden !important;
 }
 
+.mg-game__body--flush:has(.formula-guide) .mg-interactive__meta {
+  display: none;
+}
+
 .mg-interactive__meta {
   display: flex;
   flex-wrap: wrap;

@@ -40,6 +40,7 @@ export interface PracticeProgress {
 export interface UserProgressData {
   onboarding?: 'started' | 'skipped' | 'completed';
   forceGuideDismissed?: true;
+  formulaGuideDismissed?: true;
   forceLab: {
     completedTaskIds: string[];
     savedVectors: Record<string, ForceVectorSave[]>;
@@ -167,6 +168,7 @@ export const loadUserProgress = (): UserProgressData => {
         ? onboarding
         : undefined,
       forceGuideDismissed: parsed?.forceGuideDismissed === true ? true : undefined,
+      formulaGuideDismissed: parsed?.formulaGuideDismissed === true ? true : undefined,
       forceLab: {
         completedTaskIds: forceCompleted,
         savedVectors: parsed?.forceLab?.savedVectors || {},
