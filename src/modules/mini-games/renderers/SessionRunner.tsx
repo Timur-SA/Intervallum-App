@@ -46,11 +46,13 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
   seed,
   onComplete,
 }) => {
-  // Карточки — учебная фаза в конце уровня, они не считаются заданиями.
   const practice = useMemo(() => tasks.filter(task => task.type !== 'cards'), [tasks]);
   const cards = useMemo(() => tasks.filter(task => task.type === 'cards'), [tasks]);
+  const totalTasks = practice.length + cards.length;
 
-  const [phase, setPhase] = useState<'practice' | 'cards'>('practice');
+  const [phase, setPhase] = useState<'practice' | 'cards'>(
+    practice.length ? 'practice' : 'cards',
+  );
   const [cardIndex, setCardIndex] = useState(0);
   const [acc, setAcc] = useState<Accumulator>({
     index: 0,
@@ -75,10 +77,10 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
 
     const current = accRef.current;
     onCompleteRef.current({
-      tasks: practice.length,
+      tasks: totalTasks,
       correct: current.correct,
       solved: current.solved,
-      score: practice.length ? current.correct / practice.length : 0,
+      score: totalTasks ? current.correct / totalTasks : 0,
       xp: current.xp,
       bestStreak: current.bestStreak,
       timeout,
@@ -110,14 +112,25 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
     if (!task) return;
 
     if (isCardsPhase) {
+      const gainedXp = sumXp(grade.xpByTopic);
+
       recordTaskResult({
         taskId: task.id,
         taskType: task.type,
         topicId: task.topic,
         sectionId: getSectionByTopic(task.topic)?.id ?? 'mechanics',
-        xp: 0,
+        xp: gainedXp,
         score: grade.score,
       });
+
+      const next: Accumulator = {
+        ...acc,
+        xp: acc.xp + gainedXp,
+        correct: acc.correct + grade.score,
+        solved: acc.solved + (grade.score >= 1 ? 1 : 0),
+      };
+      accRef.current = next;
+      setAcc(next);
 
       const nextCard = cardIndex + 1;
       if (nextCard >= cards.length) {
@@ -170,12 +183,7 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
       </span>
     ) : undefined;
 
-  const step = isCardsPhase ? cardIndex : acc.index;
-  const total = isCardsPhase ? cards.length : practice.length;
-
   const viewProps = {
-    step,
-    total,
     streak: acc.streak,
     headerRight,
     seed: seed ?? 'session',
@@ -183,16 +191,44 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
   };
 
   if (isCardsPhase && task.type === 'cards') {
-    return <CardTaskView key={`${task.id}-card-${cardIndex}`} task={task} {...viewProps} />;
+    return (
+      <CardTaskView
+        key={`${task.id}-card-${cardIndex}`}
+        task={task}
+        step={practice.length + cardIndex}
+        total={totalTasks}
+        cardIndex={cardIndex}
+        cardTotal={cards.length}
+        {...viewProps}
+      />
+    );
   }
 
   const Renderer = TASK_RENDERERS[task.type];
   if (Renderer) {
-    return <Renderer key={`${task.id}-${acc.index}`} task={task as never} {...viewProps} />;
+    return (
+      <Renderer
+        key={`${task.id}-${acc.index}`}
+        task={task as never}
+        step={acc.index}
+        total={totalTasks}
+        {...viewProps}
+      />
+    );
   }
 
   if (task.type === 'cards') {
-    return <CardTaskView key={`${task.id}-${acc.index}`} task={task} {...viewProps} />;
+    return (
+      <CardTaskView
+        key={`${task.id}-${acc.index}`}
+        task={task}
+        step={practice.length + acc.index}
+        total={totalTasks}
+        cardIndex={acc.index}
+        cardTotal={cards.length}
+        {...viewProps}
+      />
+    );
   }
 
   return null;

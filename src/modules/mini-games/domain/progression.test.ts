@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PracticeProgress } from '../../../shared/storage/progressStore';
+import { TASK_BANK } from '../data';
 import {
   bossXpRequired,
   topicUnlockXp,
@@ -84,6 +85,17 @@ describe('темы', () => {
     const max = topicMaxXp('uniform-motion');
     expect(isTopicComplete(makeProgress({ xpByTopic: { 'uniform-motion': max - 1 } }), 'uniform-motion')).toBe(false);
     expect(isTopicComplete(makeProgress({ xpByTopic: { 'uniform-motion': max } }), 'uniform-motion')).toBe(true);
+  });
+
+  it('максимум темы включает опыт карточек', () => {
+    const topic = 'uniform-motion';
+    const cards = TASK_BANK.filter(task => task.topic === topic && task.type === 'cards');
+    const practice = TASK_BANK.filter(task => task.topic === topic && task.type !== 'cards');
+
+    expect(cards.length).toBeGreaterThan(0);
+    expect(topicMaxXp(topic)).toBe(
+      [...practice, ...cards].reduce((sum, task) => sum + 10 * task.difficulty, 0),
+    );
   });
 
   it('сразу открыта только первая тема', () => {
