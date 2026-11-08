@@ -13,6 +13,12 @@ interface StreakOverlayProps {
   onContinue: () => void;
 }
 
+const daysAfterBreak = (count: number): string => {
+  const abs = Math.abs(count) % 100;
+  const last = abs % 10;
+  return last === 1 && abs !== 11 ? 'дня' : 'дней';
+};
+
 const pluralDays = (count: number): string => {
   const abs = Math.abs(count) % 100;
   const last = abs % 10;
@@ -85,7 +91,7 @@ export const StreakOverlay: React.FC<StreakOverlayProps> = ({ notice, onContinue
             <h2>К сожалению, ваша серия прервана :(</h2>
             <p>
               {notice.lostDays > 0
-                ? `Серия из ${notice.lostDays} ${pluralDays(notice.lostDays)} закончилась.`
+                ? `Серия из ${notice.lostDays} ${daysAfterBreak(notice.lostDays)} закончилась.`
                 : 'Не переживай — начни новую серию сегодня.'}{' '}
               Каждое новое задание снова зажжёт огонёк.
             </p>
