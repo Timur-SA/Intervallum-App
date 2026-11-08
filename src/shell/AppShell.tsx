@@ -64,6 +64,13 @@ export const AppShell: React.FC = () => {
     const webApp = typeof window !== 'undefined' ? (window as any).WebApp : null;
     if (!webApp) return;
 
+    if (typeof webApp.ready === 'function') {
+      webApp.ready();
+    }
+    if (typeof webApp.expand === 'function') {
+      webApp.expand();
+    }
+
     if (webApp.platform === 'ios' || webApp.platform === 'android') {
       setPlatform(webApp.platform);
     }
