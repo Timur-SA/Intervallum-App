@@ -9,6 +9,7 @@ interface ForceCanvasProps {
   task: ForceTask;
   vectors: DrawnVector[];
   referenceVectors: DrawnVector[];
+  guideOrigin?: { x: number; y: number };
   selectedForce: ForceType | null;
   activeType: ForceType | null;
   errorTypes: ForceType[];
@@ -29,6 +30,7 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
   task,
   vectors,
   referenceVectors,
+  guideOrigin,
   selectedForce,
   activeType,
   errorTypes,
@@ -78,6 +80,8 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
       .map(v => ({ v, d: Math.hypot(p.x - v.x - v.dx, p.y - v.y - v.dy) }))
       .sort((a, b) => a.d - b.d)[0];
 
+    const drawingNewForce = selectedForce && !vectors.some(vector => vector.type === selectedForce);
+
     if (handles[0]?.d < hitRadius) {
       haptics.impact('light');
       setGesture({
@@ -86,7 +90,7 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
         vector: { ...current! },
         pointerId: e.pointerId,
       });
-    } else if (closest && closest.d < hitRadius) {
+    } else if (!drawingNewForce && closest && closest.d < hitRadius) {
       haptics.impact('light');
       onSelectVector(closest.v.type);
       setGesture({
@@ -277,6 +281,12 @@ export const ForceCanvas: React.FC<ForceCanvasProps> = ({
       >
         {/* Physical scenario drawing */}
         <TaskIllustration kind={task.kind} />
+        {guideOrigin && (
+          <g className="force-guide-origin" aria-hidden="true" pointerEvents="none">
+            <circle cx={guideOrigin.x} cy={guideOrigin.y} r="9" fill="var(--bg-card)" stroke="var(--accent)" strokeWidth="2" />
+            <circle cx={guideOrigin.x} cy={guideOrigin.y} r="3" fill="var(--accent)" />
+          </g>
+        )}
 
         {/* Reference vectors (when available) */}
         {referenceVectors.map(renderReference)}
