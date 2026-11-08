@@ -1,0 +1,110 @@
+.streak-flame {
+  --streak-speed: 2.2s;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--text-muted) 65%, var(--warning));
+  filter: drop-shadow(0 0 0 transparent);
+  vertical-align: middle;
+}
+
+.streak-flame__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.streak-flame__body {
+  stroke-linejoin: round;
+}
+
+.streak-flame__number {
+  fill: var(--text-primary);
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  font-family: inherit;
+  paint-order: stroke fill;
+  stroke: color-mix(in srgb, var(--bg-card) 65%, transparent);
+  stroke-width: 0.8px;
+}
+
+.streak-flame--outline {
+  --streak-speed: 4s;
+}
+
+.streak-flame--yellow {
+  color: #ffd43b;
+  --streak-speed: 2.2s;
+  filter: drop-shadow(0 0 5px rgba(255, 212, 59, 0.25));
+}
+
+.streak-flame--yellow .streak-flame__number,
+.streak-flame--orange .streak-flame__number,
+.streak-flame--red .streak-flame__number,
+.streak-flame--purple .streak-flame__number {
+  fill: #fff;
+  stroke: rgba(0, 0, 0, 0.32);
+  stroke-width: 1.3px;
+}
+
+.streak-flame--orange {
+  color: #ff9d1c;
+  --streak-speed: 1.6s;
+  filter: drop-shadow(0 0 7px rgba(255, 157, 28, 0.35));
+}
+
+.streak-flame--red {
+  color: #ff4d22;
+  --streak-speed: 1.1s;
+  filter: drop-shadow(0 0 9px rgba(255, 77, 34, 0.4));
+}
+
+.streak-flame--purple {
+  color: #a76bff;
+  --streak-speed: 0.75s;
+  filter: drop-shadow(0 0 10px rgba(167, 107, 255, 0.48));
+}
+
+.streak-flame.is-animated .streak-flame__body {
+  transform-origin: 50% 94%;
+  will-change: transform, filter;
+  animation: streak-flicker var(--streak-speed) ease-in-out infinite;
+}
+
+.streak-flame.is-static .streak-flame__body {
+  animation: none;
+}
+
+@keyframes streak-flicker {
+  0%,
+  100% {
+    transform: scale(1, 1) rotate(0deg);
+    filter: brightness(1);
+  }
+  18% {
+    transform: scale(0.97, 1.06) rotate(-1.4deg);
+    filter: brightness(1.12);
+  }
+  42% {
+    transform: scale(1.04, 0.95) rotate(1.2deg);
+    filter: brightness(0.92);
+  }
+  62% {
+    transform: scale(0.985, 1.035) rotate(-0.85deg);
+    filter: brightness(1.1);
+  }
+  82% {
+    transform: scale(1.025, 0.98) rotate(0.7deg);
+    filter: brightness(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-flame.is-animated .streak-flame__body {
+    animation: none;
+  }
+}

@@ -4,12 +4,11 @@ import '@maxhub/max-ui/dist/styles.css';
 import '../modules/formula-trainer/styles/index.css';
 import '../shared/styles/themeTokens.css';
 
-import { MapModule } from '../modules/mini-games/MapModule';
 import { NavigationProvider, useNavigation } from './HeaderContext';
 import { SandboxMessengerHeader } from './SandboxMessengerHeader';
 import { DevPanel } from './DevPanel';
-
-export type AppMode = 'map';
+import { AppTabShell } from './AppTabShell';
+import { useAppSettings } from './SettingsContext';
 
 /**
  * Synchronizes Telegram / MAX client native BackButton with the active Navigation state
@@ -52,14 +51,13 @@ const SandboxMessengerBarContainer: React.FC<{ platform: 'ios' | 'android' }> = 
 };
 
 export const AppShell: React.FC = () => {
-  const [currentMode, setCurrentMode] = useState<AppMode>('map');
   const [platform, setPlatform] = useState<'ios' | 'android'>('ios');
-  const [colorScheme, setColorScheme] = useState<'dark' | 'light'>('dark');
+  const { theme: colorScheme, setTheme } = useAppSettings();
 
   const isInsideMax =
     typeof window !== 'undefined' && Boolean((window as any).WebApp?.platform);
 
-  // Sync platform & colorScheme with WebApp environment
+  // Sync platform with WebApp environment
   useEffect(() => {
     const webApp = typeof window !== 'undefined' ? (window as any).WebApp : null;
     if (!webApp) return;
@@ -67,14 +65,7 @@ export const AppShell: React.FC = () => {
     if (webApp.platform === 'ios' || webApp.platform === 'android') {
       setPlatform(webApp.platform);
     }
-    if (webApp.colorScheme) {
-      setColorScheme(webApp.colorScheme);
-    }
   }, []);
-
-  const handleBackToHub = () => {
-    setCurrentMode('map');
-  };
 
   return (
     <div
@@ -158,7 +149,7 @@ export const AppShell: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <button
                 type="button"
-                onClick={() => setColorScheme(c => (c === 'dark' ? 'light' : 'dark'))}
+                onClick={() => setTheme(colorScheme === 'dark' ? 'light' : 'dark')}
                 style={{
                   padding: '3px 8px',
                   borderRadius: 6,
@@ -266,9 +257,7 @@ export const AppShell: React.FC = () => {
                     overflow: 'hidden',
                   }}
                 >
-                  {currentMode === 'map' && (
-                    <MapModule />
-                  )}
+                  <AppTabShell platform={platform} />
                 </div>
               </div>
             </NavigationProvider>

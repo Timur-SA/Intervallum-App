@@ -33,7 +33,12 @@ type Screen =
   | { name: 'session'; config: SessionConfig }
   | { name: 'result'; config: SessionConfig; summary: SessionSummary; bossLost?: boolean; progressHint?: string };
 
-export const MapModule: React.FC = () => {
+interface MapModuleProps {
+  /** Куда прокрутить карту после перехода с главного экрана. */
+  focusTopicId?: TopicId | null;
+}
+
+export const MapModule: React.FC<MapModuleProps> = ({ focusTopicId = null }) => {
   const [route, setRoute] = useState<Screen>({ name: 'journey' });
   const [history, setHistory] = useState<Screen[]>([]);
   const [progress, setProgress] = useState(() => loadUserProgress());
@@ -174,6 +179,8 @@ export const MapModule: React.FC = () => {
       if (win && section) {
         defeatBoss({ sectionId: section.id, itemId: section.itemId });
         setProgress(loadUserProgress());
+        // Победа завершает вложенный маршрут: карта должна остаться
+        // корневой вкладкой, иначе тапбар скрыт и overlay серии не срабатывает.
         setHistory([]);
         setRoute({ name: 'journey' });
         return;
@@ -284,6 +291,7 @@ export const MapModule: React.FC = () => {
     <div className="mini-games">
       <JourneyMapScreen
         progress={practice}
+        focusTopicId={focusTopicId}
         now={now}
         trainingHint={trainingHint}
         trainingPending={selecting}

@@ -36,6 +36,13 @@
   --danger: #f87171;
   --danger-bg: rgba(248, 113, 113, 0.14);
 
+  /* Section palette (also used outside .mini-games) */
+  --section-mechanics: #0ea5e9;
+  --section-thermal: #f97316;
+  --section-electromagnetism: #8b5cf6;
+  --boss-color: #f59e0b;
+  --locked-fill: #232c33;
+
   /* Force Lab Tokens Mapped to Unified System */
   --fl-paper: var(--bg-app);
   --fl-panel: var(--bg-card);
@@ -97,6 +104,13 @@
   --warning-bg: rgba(251, 191, 36, 0.12);
   --danger: #f87171;
   --danger-bg: rgba(248, 113, 113, 0.12);
+
+  /* Section palette (also used outside .mini-games) */
+  --section-mechanics: #0ea5e9;
+  --section-thermal: #f97316;
+  --section-electromagnetism: #8b5cf6;
+  --boss-color: #f59e0b;
+  --locked-fill: #748399;
 
   /* Force Lab Tokens Mapped to Unified System */
   --fl-paper: var(--bg-app);
