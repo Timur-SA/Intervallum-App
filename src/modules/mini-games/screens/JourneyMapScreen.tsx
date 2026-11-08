@@ -1,7 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BottomSheet, Button } from '@maxhub/max-ui';
 import {
-  BookOpen,
   ChevronDown,
   ChevronUp,
   Check,
@@ -25,10 +24,8 @@ import {
   topicMaxXp,
 } from '../domain/progression';
 import { TASK_BANK } from '../data';
-import { MathText, MathView } from '../../../shared/components/MathView';
 import { SECTION_ICONS } from '../config/sectionIcons';
 import { SECTION_ACCENTS, SECTION_PATTERNS } from '../config/sectionArtwork';
-import { ANSWER_KIND_LABELS, CARDS } from '../data/cards';
 import { haptics } from '../../../shared/motion/haptics';
 
 interface JourneyMapScreenProps {
@@ -105,11 +102,6 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
 }) => {
   const [collapsedOverrides, setCollapsedOverrides] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<{ sectionId: SectionId; topicId: TopicId } | null>(null);
-  const [theoryOpen, setTheoryOpen] = useState(false);
-  const [theoryIndex, setTheoryIndex] = useState(0);
-  const [theoryDirection, setTheoryDirection] = useState<'next' | 'prev'>('next');
-  const touchStartX = useRef<number | null>(null);
-
   const mapRef = useRef<HTMLDivElement>(null);
   const [road, setRoad] = useState('');
 
@@ -155,19 +147,8 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
   const selectedTasks = selected
     ? TASK_BANK.filter(task => task.topic === selected.topicId && task.type !== 'cards')
     : [];
-  const selectedTheory = selected ? CARDS.filter(card => card.topic === selected.topicId) : [];
-  const theoryCard = selectedTheory[theoryIndex];
   const selectedTopicMeta = selected ? getTopic(selected.topicId) : null;
   const selectedSection = selected ? getSection(selected.sectionId) : null;
-
-  const shiftTheory = (direction: 'next' | 'prev') => {
-    setTheoryDirection(direction);
-    setTheoryIndex(previous =>
-      direction === 'next'
-        ? Math.min(selectedTheory.length - 1, previous + 1)
-        : Math.max(0, previous - 1),
-    );
-  };
 
   return (
     <div className="mg-screen">
@@ -281,8 +262,6 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                               onClick={() => {
                                 haptics.selection();
                                 setSelected({ sectionId: section.id, topicId });
-                                setTheoryOpen(false);
-                                setTheoryIndex(0);
                               }}
                               aria-label={topic?.title ?? ''}
                             >
@@ -405,10 +384,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
       <BottomSheet
         open={Boolean(selected)}
         title={selectedTopicMeta?.title ?? 'Уровень'}
-        onClose={() => {
-          setSelected(null);
-          setTheoryOpen(false);
-        }}
+        onClose={() => setSelected(null)}
       >
         <div className="mg-level-sheet">
           <p className="mg-level-sheet__meta">{selectedSection?.title}</p>
@@ -427,104 +403,13 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
           </div>
 
           <Button
-            variant="secondary"
-            size="medium"
-            stretched
-            iconBefore={<BookOpen size={16} />}
-            aria-expanded={theoryOpen}
-            onClick={() => {
-              setTheoryOpen(previous => !previous);
-              setTheoryIndex(0);
-              setTheoryDirection('next');
-            }}
-          >
-            Теория · {selectedTheory.length}
-          </Button>
-
-          {theoryOpen && (
-            <div className="mg-theory-carousel">
-              {selectedTheory.length === 0 && (
-                <p className="mg-theory__empty">Теория по этой теме появится позже.</p>
-              )}
-
-              {selectedTheory.length > 0 && (
-                <>
-                  <div
-                    className="mg-theory"
-                    onTouchStart={event => {
-                      touchStartX.current = event.touches[0]?.clientX ?? null;
-                    }}
-                    onTouchEnd={event => {
-                      const start = touchStartX.current;
-                      const end = event.changedTouches[0]?.clientX ?? null;
-                      touchStartX.current = null;
-                      if (start === null || end === null) return;
-                      if (Math.abs(end - start) < 40) return;
-                      shiftTheory(end < start ? 'next' : 'prev');
-                    }}
-                  >
-                    {theoryCard && (
-                      <article
-                        key={theoryCard.id}
-                        className={`mg-theory__card mg-theory__card--${theoryDirection}`}
-                      >
-                        <h3 className="mg-theory__question"><MathText text={theoryCard.question} /></h3>
-                        {theoryCard.formula && (
-                          <MathView className="mg-theory__formula" latex={theoryCard.formula} />
-                        )}
-                        <p className="mg-theory__answer"><MathText text={theoryCard.answer} /></p>
-                        {theoryCard.details && (
-                          <details className="mg-theory__more">
-                            <summary>Подробнее</summary>
-                            <p className="mg-theory__details"><MathText text={theoryCard.details} /></p>
-                          </details>
-                        )}
-                      </article>
-                    )}
-                  </div>
-
-                  {selectedTheory.length > 1 && (
-                    <div className="mg-theory-nav">
-                      <button
-                        type="button"
-                        className="mg-theory-nav__btn"
-                        aria-label="Предыдущая карточка"
-                        disabled={theoryIndex === 0}
-                        onClick={() => shiftTheory('prev')}
-                      >
-                        ←
-                      </button>
-                      <span className="mg-theory-nav__count" aria-live="polite">
-                        {theoryIndex + 1} / {selectedTheory.length}
-                      </span>
-                      <button
-                        type="button"
-                        className="mg-theory-nav__btn"
-                        aria-label="Следующая карточка"
-                        disabled={theoryIndex >= selectedTheory.length - 1}
-                        onClick={() => shiftTheory('next')}
-                      >
-                        →
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-
-          <Button
             variant="primary"
             size="large"
             stretched
             iconBefore={<Play size={16} />}
             onClick={() => {
-              if (selected) {
-                const current = selected;
-                setSelected(null);
-                setTheoryOpen(false);
-                onStartLevel(current.sectionId, current.topicId);
-              }
+              if (!selected) return;
+              onStartLevel(selected.sectionId, selected.topicId);
             }}
           >
             Начать
