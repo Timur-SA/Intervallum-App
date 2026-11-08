@@ -21,7 +21,7 @@
   --section-thermal: #f97316;
   --section-electromagnetism: #8b5cf6;
   --boss-color: #f59e0b;
-  --locked-fill: #2f3942;
+  --locked-fill: #29323a;
 }
 
 [data-theme='light'] .mini-games {
@@ -29,7 +29,7 @@
   --section-thermal: #f97316;
   --section-electromagnetism: #8b5cf6;
   --boss-color: #f59e0b;
-  --locked-fill: #475569;
+  --locked-fill: #64748b;
 }
 
 /* ------------------------------------------------------------- Экраны */
