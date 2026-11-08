@@ -158,7 +158,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap }) => {
             })}
           </div>
         </section>
+      </div>
 
+      <div className="home-cta">
         <Button
           variant="primary"
           size="large"

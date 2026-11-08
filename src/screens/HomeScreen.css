@@ -12,7 +12,7 @@
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 16px 16px 24px;
+  padding: 16px 16px 14px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -103,9 +103,16 @@
   text-align: center;
 }
 
+.home-cta {
+  flex-shrink: 0;
+  padding: 8px 16px 6px;
+  background: var(--bg-app);
+}
+
 .home-train-btn {
+  width: 100%;
+  margin: 0;
   opacity: 0.82;
-  margin-top: auto;
 }
 
 .home-sections {
@@ -244,6 +251,10 @@
 
 @media (max-width: 360px) {
   .home-scroll {
+    padding-inline: 12px;
+  }
+
+  .home-cta {
     padding-inline: 12px;
   }
 
