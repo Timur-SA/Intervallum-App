@@ -116,6 +116,9 @@ export const MapModule: React.FC<MapModuleProps> = ({ focusTopicId = null }) => 
       if (win && section) {
         defeatBoss({ sectionId: section.id, itemId: section.itemId });
         setProgress(loadUserProgress());
+        // Победа завершает вложенный маршрут: карта должна остаться
+        // корневой вкладкой, иначе тапбар скрыт и overlay серии не срабатывает.
+        setHistory([]);
         setRoute({ name: 'journey' });
         return;
       }

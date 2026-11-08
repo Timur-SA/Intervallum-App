@@ -54,9 +54,6 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ activity }) =>
           <span className="activity-heatmap__eyebrow">Активность</span>
           <h2 className="activity-heatmap__month">{getMonthLabel(now)}</h2>
         </div>
-        <span className="activity-heatmap__today-count">
-          Сегодня: <strong>{todayCount}</strong>
-        </span>
       </div>
 
       <div className="activity-heatmap__grid" role="grid" aria-label={getMonthLabel(now)}>

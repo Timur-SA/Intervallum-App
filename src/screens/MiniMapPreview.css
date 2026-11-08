@@ -101,3 +101,43 @@
     animation: none;
   }
 }
+
+.mini-map__boss-link {
+  fill: none;
+  stroke: color-mix(in srgb, var(--text-muted) 28%, transparent);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 2 5;
+}
+
+.mini-map__boss {
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--boss-color) 22%, transparent));
+}
+
+.mini-map__boss.is-ready circle:first-child {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mini-map-boss-pulse 2.2s ease-in-out infinite;
+}
+
+.mini-map__boss.is-done {
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--success) 30%, transparent));
+}
+
+@keyframes mini-map-boss-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mini-map__boss.is-ready circle:first-child {
+    animation: none;
+  }
+}

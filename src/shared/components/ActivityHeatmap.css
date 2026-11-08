@@ -48,16 +48,6 @@
   color: var(--text-primary);
 }
 
-.activity-heatmap__today-count {
-  font-size: 11px;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.activity-heatmap__today-count strong {
-  color: var(--text-primary);
-}
-
 .activity-heatmap__grid {
   display: grid;
   grid-template-columns: repeat(11, minmax(0, 1fr));

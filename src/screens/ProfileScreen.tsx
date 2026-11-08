@@ -204,10 +204,7 @@ export const ProfileScreen: React.FC = () => {
     <div className="profile-screen">
       <div className="profile-scroll">
         <header className="profile-head">
-          <div>
-            <span className="profile-head__eyebrow">Intervallum</span>
-            <h1 className="profile-head__title">Профиль</h1>
-          </div>
+          <h1 className="profile-head__title">Профиль</h1>
           <StatusBadge status="neutral" text="ОГЭ · 9 класс" />
         </header>
 
@@ -227,7 +224,7 @@ export const ProfileScreen: React.FC = () => {
               aria-label="Изменить аватар"
             >
               <Avatar.Container
-                size={112}
+                size={128}
                 rightBottomCorner={
                   <button
                     type="button"
@@ -283,16 +280,15 @@ export const ProfileScreen: React.FC = () => {
         <section className="profile-stats" aria-label="Основная статистика">
           <div className="profile-stat">
             <strong>{activeDays}</strong>
-            <span>{pluralDays(activeDays)}</span>
+            <span>{pluralDays(activeDays)} в приложении</span>
           </div>
           <div className="profile-stat profile-stat--streak">
-            <StreakFlame days={bestStreak} size={30} />
-            <strong>{bestStreak}</strong>
+            <StreakFlame days={bestStreak} size={44} />
             <span>лучшая серия</span>
           </div>
           <div className="profile-stat">
             <strong>{completedTasks}</strong>
-            <span>{pluralTasks(completedTasks)}</span>
+            <span>{pluralTasks(completedTasks)} выполнено</span>
           </div>
         </section>
 

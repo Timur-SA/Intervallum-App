@@ -29,16 +29,6 @@
   gap: 10px;
 }
 
-.profile-head__eyebrow {
-  display: block;
-  margin-bottom: 3px;
-  color: var(--text-muted);
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .profile-head__title {
   margin: 0;
   color: var(--text-primary);
@@ -84,16 +74,16 @@
 }
 
 .profile-avatar__badge {
-  min-width: 38px;
-  min-height: 38px;
+  min-width: 42px;
+  min-height: 42px;
   padding: 0;
-  border: 2px solid var(--bg-card);
+  border: 0;
   border-radius: 50%;
-  background: var(--bg-card);
+  background: transparent;
   display: grid;
   place-items: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+  box-shadow: none;
 }
 
 .profile-avatar__badge-empty {
@@ -179,19 +169,17 @@
 
 .profile-stat strong {
   color: var(--text-primary);
-  font-size: 20px;
+  font-size: 24px;
   line-height: 1;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.4px;
 }
 
 .profile-stat span {
   max-width: 100%;
-  overflow: hidden;
   color: var(--text-muted);
-  font-size: 9.5px;
-  line-height: 1.15;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 10.5px;
+  line-height: 1.2;
+  text-wrap: balance;
 }
 
 .profile-stat--streak {
