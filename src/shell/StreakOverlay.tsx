@@ -19,15 +19,6 @@ const daysAfterBreak = (count: number): string => {
   return last === 1 && abs !== 11 ? 'дня' : 'дней';
 };
 
-const pluralDays = (count: number): string => {
-  const abs = Math.abs(count) % 100;
-  const last = abs % 10;
-  if (abs > 10 && abs < 20) return 'дней';
-  if (last > 1 && last < 5) return 'дня';
-  if (last === 1) return 'день';
-  return 'дней';
-};
-
 export const StreakOverlay: React.FC<StreakOverlayProps> = ({ notice, onContinue }) => {
   const [phase, setPhase] = useState<'white' | 'flash' | 'final' | 'break'>(
     notice.type === 'break' ? 'break' : 'white',
@@ -105,13 +96,9 @@ export const StreakOverlay: React.FC<StreakOverlayProps> = ({ notice, onContinue
               <Sparkles size={14} />
               Серия обновлена
             </span>
-            <h2>
-              {notice.type === 'update' ? notice.days : 0}{' '}
-              {pluralDays(notice.type === 'update' ? notice.days : 0)} подряд
-            </h2>
+            <h2>дней подряд</h2>
             <p>
-              Ты возвращаешься каждый день. Продолжай в том же духе — огонёк
-              становится ярче с каждым днём.
+              Продолжай в том же духе — огонёк становится ярче с каждым днём.
             </p>
             <Button variant="primary" size="large" stretched onClick={onContinue}>
               Продолжить

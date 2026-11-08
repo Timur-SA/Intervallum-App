@@ -45,17 +45,19 @@ export const AppTabShell: React.FC<AppTabShellProps> = ({ platform }) => {
   }, []);
 
   useEffect(() => {
-    refreshStreakNotice(activeTab === 'home');
-  }, [activeTab, refreshStreakNotice]);
+    // Показываем обновление только когда пользователь уже вышел
+    // из вложенного экрана уровня на корневую вкладку.
+    if (!navigationConfig.canGoBack) refreshStreakNotice(true);
+  }, [activeTab, navigationConfig.canGoBack, refreshStreakNotice]);
 
   useEffect(() => {
     const handleProgress = () => {
-      if (activeTab === 'home') refreshStreakNotice(true);
+      if (!navigationConfig.canGoBack) refreshStreakNotice(true);
     };
 
     window.addEventListener('intervallum:progress-changed', handleProgress);
     return () => window.removeEventListener('intervallum:progress-changed', handleProgress);
-  }, [activeTab, refreshStreakNotice]);
+  }, [navigationConfig.canGoBack, refreshStreakNotice]);
 
   const handleTabChange = (tab: AppTab) => {
     haptics.selection();
@@ -76,12 +78,12 @@ export const AppTabShell: React.FC<AppTabShellProps> = ({ platform }) => {
 
     if (streakNotice.type === 'break') {
       acknowledgeStreakBreak();
+      setActiveTab('home');
     } else {
       acknowledgeStreakCelebration();
     }
 
     setStreakNotice(null);
-    setActiveTab('home');
     haptics.notification('success');
   };
 
