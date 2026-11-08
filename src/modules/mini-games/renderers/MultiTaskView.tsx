@@ -7,6 +7,7 @@ import { getSectionByTopic, getTopic } from '../domain/sections';
 import { shuffleBySeed } from '../engine/shuffle';
 import { MathText } from '../../../shared/components/MathView';
 import { haptics } from '../../../shared/motion/haptics';
+import { playSound } from '../../../shared/audio/soundEffects';
 import { GameShell } from '../components/GameShell';
 import { AnswerOption } from '../components/AnswerOption';
 import { FeedbackPanel } from '../components/FeedbackPanel';
@@ -65,6 +66,7 @@ export const MultiTaskView: React.FC<TaskViewProps<MultiChoiceTask>> = ({
     haptics.notification(
       result.outcome === 'correct' ? 'success' : result.outcome === 'partial' ? 'warning' : 'error',
     );
+    playSound(result.outcome === 'correct' ? 'correct' : 'wrong');
   };
 
   const feedbackTitle =

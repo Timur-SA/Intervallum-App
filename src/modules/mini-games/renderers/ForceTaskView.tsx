@@ -12,6 +12,7 @@ import { getSectionByTopic, getTopic } from '../domain/sections';
 import { xpForScore } from '../engine/grading';
 import { GradeResponse } from '../api/contracts';
 import { haptics } from '../../../shared/motion/haptics';
+import { playSound } from '../../../shared/audio/soundEffects';
 import { hasSeenTaskGuide, loadUserProgress, markTaskGuideSeen, saveUserProgress } from '../../../shared/storage/progressStore';
 import { GameShell } from '../components/GameShell';
 import { TaskViewProps } from './taskView';
@@ -118,8 +119,10 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
     if (result.passed) {
       setSelectedForce(null);
       haptics.notification('success');
+      playSound('correct');
     } else {
       haptics.notification('error');
+      playSound('wrong');
       setReviewQueue(reviewComparisons(forceTask, vectors, result));
       setReviewIndex(0);
       setIsReviewOpen(true);

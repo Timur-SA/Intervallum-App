@@ -11,6 +11,7 @@ import { VariablePopover } from './components/VariablePopover';
 import { ResultModal } from './components/ResultModal';
 import { CelebrationSparks } from '../../shared/components/CelebrationSparks';
 import { haptics } from '../../shared/motion/haptics';
+import { playSound } from '../../shared/audio/soundEffects';
 import { hasSeenTaskGuide, loadUserProgress, markFormulaTaskCompleted, markTaskGuideSeen, saveUserProgress } from '../../shared/storage/progressStore';
 import { MathText } from '../../shared/components/MathView';
 import { getFormulaGuideStep, hasFormulaGuide } from './utils/formulaGuide';
@@ -563,6 +564,7 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
     if (embedded) {
       setGuideOpen(false);
       haptics.notification(correct ? 'success' : 'error');
+      playSound(correct ? 'correct' : 'wrong');
       onEmbeddedChecked?.({
         correct,
         score,
@@ -572,6 +574,8 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
       return;
     }
 
+    haptics.notification(correct ? 'success' : 'error');
+    playSound(correct ? 'correct' : 'wrong');
     setModalState({
       isOpen: true,
       isSuccess: correct,
@@ -591,10 +595,12 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
 
     if (success) {
       haptics.notification('success');
+      playSound('correct');
       setShowCelebration(true);
       markFormulaTaskCompleted(currentTask.id);
     } else {
       haptics.notification('error');
+      playSound('wrong');
     }
 
     setModalState({

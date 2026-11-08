@@ -15,6 +15,8 @@ import {
   unlockSection,
 } from '../../shared/storage/progressStore';
 import { useNavigation } from '../../shell/HeaderContext';
+import { haptics } from '../../shared/motion/haptics';
+import { playSound } from '../../shared/audio/soundEffects';
 import { JourneyMapScreen } from './screens/JourneyMapScreen';
 import { TheoryScreen } from './screens/TheoryScreen';
 import { SessionRunner, SessionSummary } from './renderers/SessionRunner';
@@ -36,9 +38,16 @@ type Screen =
 interface MapModuleProps {
   /** Куда прокрутить карту после перехода с главного экрана. */
   focusTopicId?: TopicId | null;
+  /** Одноразовый запрос на запуск персональной тренировки с Главной. */
+  trainingRequestId?: number;
+  onTrainingRequestHandled?: () => void;
 }
 
-export const MapModule: React.FC<MapModuleProps> = ({ focusTopicId = null }) => {
+export const MapModule: React.FC<MapModuleProps> = ({
+  focusTopicId = null,
+  trainingRequestId = 0,
+  onTrainingRequestHandled,
+}) => {
   const [route, setRoute] = useState<Screen>({ name: 'journey' });
   const [history, setHistory] = useState<Screen[]>([]);
   const [progress, setProgress] = useState(() => loadUserProgress());
@@ -152,6 +161,17 @@ export const MapModule: React.FC<MapModuleProps> = ({ focusTopicId = null }) => 
     }
   };
 
+  const handledTrainingRequest = useRef(0);
+  const startTrainingRef = useRef(startTraining);
+  startTrainingRef.current = startTraining;
+
+  useEffect(() => {
+    if (!trainingRequestId || trainingRequestId === handledTrainingRequest.current) return;
+    handledTrainingRequest.current = trainingRequestId;
+    void startTrainingRef.current();
+    onTrainingRequestHandled?.();
+  }, [trainingRequestId, onTrainingRequestHandled]);
+
   const startBoss = (sectionId: SectionId) => {
     const section = getSection(sectionId);
     if (!section || !isBossReady(loadUserProgress().practice, sectionId)) return;
@@ -171,6 +191,17 @@ export const MapModule: React.FC<MapModuleProps> = ({ focusTopicId = null }) => 
   const handleComplete = (summary: SessionSummary) => {
     if (route.name !== 'session') return;
     const { config } = route;
+    const sessionSucceeded =
+      !summary.timeout &&
+      (config.kind !== 'boss' || summary.solved >= BOSS_WIN_SCORE);
+
+    if (sessionSucceeded) {
+      haptics.notification('success');
+      playSound('level-complete');
+    } else {
+      haptics.notification('error');
+      playSound('wrong');
+    }
 
     if (config.kind === 'boss') {
       const section = getSection(config.sectionId);
