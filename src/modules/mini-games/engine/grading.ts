@@ -44,11 +44,10 @@ export const gradeMatching = (wrongPairs: number, totalPairs: number): number =>
   return Math.max(0, 1 - wrong / totalPairs);
 };
 
-/**
- * Карточки оцениваются самооценкой 0..3, а не «правильностью».
- * Для расчёта опыта переводим оценку в долю.
- */
-export const cardScore = (grade: CardGrade): number => grade / 3;
+// Значения API исторические: 1 — легко, 2 — нормально, 3 — с трудом.
+const CARD_SCORES: Record<CardGrade, number> = { 0: 0, 1: 1, 2: 2 / 3, 3: 1 / 3 };
+
+export const cardScore = (grade: CardGrade): number => CARD_SCORES[grade];
 
 export const outcomeFromScore = (score: number): Outcome => {
   if (score >= 1) return 'correct';

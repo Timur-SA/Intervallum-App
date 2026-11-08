@@ -73,8 +73,9 @@ describe('gradeMatching — штраф за неверную пару', () => {
 describe('cardScore', () => {
   it('переводит самооценку 0..3 в долю', () => {
     expect(cardScore(0)).toBe(0);
+    expect(cardScore(3)).toBeCloseTo(1 / 3);
     expect(cardScore(2)).toBeCloseTo(2 / 3);
-    expect(cardScore(3)).toBe(1);
+    expect(cardScore(1)).toBe(1);
   });
 });
 
