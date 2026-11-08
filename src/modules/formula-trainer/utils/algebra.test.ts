@@ -8,9 +8,9 @@ const testLaw: PhysicalLaw = {
   category: 'Механика',
   latex: 'F = m \\cdot a',
   variables: {
-    F: { name: 'Сила', unit: 'Н', default: null },
-    m: { name: 'Масса', unit: 'кг', default: null },
-    a: { name: 'Ускорение', unit: 'м/с²', default: null },
+    F: { name: 'Сила', unit: 'Н' },
+    m: { name: 'Масса', unit: 'кг' },
+    a: { name: 'Ускорение', unit: 'м/с²' },
   },
   structure: {
     left: { num: ['F'], den: [] },
