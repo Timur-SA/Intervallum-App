@@ -15,6 +15,21 @@
   --background-card: var(--bg-card);
   --background-secondary: var(--bg-surface);
   --background-surface: var(--bg-surface);
+
+  /* Цвета разделов: в светлой теме используем более насыщенные варианты */
+  --section-mechanics: #0ea5e9;
+  --section-thermal: #f97316;
+  --section-electromagnetism: #8b5cf6;
+  --boss-color: #f59e0b;
+  --locked-fill: #232c33;
+}
+
+[data-theme='light'] .mini-games {
+  --section-mechanics: #0ea5e9;
+  --section-thermal: #f97316;
+  --section-electromagnetism: #8b5cf6;
+  --boss-color: #f59e0b;
+  --locked-fill: #748399;
 }
 
 /* ------------------------------------------------------------- Экраны */
@@ -1485,45 +1500,45 @@
 }
 
 .mg-node__inner {
+  --node-fill: var(--node-color, var(--bg-surface));
+  --node-border: color-mix(in srgb, var(--node-fill) 60%, white);
+
   width: 56px;
   height: 56px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
+  background: var(--node-fill);
+  border: 2px solid var(--node-border);
+  color: #fff;
   font-size: 18px;
   font-weight: 700;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 
 .mg-node--done .mg-node__inner {
-  background: var(--success-bg);
-  color: var(--success);
-  border-color: rgba(52, 211, 153, 0.4);
+  --node-fill: var(--success-fill, var(--success));
 }
 
-.mg-node--current .mg-node__inner {
-  background: var(--accent-bg);
-  color: var(--accent);
-  border-color: var(--border-accent);
+/* Открытые, но ещё не пройденные уровни — в цвете своего раздела */
+.mg-node--open .mg-node__inner {
+  --node-fill: var(--node-color);
 }
 
 .mg-node--locked .mg-node__ring {
   opacity: 0.45;
 }
 
-/* Иконка заблокированного уровня всегда полностью непрозрачная */
+/* Закрытые уровни — приглушённый цвет раздела, белый замок */
 .mg-node--locked .mg-node__inner {
-  color: var(--text-secondary);
-  background: var(--bg-surface);
-  border-color: var(--border);
+  --node-fill: var(--locked-fill, #2f3942);
   opacity: 1;
 }
 
 .mg-node__inner svg {
   opacity: 1;
   color: inherit;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
 }
 
 .mg-node--boss {
@@ -1532,11 +1547,14 @@
 }
 
 .mg-node__inner--boss {
+  --node-fill: var(--boss-color, #f59e0b);
+
   width: 86px;
   height: 86px;
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.mg-node--boss-locked .mg-node__inner--boss {
+  --node-fill: var(--locked-fill, #2f3942);
 }
 
 .mg-node--boss-ready .mg-node__inner--boss {
@@ -1544,21 +1562,41 @@
 }
 
 .mg-node--boss-done .mg-node__inner--boss {
-  color: var(--success);
-  background: var(--success-bg);
+  --node-fill: var(--success-fill, var(--success));
 }
 
 .mg-path__caption {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-secondary);
+  --caption-fill: var(--node-color, var(--boss-color));
+
+  display: inline-block;
+  width: fit-content;
   max-width: 150px;
+  padding: 2px 6px;
+  border: 2px solid color-mix(in srgb, var(--caption-fill) 60%, white);
+  border-radius: 8px;
+  background: var(--caption-fill);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
   text-align: center;
-  line-height: 1.3;
+  line-height: 1.25;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 
 .mg-path__caption--center {
-  max-width: 220px;
+  max-width: 280px;
+}
+
+.mg-path__caption--locked {
+  --caption-fill: var(--locked-fill, #2f3942);
+}
+
+.mg-path__caption--done {
+  --caption-fill: var(--success-fill, var(--success));
+}
+
+.mg-path__caption--boss {
+  --caption-fill: var(--boss-color, #f59e0b);
 }
 
 .mg-path__hint {

@@ -60,7 +60,7 @@ const Ring: React.FC<{ value: number; max: number; size: number; color: string; 
         strokeDasharray={circumference}
         strokeDashoffset={circumference * (1 - ratio)}
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        style={{ stroke: done ? 'var(--success)' : color }}
+        style={{ stroke: done ? 'var(--success-fill, var(--success))' : color }}
       />
     </svg>
   );
@@ -68,6 +68,9 @@ const Ring: React.FC<{ value: number; max: number; size: number; color: string; 
 
 /** Горизонтальное смещение уровня на карте. */
 const levelOffset = (index: number): number => Math.round(Math.sin((index + 1) * 1.7) * 42);
+
+/** Цвет раздела берём из CSS-переменных, чтобы у светлой темы был свой вариант. */
+const sectionColor = (sectionId: SectionId): string => `var(--section-${sectionId})`;
 
 /**
  * Сторона, с которой рисуем акцент в изломе дорожки.
@@ -221,7 +224,10 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                     }));
                   }}
                 >
-                  <span className="mg-journey__section-icon" style={{ backgroundColor: section.color }}>
+                  <span
+                    className="mg-journey__section-icon"
+                    style={{ backgroundColor: sectionColor(section.id) }}
+                  >
                     {(() => {
                       const SectionIcon = SECTION_ICONS[section.id];
                       return SectionIcon ? <SectionIcon size={17} /> : <Sparkles size={16} />;
@@ -241,7 +247,11 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
 
                 {isExpanded && (
                   <div className="mg-path">
-                    <div className="mg-section-pattern" style={{ color: section.color }} aria-hidden>
+                    <div
+                      className="mg-section-pattern"
+                      style={{ color: sectionColor(section.id) }}
+                      aria-hidden
+                    >
                       <SectionPattern />
                     </div>
 
@@ -265,7 +275,12 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                         <div key={topicId} className="mg-path__row mg-path__row--chaos">
                           <div
                             className="mg-path__node-wrap"
-                            style={{ transform: `translateX(${offset}px)` }}
+                            style={
+                              {
+                                transform: `translateX(${offset}px)`,
+                                '--node-color': sectionColor(section.id),
+                              } as React.CSSProperties
+                            }
                           >
                             <button
                               type="button"
@@ -273,6 +288,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                                 'mg-node',
                                 complete ? 'mg-node--done' : '',
                                 current ? 'mg-node--current' : '',
+                                unlocked && !complete ? 'mg-node--open' : '',
                                 !unlocked ? 'mg-node--locked' : '',
                               ]
                                 .filter(Boolean)
@@ -286,7 +302,13 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                               }}
                               aria-label={topic?.title ?? ''}
                             >
-                              <Ring value={levelXp} max={max} size={72} color={section.color} done={complete} />
+                              <Ring
+                                value={levelXp}
+                                max={max}
+                                size={72}
+                                color={sectionColor(section.id)}
+                                done={complete}
+                              />
                               <span className="mg-node__inner">
                                 {!unlocked ? (
                                   <LockKeyhole size={25} strokeWidth={2.2} />
@@ -297,14 +319,23 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                                 )}
                               </span>
                             </button>
-                            <span className="mg-path__caption mg-path__caption--center">
+                            <span
+                              className={[
+                                'mg-path__caption',
+                                'mg-path__caption--center',
+                                complete ? 'mg-path__caption--done' : '',
+                                !unlocked ? 'mg-path__caption--locked' : '',
+                              ]
+                                .filter(Boolean)
+                                .join(' ')}
+                            >
                               {topic?.title}
                             </span>
 
                             {accentSide && Accent && (
                               <span
                                 className={`mg-section-accent mg-section-accent--${accentSide}`}
-                                style={{ color: section.color }}
+                                style={{ color: sectionColor(section.id) }}
                                 aria-hidden
                               >
                                 <Accent />
@@ -316,13 +347,17 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                     })}
 
                     <div className="mg-path__row mg-path__row--center">
-                      <div className="mg-path__node-wrap">
+                      <div
+                        className="mg-path__node-wrap"
+                        style={{ '--node-color': sectionColor(section.id) } as React.CSSProperties}
+                      >
                         <button
                           type="button"
                           className={[
                             'mg-node',
                             'mg-node--boss',
                             bossReady ? 'mg-node--boss-ready' : '',
+                            !bossReady && !defeated ? 'mg-node--boss-locked' : '',
                             defeated ? 'mg-node--boss-done' : '',
                           ]
                             .filter(Boolean)
@@ -334,12 +369,28 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                           }}
                           aria-label={`Босс ${section.boss}`}
                         >
-                          <Ring value={xp} max={required} size={108} color="#f59e0b" done={defeated} />
+                          <Ring
+                            value={xp}
+                            max={required}
+                            size={108}
+                            color="var(--boss-color)"
+                            done={defeated}
+                          />
                           <span className="mg-node__inner mg-node__inner--boss">
                             {defeated ? <Trophy size={34} /> : <Flame size={34} />}
                           </span>
                         </button>
-                        <span className="mg-path__caption mg-path__caption--center">
+                        <span
+                          className={[
+                            'mg-path__caption',
+                            'mg-path__caption--center',
+                            defeated
+                              ? 'mg-path__caption--done'
+                              : bossReady
+                                ? 'mg-path__caption--boss'
+                                : 'mg-path__caption--locked',
+                          ].join(' ')}
+                        >
                           {defeated ? `Босс повержен · ${section.item}` : `Босс: ${section.boss}`}
                         </span>
                         {!defeated && !bossReady && (
@@ -379,7 +430,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                   >
                     <span
                       className="mg-choice-card__icon"
-                      style={{ backgroundColor: section.color }}
+                      style={{ backgroundColor: sectionColor(section.id) }}
                       aria-hidden
                     >
                       {(() => {

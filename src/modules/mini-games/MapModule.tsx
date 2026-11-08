@@ -155,7 +155,13 @@ export const MapModule: React.FC = () => {
               ? `${section?.boss ?? ''} · ${section?.title ?? ''}`
               : config.title
           }
-          color={config.kind === 'boss' ? '#f59e0b' : section?.color ?? '#0ea5e9'}
+          color={
+            config.kind === 'boss'
+              ? 'var(--boss-color)'
+              : section
+                ? `var(--section-${section.id})`
+                : 'var(--section-mechanics)'
+          }
           icon={config.kind === 'boss' ? <Swords size={30} /> : <Flame size={30} />}
           title={
             bossLost
