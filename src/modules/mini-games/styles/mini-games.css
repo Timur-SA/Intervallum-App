@@ -378,15 +378,6 @@
   min-width: 0;
 }
 
-.mg-match__col-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-  margin-bottom: 2px;
-}
-
 .mg-tile {
   height: auto !important;
   min-height: 62px !important;
@@ -398,8 +389,63 @@
   line-height: 1.3 !important;
 }
 
+/* Место под крупные точки крепления нитки */
+.mg-tile--left {
+  padding-right: 34px !important;
+}
+
+.mg-tile--right {
+  padding-left: 34px !important;
+  text-align: right !important;
+}
+
+.mg-tile--right .mg-tile__content {
+  text-align: right !important;
+}
+
+.mg-tile--snap {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
 .mg-tile--taken {
   opacity: 0.5;
+}
+
+/* В светлой теме нейтральные блоки делаем белыми и контрастнее */
+[data-theme='light'] .mg-tile:not(.mg-tile--linked):not(.mg-tile--selected) {
+  background: var(--bg-card) !important;
+  border-color: rgba(15, 23, 42, 0.16) !important;
+}
+
+/* Связанный блок: в тёмной теме — глубокий цвет нитки, белый текст */
+.mg-tile--linked {
+  --tile-fill: color-mix(in srgb, var(--tile-color) 70%, #0f172a);
+  --tile-border: color-mix(in srgb, var(--tile-color) 78%, white);
+
+  background: var(--tile-fill) !important;
+  border: 2px solid var(--tile-border) !important;
+  color: #fff !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.mg-tile--linked .mg-tile__content {
+  color: #fff !important;
+}
+
+/* В светлой теме — те же пастельные заливки, что и у проверки, но в цвете нитки */
+[data-theme='light'] .mg-tile--linked {
+  --tile-fill: color-mix(in srgb, var(--tile-color) 26%, white);
+  --tile-border: var(--tile-color);
+
+  color: color-mix(in srgb, var(--tile-color) 38%, #0f172a) !important;
+  text-shadow: none;
+}
+
+[data-theme='light'] .mg-tile--linked .mg-tile__content {
+  color: inherit !important;
 }
 
 .mg-tile--selected {
@@ -407,14 +453,50 @@
   outline-offset: -2px;
 }
 
-.mg-tile--correct {
-  outline: 2px solid var(--success);
-  outline-offset: -2px;
+/* Проверка: все блоки подсвечиваются зелёным или красным */
+.mg-tile--check-correct,
+.mg-tile--check-wrong {
+  opacity: 1 !important;
+  font-weight: 700 !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
 }
 
-.mg-tile--wrong {
-  outline: 2px solid var(--danger);
-  outline-offset: -2px;
+.mg-tile--check-correct {
+  background: #0e9f74 !important;
+  border-color: #34d399 !important;
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+.mg-tile--check-wrong {
+  background: #dc2626 !important;
+  border-color: #f87171 !important;
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme='light'] .mg-tile--check-correct {
+  background: #dcfce7 !important;
+  border-color: #22c55e !important;
+  color: #14532d !important;
+  text-shadow: none;
+}
+
+[data-theme='light'] .mg-tile--check-wrong {
+  background: #fee2e2 !important;
+  border-color: #ef4444 !important;
+  color: #7f1d1d !important;
+  text-shadow: none;
+}
+
+.mg-tile--check-correct .mg-tile__content,
+.mg-tile--check-wrong .mg-tile__content {
+  color: inherit !important;
 }
 
 .mg-tile__content {
@@ -1350,24 +1432,63 @@
 /* ------------------------------------------------------------- Нитки */
 
 .mg-tile {
-  touch-action: pan-y;
+  touch-action: none;
 }
 
 .mg-thread {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: mg-thread-draw 320ms ease-out forwards;
+  pointer-events: none;
 }
 
-.mg-thread__dot {
-  animation: mg-thread-dot 140ms ease-out both;
-  animation-delay: 240ms;
+.mg-thread--draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: mg-thread-draw 340ms ease-out forwards;
 }
 
 .mg-thread--temp {
-  stroke-dasharray: 6 6;
-  opacity: 0.85;
   pointer-events: none;
+}
+
+.mg-thread__halo {
+  opacity: 0.18;
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.mg-thread__halo--exit {
+  animation: mg-thread-halo-exit 580ms ease-out forwards;
+}
+
+.mg-thread__dot {
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.mg-thread__dot--exit {
+  animation: mg-thread-dot-exit 560ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.mg-thread--exit {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: mg-thread-exit 480ms ease-in forwards;
+}
+
+.mg-thread__group--dragging {
+  opacity: 0.22;
+}
+
+.mg-thread__burst {
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mg-thread-burst 420ms ease-out forwards;
+}
+
+.mg-thread__burst--delayed {
+  animation-delay: 240ms;
 }
 
 @keyframes mg-thread-draw {
@@ -1376,12 +1497,47 @@
   }
 }
 
-@keyframes mg-thread-dot {
-  from {
+@keyframes mg-thread-exit {
+  to {
+    stroke-dashoffset: 1;
     opacity: 0;
   }
-  to {
+}
+
+@keyframes mg-thread-dot-exit {
+  0% {
+    transform: scale(1);
     opacity: 1;
+  }
+  60% {
+    transform: scale(0.82);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(0.35);
+    opacity: 0;
+  }
+}
+
+@keyframes mg-thread-halo-exit {
+  from {
+    opacity: 0.18;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+@keyframes mg-thread-burst {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
   }
 }
 
@@ -2032,11 +2188,32 @@
   .mg-force-feedback.is-fail,
   .mg-force-review,
   .mg-force-review__comparison,
-  .mg-thread,
-  .mg-thread__dot,
+  .mg-thread--draw,
+  .mg-thread--exit,
+  .mg-thread__dot--exit,
+  .mg-thread__halo--exit,
+  .mg-thread__burst,
+  .mg-thread__burst--delayed,
   .mg-section-node--selectable,
   .mg-node--boss-ready .mg-node__inner--boss {
     animation: none;
+  }
+
+  .mg-thread--exit .mg-thread__dot,
+  .mg-thread--exit .mg-thread__halo {
+    display: none;
+  }
+
+  .mg-thread--draw {
+    stroke-dashoffset: 0;
+  }
+
+  .mg-thread--exit {
+    opacity: 0;
+  }
+
+  .mg-thread__burst {
+    display: none;
   }
 
   .mg-flash__inner,
