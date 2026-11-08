@@ -38,9 +38,16 @@ type Screen =
 interface MapModuleProps {
   /** Куда прокрутить карту после перехода с главного экрана. */
   focusTopicId?: TopicId | null;
+  /** Одноразовый запрос на запуск персональной тренировки с Главной. */
+  trainingRequestId?: number;
+  onTrainingRequestHandled?: () => void;
 }
 
-export const MapModule: React.FC<MapModuleProps> = ({ focusTopicId = null }) => {
+export const MapModule: React.FC<MapModuleProps> = ({
+  focusTopicId = null,
+  trainingRequestId = 0,
+  onTrainingRequestHandled,
+}) => {
   const [route, setRoute] = useState<Screen>({ name: 'journey' });
   const [history, setHistory] = useState<Screen[]>([]);
   const [progress, setProgress] = useState(() => loadUserProgress());
@@ -153,6 +160,17 @@ export const MapModule: React.FC<MapModuleProps> = ({ focusTopicId = null }) => 
       if (request === trainingRequest.current) setSelecting(false);
     }
   };
+
+  const handledTrainingRequest = useRef(0);
+  const startTrainingRef = useRef(startTraining);
+  startTrainingRef.current = startTraining;
+
+  useEffect(() => {
+    if (!trainingRequestId || trainingRequestId === handledTrainingRequest.current) return;
+    handledTrainingRequest.current = trainingRequestId;
+    void startTrainingRef.current();
+    onTrainingRequestHandled?.();
+  }, [trainingRequestId, onTrainingRequestHandled]);
 
   const startBoss = (sectionId: SectionId) => {
     const section = getSection(sectionId);

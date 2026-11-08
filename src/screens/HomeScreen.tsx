@@ -23,6 +23,7 @@ import './HomeScreen.css';
 
 interface HomeScreenProps {
   onOpenMap: (focusTopicId: TopicId | null) => void;
+  onStartTraining: () => void;
 }
 
 const getCurrentTopic = (
@@ -64,7 +65,7 @@ const pluralDays = (count: number): string => {
   return 'дней';
 };
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap, onStartTraining }) => {
   const [data, setData] = useState<UserProgressData>(() => loadUserProgress());
 
   useEffect(() => {
@@ -165,8 +166,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap }) => {
           variant="primary"
           size="large"
           stretched
-          disabled
           className="home-train-btn"
+          onClick={onStartTraining}
         >
           Начать персональную тренировку
         </Button>
