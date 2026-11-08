@@ -2,9 +2,26 @@ import React from 'react';
 import { FormulaCard } from '../types/physics';
 import { VariableToken } from './VariableToken';
 
+export interface FormulaDropTarget {
+  cardId: number;
+  side: 'left' | 'right';
+  position: 'num' | 'den';
+  index: number;
+}
+
+export interface FormulaDragSource {
+  cardId: number;
+  side: 'left' | 'right';
+  position: 'num' | 'den';
+  index: number;
+  symbol: string;
+}
+
 interface FormulaCardItemProps {
   card: FormulaCard;
   isRearranging: boolean;
+  dropTarget: FormulaDropTarget | null;
+  dragSource: FormulaDragSource | null;
   activeCandidateTokenSym: string | null;
   activeCandidateCardId: number | null;
   selectionMode: boolean;
@@ -28,6 +45,8 @@ interface FormulaCardItemProps {
 export const FormulaCardItem: React.FC<FormulaCardItemProps> = ({
   card,
   isRearranging,
+  dropTarget,
+  dragSource,
   activeCandidateTokenSym,
   activeCandidateCardId,
   selectionMode,
@@ -40,204 +59,165 @@ export const FormulaCardItem: React.FC<FormulaCardItemProps> = ({
   onPointerDownOut,
   onSelectAnswerCard
 }) => {
-  const renderSide = (side: 'left' | 'right') => {
-    const sideData = card.structure[side];
-    const hasDen = sideData.den.length > 0;
+  const isTargetForThisCard = dropTarget !== null && dropTarget.cardId === card.id;
 
-    if (!hasDen) {
-      // Строчный вид (произведение множителей)
-      return (
-        <div className={`equation-side equation-side-${side}`} data-card-id={card.id} data-side={side}>
-          <div className="equation-row inline-row">
-            {/* Дроп-зона в начало строки */}
-            <div
-              className="drop-zone"
-              data-card-id={card.id}
-              data-side={side}
-              data-position="num"
-              data-index={0}
-              title="В начало"
-            />
+  const renderTokenRow = (
+    tokens: string[],
+    side: 'left' | 'right',
+    position: 'num' | 'den',
+    hasDen: boolean,
+    isTargetRow: boolean,
+    targetIndex: number
+  ) => {
+    const rowClass = `equation-row ${position === 'num' ? (hasDen ? 'num-row' : 'inline-row') : 'den-row'}`;
 
-            {sideData.num.length === 0 ? (
-              <span className="empty-side-indicator">1</span>
-            ) : (
-              sideData.num.map((sym, idx) => (
-                <React.Fragment key={`${sym}-${idx}`}>
-                  {idx > 0 && (
-                    <>
-                      <div
-                        className="drop-zone"
-                        data-card-id={card.id}
-                        data-side={side}
-                        data-position="num"
-                        data-index={idx}
-                        title="Между"
-                      />
-                      <span className="math-operator">·</span>
-                    </>
-                  )}
-                  <VariableToken
-                    cardId={card.id}
-                    symbol={sym}
-                    side={side}
-                    position="num"
-                    index={idx}
-                    valData={card.values[sym]}
-                    isDraggingSource={false}
-                    isDropCandidate={
-                      activeCandidateCardId === card.id && activeCandidateTokenSym === sym
-                    }
-                    onPointerDownToken={onPointerDownToken}
-                    onClearValue={onClearValue}
-                    onClickToken={onClickToken}
-                  />
-                </React.Fragment>
-              ))
-            )}
-
-            {/* Дроп-зона в конец строки */}
-            {sideData.num.length > 0 && (
-              <div
-                className="drop-zone"
-                data-card-id={card.id}
-                data-side={side}
-                data-position="num"
-                data-index={sideData.num.length}
-                title="В конец"
-              />
-            )}
+    if (tokens.length === 0) {
+      if (isTargetRow) {
+        return (
+          <div className={rowClass}>
+            <div className="formula-insertion-cursor" />
           </div>
-
-          {/* Дроп-зона "Создать знаменатель (под черту)" */}
-          <div
-            className="drop-zone zone-new-fraction"
-            data-card-id={card.id}
-            data-side={side}
-            data-position="den"
-            data-index={0}
-            title="— Под черту (создать дробь)"
-          />
+        );
+      }
+      return (
+        <div className={rowClass}>
+          <span className={position === 'den' ? 'empty-side-indicator' : 'math-const'}>1</span>
         </div>
       );
     }
 
-    // Дробный вид
     return (
-      <div className={`equation-side equation-side-${side}`} data-card-id={card.id} data-side={side}>
-        <div className="equation-fraction">
-          {/* Числитель */}
-          <div className="equation-row num-row">
-            <div
-              className="drop-zone"
-              data-card-id={card.id}
-              data-side={side}
-              data-position="num"
-              data-index={0}
-              title="В начало"
-            />
-            {sideData.num.length === 0 ? (
-              <span className="math-const">1</span>
-            ) : (
-              sideData.num.map((sym, idx) => (
-                <React.Fragment key={`${sym}-${idx}`}>
-                  {idx > 0 && (
-                    <>
-                      <div
-                        className="drop-zone"
-                        data-card-id={card.id}
-                        data-side={side}
-                        data-position="num"
-                        data-index={idx}
-                        title="Между"
-                      />
-                      <span className="math-operator">·</span>
-                    </>
-                  )}
-                  <VariableToken
-                    cardId={card.id}
-                    symbol={sym}
-                    side={side}
-                    position="num"
-                    index={idx}
-                    valData={card.values[sym]}
-                    isDraggingSource={false}
-                    isDropCandidate={
-                      activeCandidateCardId === card.id && activeCandidateTokenSym === sym
-                    }
-                    onPointerDownToken={onPointerDownToken}
-                    onClearValue={onClearValue}
-                    onClickToken={onClickToken}
-                  />
-                </React.Fragment>
-              ))
-            )}
-            {sideData.num.length > 0 && (
-              <div
-                className="drop-zone"
-                data-card-id={card.id}
-                data-side={side}
-                data-position="num"
-                data-index={sideData.num.length}
-                title="В конец"
+      <div className={rowClass}>
+        {tokens.map((sym, idx) => {
+          const isSource = Boolean(
+            dragSource &&
+            dragSource.cardId === card.id &&
+            dragSource.side === side &&
+            dragSource.position === position &&
+            dragSource.index === idx
+          );
+
+          return (
+            <React.Fragment key={`${sym}-${idx}`}>
+              {/* Insert cursor before this token if targeted at start */}
+              {idx === 0 && isTargetRow && targetIndex === 0 && (
+                <>
+                  <div className="formula-insertion-cursor" />
+                  <span className="math-operator">·</span>
+                </>
+              )}
+
+              {/* Insert cursor between previous and current token */}
+              {idx > 0 && isTargetRow && targetIndex === idx && (
+                <>
+                  <span className="math-operator">·</span>
+                  <div className="formula-insertion-cursor" />
+                  <span className="math-operator">·</span>
+                </>
+              )}
+
+              {/* Normal multiplication dot */}
+              {idx > 0 && !(isTargetRow && targetIndex === idx) && (
+                <span className="math-operator">·</span>
+              )}
+
+              <VariableToken
+                cardId={card.id}
+                symbol={sym}
+                side={side}
+                position={position}
+                index={idx}
+                valData={card.values[sym]}
+                isDraggingSource={isSource}
+                isDropCandidate={
+                  activeCandidateCardId === card.id && activeCandidateTokenSym === sym
+                }
+                onPointerDownToken={onPointerDownToken}
+                onClearValue={onClearValue}
+                onClickToken={onClickToken}
               />
-            )}
-          </div>
+            </React.Fragment>
+          );
+        })}
 
-          {/* Дробная черта */}
+        {/* Insert cursor at the end of the row */}
+        {isTargetRow && targetIndex >= tokens.length && (
+          <>
+            <span className="math-operator">·</span>
+            <div className="formula-insertion-cursor" />
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const renderSide = (side: 'left' | 'right') => {
+    const sideData = card.structure[side];
+    const hasDen = sideData.den.length > 0;
+    const isTargetSide = isTargetForThisCard && dropTarget.side === side;
+    const isPreviewFraction = !hasDen && isTargetSide && dropTarget.position === 'den';
+
+    if (isPreviewFraction) {
+      return (
+        <div
+          className={`equation-side equation-side-${side} side-preview-fraction`}
+          data-card-id={card.id}
+          data-side={side}
+        >
+          <div className="equation-fraction">
+            {renderTokenRow(sideData.num, side, 'num', true, false, -1)}
+            <div className="fraction-bar fraction-bar--preview" />
+            <div className="equation-row den-row den-row--preview">
+              <div className="formula-insertion-cursor" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (!hasDen) {
+      return (
+        <div
+          className={`equation-side equation-side-${side}`}
+          data-card-id={card.id}
+          data-side={side}
+        >
+          {renderTokenRow(
+            sideData.num,
+            side,
+            'num',
+            false,
+            isTargetSide && dropTarget.position === 'num',
+            dropTarget?.index ?? -1
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className={`equation-side equation-side-${side}`}
+        data-card-id={card.id}
+        data-side={side}
+      >
+        <div className="equation-fraction">
+          {renderTokenRow(
+            sideData.num,
+            side,
+            'num',
+            true,
+            isTargetSide && dropTarget.position === 'num',
+            dropTarget?.index ?? -1
+          )}
           <div className="fraction-bar" />
-
-          {/* Знаменатель */}
-          <div className="equation-row den-row">
-            <div
-              className="drop-zone"
-              data-card-id={card.id}
-              data-side={side}
-              data-position="den"
-              data-index={0}
-              title="В начало"
-            />
-            {sideData.den.map((sym, idx) => (
-              <React.Fragment key={`${sym}-${idx}`}>
-                {idx > 0 && (
-                  <>
-                    <div
-                      className="drop-zone"
-                      data-card-id={card.id}
-                      data-side={side}
-                      data-position="den"
-                      data-index={idx}
-                      title="Между"
-                    />
-                    <span className="math-operator">·</span>
-                  </>
-                )}
-                <VariableToken
-                  cardId={card.id}
-                  symbol={sym}
-                  side={side}
-                  position="den"
-                  index={idx}
-                  valData={card.values[sym]}
-                  isDraggingSource={false}
-                  isDropCandidate={
-                    activeCandidateCardId === card.id && activeCandidateTokenSym === sym
-                  }
-                  onPointerDownToken={onPointerDownToken}
-                  onClearValue={onClearValue}
-                  onClickToken={onClickToken}
-                />
-              </React.Fragment>
-            ))}
-            <div
-              className="drop-zone"
-              data-card-id={card.id}
-              data-side={side}
-              data-position="den"
-              data-index={sideData.den.length}
-              title="В конец"
-            />
-          </div>
+          {renderTokenRow(
+            sideData.den,
+            side,
+            'den',
+            true,
+            isTargetSide && dropTarget.position === 'den',
+            dropTarget?.index ?? -1
+          )}
         </div>
       </div>
     );
