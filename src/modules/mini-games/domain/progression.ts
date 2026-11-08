@@ -10,28 +10,34 @@ export const topicMaxXp = (topicId: TopicId): number =>
     0,
   );
 
-/** Полностью пройденный уровень — 100% опыта темы. */
+/** Опыт ограничен шкалой темы, в том числе для старых сохранений. */
+export const topicXp = (progress: PracticeProgress, topicId: TopicId): number =>
+  Math.max(0, Math.min(topicMaxXp(topicId), progress.xpByTopic[topicId] ?? 0));
+
+export const topicMastery = (progress: PracticeProgress, topicId: TopicId): number => {
+  const max = topicMaxXp(topicId);
+  return max > 0 ? Math.floor(100 * topicXp(progress, topicId) / max) : 0;
+};
+
 export const isTopicComplete = (progress: PracticeProgress, topicId: TopicId): boolean =>
-  (progress.xpByTopic[topicId] ?? 0) >= topicMaxXp(topicId);
+  topicMastery(progress, topicId) === 100;
 
 /** Уровень считается «достаточно пройденным» с 80% своего опыта. */
 export const topicUnlockXp = (topicId: TopicId): number =>
   Math.ceil(topicMaxXp(topicId) * 0.8);
 
-/** Порог босса — сумма 80% по каждому уровню раздела. */
+/** Босс открывается после полного освоения всех тем раздела. */
 export const bossXpRequired = (sectionId: SectionId): number => {
   const section = getSection(sectionId);
   if (!section) return 0;
-  return section.topics.reduce((sum, topicId) => sum + topicUnlockXp(topicId), 0);
+  return section.topics.reduce((sum, topicId) => sum + topicMaxXp(topicId), 0);
 };
 
 export const isBossReady = (progress: PracticeProgress, sectionId: SectionId): boolean => {
   if (!isSectionUnlocked(progress, sectionId)) return false;
   if (isSectionDefeated(progress, sectionId)) return false;
-  return sectionXp(progress, sectionId) >= bossXpRequired(sectionId);
+  return getSection(sectionId)?.topics.every(topic => isTopicComplete(progress, topic)) ?? false;
 };
-
-/** Следующий уровень открывается, когда предыдущий добрал до порога босса. */
 
 /** Тренировка: 5–10 задач из спеки. */
 export const TRAINING_TASKS = 7;
@@ -44,7 +50,7 @@ export const BOSS_WIN_SCORE = 17;
 export const sectionXp = (progress: PracticeProgress, sectionId: SectionId): number => {
   const section = getSection(sectionId);
   if (!section) return 0;
-  return section.topics.reduce((sum, topicId) => sum + (progress.xpByTopic[topicId] ?? 0), 0);
+  return section.topics.reduce((sum, topicId) => sum + topicXp(progress, topicId), 0);
 };
 
 export const isSectionUnlocked = (
@@ -72,10 +78,16 @@ export const isTopicUnlocked = (
 
   const index = section.topics.indexOf(topicId);
   if (index < 0) return false;
-  if (index === 0) return true;
+  if (index === 0 || progress.readTopicIds?.includes(topicId) || topicXp(progress, topicId) > 0) {
+    return true;
+  }
 
   const previousTopic = section.topics[index - 1];
-  return (progress.xpByTopic[previousTopic] ?? 0) >= topicUnlockXp(previousTopic);
+  const previousPeak = Math.max(
+    progress.xpByTopic[previousTopic] ?? 0,
+    progress.peakXpByTopic?.[previousTopic] ?? 0,
+  );
+  return previousPeak >= topicUnlockXp(previousTopic);
 };
 
 export const openTopicsCount = (

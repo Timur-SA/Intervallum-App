@@ -1,16 +1,19 @@
-import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, forwardRef, useImperativeHandle } from 'react';
 import { Typography, Button } from '@maxhub/max-ui';
+import { BookOpen } from 'lucide-react';
 import { PhysicsTask, FormulaCard, PhysicalLaw, ComputedResult } from './types/physics';
 import { PHYSICS_TASKS } from './data/tasksDb';
 import { TaskScreen } from './components/TaskScreen';
 import { CollapsibleProblemPanel } from './components/CollapsibleProblemPanel';
-import { FormulaCardItem } from './components/FormulaCardItem';
+import { FormulaCardItem, FormulaDropTarget } from './components/FormulaCardItem';
 import { BottomSheetLaws } from './components/BottomSheetLaws';
 import { VariablePopover } from './components/VariablePopover';
 import { ResultModal } from './components/ResultModal';
 import { CelebrationSparks } from '../../shared/components/CelebrationSparks';
 import { haptics } from '../../shared/motion/haptics';
-import { loadUserProgress, markFormulaTaskCompleted } from '../../shared/storage/progressStore';
+import { hasSeenTaskGuide, loadUserProgress, markFormulaTaskCompleted, markTaskGuideSeen, saveUserProgress } from '../../shared/storage/progressStore';
+import { MathText } from '../../shared/components/MathView';
+import { getFormulaGuideStep, hasFormulaGuide } from './utils/formulaGuide';
 import { useNavigation } from '../../shell/HeaderContext';
 import {
   moveTokenInCard,
@@ -38,6 +41,7 @@ interface FormulaTrainerModuleProps {
   onBackToHub: () => void;
   /** Встроенный режим: одна задача внутри общего каркаса уровня. */
   embeddedTask?: PhysicsTask;
+  autoShowGuide?: boolean;
   onEmbeddedDone?: (score: number) => void;
   onEmbeddedChecked?: (result: {
     correct: boolean;
@@ -47,17 +51,109 @@ interface FormulaTrainerModuleProps {
   }) => void;
 }
 
+function getFormulaDropTarget(
+  cardId: number,
+  clientX: number,
+  clientY: number
+): FormulaDropTarget | null {
+  const cardEl = document.querySelector(`.formula-card[data-card-id="${cardId}"]`);
+  if (!cardEl) return null;
+
+  const workspaceEl = cardEl.querySelector('.equation-workspace');
+  if (!workspaceEl) return null;
+
+  const wsRect = workspaceEl.getBoundingClientRect();
+  // Allow a forgiving margin around the workspace (35px)
+  if (
+    clientX < wsRect.left - 35 ||
+    clientX > wsRect.right + 35 ||
+    clientY < wsRect.top - 35 ||
+    clientY > wsRect.bottom + 35
+  ) {
+    return null;
+  }
+
+  // Determine left vs right side
+  const equalsEl = workspaceEl.querySelector('.equation-equals-group');
+  let side: 'left' | 'right' = 'left';
+  if (equalsEl) {
+    const eqRect = equalsEl.getBoundingClientRect();
+    const eqMidX = (eqRect.left + eqRect.right) / 2;
+    side = clientX < eqMidX ? 'left' : 'right';
+  }
+
+  const sideEl = workspaceEl.querySelector(`.equation-side-${side}`) as HTMLElement | null;
+  if (!sideEl) return null;
+
+  // Check if side has an existing fraction or is inline
+  const fractionBarEl = sideEl.querySelector('.fraction-bar');
+  let position: 'num' | 'den' = 'num';
+
+  if (fractionBarEl) {
+    const barRect = fractionBarEl.getBoundingClientRect();
+    position = clientY < barRect.bottom ? 'num' : 'den';
+  } else {
+    // Inline row: check if pointer is below the row to create a fraction
+    const rowEl = sideEl.querySelector('.equation-row');
+    if (rowEl) {
+      const rowRect = rowEl.getBoundingClientRect();
+      if (clientY > rowRect.bottom - 4) {
+        return { cardId, side, position: 'den', index: 0 };
+      }
+    }
+    position = 'num';
+  }
+
+  // Find target row
+  const rowSelector = position === 'num' ? '.num-row, .inline-row' : '.den-row';
+  const targetRowEl = sideEl.querySelector(rowSelector);
+  if (!targetRowEl) {
+    return { cardId, side, position, index: 0 };
+  }
+
+  // Find all tokens in this row
+  const tokenEls = Array.from(targetRowEl.querySelectorAll('.var-token')) as HTMLElement[];
+  if (tokenEls.length === 0) {
+    return { cardId, side, position, index: 0 };
+  }
+
+  // Find slot index based on clientX
+  const firstRect = tokenEls[0].getBoundingClientRect();
+  if (clientX < (firstRect.left + firstRect.right) / 2) {
+    return { cardId, side, position, index: 0 };
+  }
+
+  for (let i = 0; i < tokenEls.length - 1; i++) {
+    const rectA = tokenEls[i].getBoundingClientRect();
+    const rectB = tokenEls[i + 1].getBoundingClientRect();
+    const midX = (rectA.right + rectB.left) / 2;
+    if (clientX < midX) {
+      return { cardId, side, position, index: i + 1 };
+    }
+  }
+
+  return { cardId, side, position, index: tokenEls.length };
+}
+
 export interface FormulaTrainerHandle {
   check: () => void;
 }
 
 export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrainerModuleProps>(
-  ({ onBackToHub, embeddedTask, onEmbeddedDone, onEmbeddedChecked }, ref) => {
+  ({ onBackToHub, embeddedTask, autoShowGuide, onEmbeddedDone, onEmbeddedChecked }, ref) => {
   const embedded = Boolean(embeddedTask);
   const [currentTask, setCurrentTask] = useState<PhysicsTask | null>(embeddedTask ?? null);
   const [answer, setAnswer] = useState<{ symbol: string; value: number; unit?: string } | null>(null);
   const [cards, setCards] = useState<FormulaCard[]>([]);
   const [cardCounter, setCardCounter] = useState(0);
+  const tapeRef = useRef<HTMLDivElement>(null);
+  const [guideOpen, setGuideOpen] = useState(() => {
+    if (!embeddedTask || !autoShowGuide) return false;
+    const progress = loadUserProgress();
+    return !progress.formulaGuideDismissed &&
+      !hasSeenTaskGuide(progress.practice, 'interactive') &&
+      progress.formulaTrainer.completedTaskIds.length === 0;
+  });
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -81,9 +177,29 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
   } | null>(null);
 
   const [dragState, setDragState] = useState<DragState>({ type: null });
+  const [formulaDropTarget, setFormulaDropTarget] = useState<FormulaDropTarget | null>(null);
+  const dropTargetRef = useRef<FormulaDropTarget | null>(null);
   const [hoveredCandidate, setHoveredCandidate] = useState<{ cardId: number; symbol: string } | null>(
     null
   );
+
+  useEffect(() => {
+    if (guideOpen && currentTask && hasFormulaGuide(currentTask)) markTaskGuideSeen('interactive');
+  }, [currentTask, guideOpen]);
+
+  useLayoutEffect(() => {
+    const tape = tapeRef.current;
+    if (guideOpen && cardCounter > 1 && tape) tape.scrollTop = tape.scrollHeight;
+  }, [cardCounter, guideOpen]);
+
+  const toggleGuide = () => {
+    if (guideOpen) {
+      const progress = loadUserProgress();
+      progress.formulaGuideDismissed = true;
+      saveUserProgress(progress);
+    }
+    setGuideOpen(!guideOpen);
+  };
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -227,41 +343,46 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
           ghostPos: { x: me.clientX, y: me.clientY },
         }));
 
-        const elem = document.elementFromPoint(me.clientX, me.clientY);
-        document.querySelectorAll('.drop-zone.active-hover').forEach(z => z.classList.remove('active-hover'));
-        if (elem) {
-          const dropZone = elem.closest('.drop-zone');
-          if (dropZone && parseInt((dropZone as HTMLElement).dataset.cardId || '-1') === cardId) {
-            dropZone.classList.add('active-hover');
+        const newTarget = getFormulaDropTarget(cardId, me.clientX, me.clientY);
+        const prevTarget = dropTargetRef.current;
+        const changed =
+          (!prevTarget && !!newTarget) ||
+          (!!prevTarget && !newTarget) ||
+          (!!prevTarget &&
+            !!newTarget &&
+            (prevTarget.cardId !== newTarget.cardId ||
+              prevTarget.side !== newTarget.side ||
+              prevTarget.position !== newTarget.position ||
+              prevTarget.index !== newTarget.index));
+
+        if (changed) {
+          if (newTarget) {
+            haptics.selection();
           }
+          dropTargetRef.current = newTarget;
+          setFormulaDropTarget(newTarget);
         }
       }
     };
 
-    const onPointerUp = (ue: PointerEvent) => {
+    const onPointerUp = () => {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
 
       if (isDragging) {
-        let targetDropZone = document.querySelector('.drop-zone.active-hover');
-        if (!targetDropZone) {
-          const elem = document.elementFromPoint(ue.clientX, ue.clientY);
-          if (elem) targetDropZone = elem.closest('.drop-zone');
-        }
-
-        document.querySelectorAll('.drop-zone.active-hover').forEach(z => z.classList.remove('active-hover'));
+        const target = dropTargetRef.current;
+        dropTargetRef.current = null;
+        setFormulaDropTarget(null);
         setDragState({ type: null });
 
-        if (targetDropZone && parseInt((targetDropZone as HTMLElement).dataset.cardId || '-1') === cardId) {
+        if (target && target.cardId === cardId) {
           haptics.impact('medium');
-          const toSide = (targetDropZone as HTMLElement).dataset.side as 'left' | 'right';
-          const toPos = (targetDropZone as HTMLElement).dataset.position as 'num' | 'den';
-          const toIdx = parseInt((targetDropZone as HTMLElement).dataset.index || '0');
-
           setCards(prev =>
             recomputeCards(
               prev.map(c =>
-                c.id === cardId ? moveTokenInCard(c, side, position, index, toSide, toPos, toIdx) : c
+                c.id === cardId
+                  ? moveTokenInCard(c, side, position, index, target.side, target.position, target.index)
+                  : c
               )
             )
           );
@@ -440,6 +561,7 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
     const score = correct ? 1 : 0.5;
 
     if (embedded) {
+      setGuideOpen(false);
       haptics.notification(correct ? 'success' : 'error');
       onEmbeddedChecked?.({
         correct,
@@ -490,7 +612,10 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
   };
 
   const { setNavigationConfig } = useNavigation();
+  const guide = guideOpen && currentTask ? getFormulaGuideStep(currentTask, cards, answer) : null;
   const hasComputedResults = cards.some(c => c.computed && c.computed.value !== null);
+  const showAnswerSlot = !guide || answer ||
+    cards.some(card => card.computed?.symbol === currentTask?.find.symbol);
 
   useImperativeHandle(ref, () => ({ check: handleCheckClick }));
 
@@ -538,7 +663,7 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
           </div>
         </div>
       ) : (
-        <div className="app-screen-solver" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <div className={guide ? "app-screen-solver app-screen-solver--guided" : "app-screen-solver"} style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {/* Solver In-App Header */}
           {!embedded && (
           <div className="inapp-header">
@@ -568,24 +693,49 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
           </div>
           )}
 
-          <CollapsibleProblemPanel task={currentTask} onPointerDownGiven={handlePointerDownGiven} />
+          <CollapsibleProblemPanel
+            task={currentTask}
+            compact={Boolean(guide)}
+            onPointerDownGiven={handlePointerDownGiven}
+            guideControl={embedded && hasFormulaGuide(currentTask) && (
+              <button
+                type="button"
+                className="formula-guide-toggle"
+                aria-expanded={Boolean(guide)}
+                aria-controls={guide ? 'mg-formula-guide' : undefined}
+                onClick={toggleGuide}
+              >
+                <BookOpen size={14} aria-hidden="true" />
+                {guide ? 'Свернуть помощь' : 'Как решать'}
+              </button>
+            )}
+          />
 
-          <div className="mg-answer-slot">
-            <span className="mg-answer-slot__label">Ответ:</span>
-            <div className={`mg-answer-slot__drop ${answer ? 'is-filled' : ''}`}>
-              {answer ? (
-                <span className="given-chip mg-answer-slot__pill">
-                  <b>{answer.symbol}</b> ={' '}
-                  {Number.isInteger(answer.value)
-                    ? answer.value
-                    : parseFloat(answer.value.toFixed(3))}{' '}
-                  {answer.unit}
-                </span>
-              ) : (
-                <span className="mg-answer-slot__hint">Перетащите сюда величину</span>
-              )}
+          {guide && (
+            <div id="mg-formula-guide" className="formula-guide" role="status">
+              <strong>{guide.title}</strong>
+              <MathText text={guide.text} />
             </div>
-          </div>
+          )}
+
+          {showAnswerSlot && (
+            <div className="mg-answer-slot">
+              <span className="mg-answer-slot__label">Ответ:</span>
+              <div className={`mg-answer-slot__drop ${answer ? 'is-filled' : ''}`}>
+                {answer ? (
+                  <span className="given-chip mg-answer-slot__pill">
+                    <b>{answer.symbol}</b> ={' '}
+                    {Number.isInteger(answer.value)
+                      ? answer.value
+                      : parseFloat(answer.value.toFixed(3))}{' '}
+                    {answer.unit}
+                  </span>
+                ) : (
+                  <span className="mg-answer-slot__hint">Перетащите сюда величину</span>
+                )}
+              </div>
+            </div>
+          )}
 
           {selectionMode && (
             <div className="tape-prompt-bar visible">
@@ -602,7 +752,7 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
             </div>
           )}
 
-          <div className="formula-tape" style={{ flex: 1, overflowY: 'auto' }}>
+          <div ref={tapeRef} className="formula-tape" style={{ flex: 1, overflowY: 'auto' }}>
             {cards.length === 0 ? (
               <div className="tape-placeholder">
                 <div className="placeholder-icon">📐</div>
@@ -620,6 +770,22 @@ export const FormulaTrainerModule = forwardRef<FormulaTrainerHandle, FormulaTrai
                   key={card.id}
                   card={card}
                   isRearranging={dragState.type === 'token' && dragState.cardId === card.id}
+                  dropTarget={
+                    formulaDropTarget && formulaDropTarget.cardId === card.id
+                      ? formulaDropTarget
+                      : null
+                  }
+                  dragSource={
+                    dragState.type === 'token' && dragState.cardId === card.id
+                      ? {
+                          cardId: card.id,
+                          side: dragState.fromSide!,
+                          position: dragState.fromPos!,
+                          index: dragState.fromIdx!,
+                          symbol: dragState.symbol!,
+                        }
+                      : null
+                  }
                   activeCandidateCardId={hoveredCandidate?.cardId ?? null}
                   activeCandidateTokenSym={hoveredCandidate?.symbol ?? null}
                   selectionMode={selectionMode}

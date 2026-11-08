@@ -30,7 +30,7 @@ export const BottomSheetLaws: React.FC<BottomSheetLawsProps> = ({
         onClick={onClose}
       />
 
-      <div className={`bottom-sheet ${isOpen ? 'open' : ''}`}>
+      <div className={`bottom-sheet formula-laws-sheet ${isOpen ? 'open' : ''}`} inert={!isOpen}>
         <div className="sheet-drag-header">
           <div className="handle-pill" />
           <h3>Каталог физических законов</h3>

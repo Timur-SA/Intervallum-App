@@ -1,6 +1,8 @@
 export interface VariableMeta {
   name: string;
   unit: string;
+  /** Необязательное значение по умолчанию для новых карточек. */
+  default?: number | null;
 }
 
 export interface EquationSide {

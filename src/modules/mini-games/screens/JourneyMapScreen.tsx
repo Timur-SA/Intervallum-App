@@ -21,9 +21,9 @@ import {
   isTopicComplete,
   isTopicUnlocked,
   sectionXp,
-  topicMaxXp,
+  topicMastery,
 } from '../domain/progression';
-import { TASK_BANK } from '../data';
+import { isTheoryRead, needsReview } from '../domain/training';
 import { SECTION_ICONS } from '../config/sectionIcons';
 import { SECTION_ACCENTS, SECTION_PATTERNS } from '../config/sectionArtwork';
 import { haptics } from '../../../shared/motion/haptics';
@@ -31,7 +31,12 @@ import { haptics } from '../../../shared/motion/haptics';
 interface JourneyMapScreenProps {
   progress: PracticeProgress;
   focusTopicId?: TopicId | null;
+  now: number;
+  trainingHint: string;
+  trainingPending: boolean;
+  onStartTraining?: () => void;
   onStartLevel: (sectionId: SectionId, topicId: TopicId) => void;
+  onSkipOnboarding?: () => void;
   onStartBoss: (sectionId: SectionId) => void;
   onChooseSection: (sectionId: SectionId) => void;
 }
@@ -101,12 +106,18 @@ const turnSide = (
 export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
   progress,
   focusTopicId = null,
+  now,
+  trainingHint,
+  trainingPending,
+  onStartTraining,
   onStartLevel,
+  onSkipOnboarding,
   onStartBoss,
   onChooseSection,
 }) => {
   const [collapsedOverrides, setCollapsedOverrides] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<{ sectionId: SectionId; topicId: TopicId } | null>(null);
+  const firstLevelRef = useRef<HTMLButtonElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const [road, setRoad] = useState('');
 
@@ -162,9 +173,6 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
     return () => observer.disconnect();
   }, []);
 
-  const selectedTasks = selected
-    ? TASK_BANK.filter(task => task.topic === selected.topicId)
-    : [];
   const selectedTopicMeta = selected ? getTopic(selected.topicId) : null;
   const selectedSection = selected ? getSection(selected.sectionId) : null;
 
@@ -241,6 +249,35 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                     ))}
                 </button>
 
+                {sectionIndex === 0 && onSkipOnboarding && (
+                  <section className="mg-map-welcome" aria-labelledby="mg-map-welcome-title">
+                    <h2 id="mg-map-welcome-title">Начни с равномерного движения</h2>
+                    <p>Прочитай теорию, чтобы добавить тему в персональную тренировку.</p>
+                    <div className="mg-map-welcome__actions">
+                      <Button
+                        variant="primary"
+                        size="small"
+                        onClick={() => {
+                          haptics.selection();
+                          onStartLevel(section.id, section.topics[0]);
+                        }}
+                      >
+                        Читать теорию
+                      </Button>
+                      <button
+                        type="button"
+                        className="mg-map-welcome__skip"
+                        onClick={() => {
+                          onSkipOnboarding();
+                          firstLevelRef.current?.focus({ preventScroll: true });
+                        }}
+                      >
+                        Пропустить
+                      </button>
+                    </div>
+                  </section>
+                )}
+
                 {isExpanded && (
                   <div className="mg-path">
                     <div
@@ -253,8 +290,8 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
 
                     {section.topics.map((topicId, index) => {
                       const topic = getTopic(topicId);
-                      const levelXp = progress.xpByTopic[topicId] ?? 0;
-                      const max = topicMaxXp(topicId);
+                      const mastery = topicMastery(progress, topicId);
+                      const reviewDue = needsReview(progress, topicId, now);
                       const unlocked = isTopicUnlocked(progress, section.id, topicId);
                       const complete = isTopicComplete(progress, topicId);
                       const current = sectionIndex === visibleSections.length - 1 && index === currentIndex;
@@ -279,6 +316,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                             }
                           >
                             <button
+                              ref={sectionIndex === 0 && index === 0 ? firstLevelRef : undefined}
                               type="button"
                               className={[
                                 'mg-node',
@@ -295,11 +333,12 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                                 haptics.selection();
                                 setSelected({ sectionId: section.id, topicId });
                               }}
-                              aria-label={topic?.title ?? ''}
+                              aria-label={topic?.title}
+                              aria-describedby={unlocked ? `mastery-${topicId}` : undefined}
                             >
                               <Ring
-                                value={levelXp}
-                                max={max}
+                                value={mastery}
+                                max={100}
                                 size={72}
                                 color={sectionColor(section.id)}
                                 done={complete}
@@ -326,6 +365,12 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                             >
                               {topic?.title}
                             </span>
+
+                            {unlocked && (
+                              <span id={`mastery-${topicId}`} className="mg-path__mastery">
+                                {mastery}%{reviewDue && ' · Пора повторить'}
+                              </span>
+                            )}
 
                             {accentSide && Accent && (
                               <span
@@ -390,7 +435,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
                         </span>
                         {!defeated && !bossReady && (
                           <span className="mg-path__hint">
-                            Ещё {Math.max(0, required - xp)} XP — и босс откроется
+                            Доведи каждую тему раздела до 100%
                           </span>
                         )}
                       </div>
@@ -448,6 +493,22 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
 
       </div>
 
+      <section className="mg-personal-training" aria-labelledby="mg-personal-training-title">
+        <div>
+          <h2 id="mg-personal-training-title">Персональная тренировка</h2>
+          <p>{trainingHint}</p>
+        </div>
+        <Button
+          variant="primary"
+          size="large"
+          stretched
+          disabled={!onStartTraining || trainingPending}
+          onClick={onStartTraining}
+        >
+          {trainingPending ? 'Подбираем задачи…' : 'Начать'}
+        </Button>
+      </section>
+
       <BottomSheet
         open={Boolean(selected)}
         title={selectedTopicMeta?.title ?? 'Уровень'}
@@ -457,15 +518,10 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
           <p className="mg-level-sheet__meta">{selectedSection?.title}</p>
           <div className="mg-level-sheet__stats">
             <div className="mg-level-sheet__stat">
-              <span className="mg-level-sheet__value">{selectedTasks.length}</span>
-              <span className="mg-level-sheet__label">заданий</span>
-            </div>
-            <div className="mg-level-sheet__stat">
               <span className="mg-level-sheet__value">
-                {selected ? (progress.xpByTopic[selected.topicId] ?? 0) : 0} /{' '}
-                {selected ? topicMaxXp(selected.topicId) : 0}
+                {selected ? topicMastery(progress, selected.topicId) : 0}%
               </span>
-              <span className="mg-level-sheet__label">XP</span>
+              <span className="mg-level-sheet__label">освоено</span>
             </div>
           </div>
 
@@ -479,7 +535,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
               onStartLevel(selected.sectionId, selected.topicId);
             }}
           >
-            Начать
+            {selected && isTheoryRead(progress, selected.topicId) ? 'Открыть теорию' : 'Читать теорию'}
           </Button>
         </div>
       </BottomSheet>

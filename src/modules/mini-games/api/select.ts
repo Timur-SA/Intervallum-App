@@ -2,7 +2,7 @@ import { PracticeProgress } from '../../../shared/storage/progressStore';
 import { TASK_BANK } from '../data';
 import { AnyTask, PlayableTaskType, SectionId, TopicId } from '../domain/types';
 import { getSectionByTopic } from '../domain/sections';
-import { BOSS_TASK_COUNT } from '../domain/progression';
+import { BOSS_TASK_COUNT, topicMastery } from '../domain/progression';
 import { BOSS_TASKS } from '../data/bossTasks';
 import { shuffleBySeed } from '../engine/shuffle';
 
@@ -25,7 +25,7 @@ export const decorateTask = (task: AnyTask, progress: PracticeProgress): AnyTask
   return {
     ...task,
     isNew: !stat,
-    isHard: task.difficulty === 3 || (stat ? stat.bestScore < 0.7 : false),
+    isHard: task.difficulty === 3 || (stat ? (stat.lastScore ?? stat.bestScore) < 0.7 : false),
   };
 };
 
@@ -74,9 +74,13 @@ export const selectTrain = (
     const list = byTopic.get(topicId) ?? [];
     const preferred = list.filter(task => task.isNew || task.isHard);
     const rest = list.filter(task => !(task.isNew || task.isHard));
+    const mastery = topicMastery(progress, topicId);
+    const target = mastery < 35 ? 1 : mastery < 75 ? 2 : 3;
+    const difficultyDistance = (a: AnyTask, b: AnyTask) =>
+      Math.abs(a.difficulty - target) - Math.abs(b.difficulty - target);
     queues.set(topicId, [
-      ...shuffleBySeed(preferred, `${seed}:${topicId}:preferred`),
-      ...shuffleBySeed(rest, `${seed}:${topicId}:rest`),
+      ...shuffleBySeed(preferred, `${seed}:${topicId}:preferred`).sort(difficultyDistance),
+      ...shuffleBySeed(rest, `${seed}:${topicId}:rest`).sort(difficultyDistance),
     ]);
   }
 

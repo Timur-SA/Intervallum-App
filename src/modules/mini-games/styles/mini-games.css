@@ -1493,9 +1493,15 @@
 }
 
 .mg-result__hint {
-  margin: 12px 0 0;
-  font-size: 12.5px;
-  color: var(--text-muted);
+  width: 100%;
+  margin: 6px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-accent);
+  border-radius: 12px;
+  background: var(--accent-bg);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .mg-item {
@@ -2325,6 +2331,43 @@
   padding: 12px 16px 10px;
 }
 
+.mg-force-head--guided {
+  gap: 4px;
+  padding: 8px 12px 6px;
+}
+
+.mg-force-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mg-force-guide-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 3px 7px;
+  border: 1px solid var(--border-accent);
+  border-radius: 8px;
+  background: var(--accent-bg);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.mg-force-guide-toggle svg {
+  color: var(--accent);
+}
+
+.mg-force-guide-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .mg-force-canvas {
   flex: 1;
   min-height: 160px;
@@ -2337,6 +2380,10 @@
   border-bottom: 1px solid var(--border);
 }
 
+.mg-force-head--guided + .mg-force-canvas {
+  min-height: 140px;
+}
+
 .mg-force-feedback {
   margin: 8px 12px;
   padding: 8px 12px;
@@ -2346,6 +2393,18 @@
   font-size: 12px;
   text-align: center;
   color: var(--text-muted);
+}
+
+.mg-force-guide {
+  margin: 0;
+  padding: 6px 8px;
+  display: grid;
+  gap: 2px;
+  border-color: var(--border-accent);
+  background: var(--accent-bg);
+  color: var(--text-primary);
+  text-align: left;
+  line-height: 1.3;
 }
 
 .mg-force-feedback.is-pass {
@@ -2385,6 +2444,64 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.mg-map-welcome {
+  position: relative;
+  z-index: 1;
+  padding: 14px;
+  border: 1px solid var(--border-accent);
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+.mg-map-welcome h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 17px;
+  line-height: 1.3;
+}
+
+.mg-map-welcome p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.mg-map-welcome__actions {
+  --button-primary: #0064ce;
+  --states-button-primary-hover: #0059b8;
+  --states-button-primary-pressed: #004f9f;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 8px;
+}
+
+.mg-map-welcome__actions button {
+  min-height: 44px;
+}
+
+.mg-map-welcome__skip {
+  padding: 0 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mg-map-welcome__skip:hover {
+  color: var(--text-primary);
+}
+
+.mg-map-welcome__skip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Разная плотность фона: электромагнетизм светлее, механика чуть ярче, тепло — минимально */
@@ -2681,6 +2798,10 @@
   overflow: hidden !important;
 }
 
+.mg-game__body--flush:has(.formula-guide) .mg-interactive__meta {
+  display: none;
+}
+
 .mg-interactive__meta {
   display: flex;
   flex-wrap: wrap;
@@ -2765,4 +2886,114 @@
   background: var(--success);
   color: #04120b;
   border: 1.5px solid var(--bg-card);
+}
+
+.mg-personal-training {
+  --button-primary: #0064ce;
+  --states-button-primary-hover: #0059b8;
+  --states-button-primary-pressed: #004f9f;
+  display: grid;
+  flex: none;
+  gap: 10px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.mg-personal-training h2,
+.mg-format-intro h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.mg-personal-training p,
+.mg-format-intro p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.mg-path__row--chaos .mg-path__caption--center {
+  max-width: min(280px, calc(100vw - 110px));
+  overflow-wrap: anywhere;
+}
+
+.mg-path__mastery {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.mg-format-intro {
+  display: grid;
+  gap: 8px;
+  margin: auto 0;
+  padding: 18px;
+  border: 1px solid var(--border-accent);
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+.mg-format-intro svg {
+  color: var(--accent);
+}
+
+.mg-result:has(.mg-training-results) {
+  justify-content: safe center;
+}
+
+.mg-training-results {
+  display: grid;
+  flex: none;
+  gap: 8px;
+  width: 100%;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.mg-training-results li {
+  display: grid;
+  gap: 5px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.mg-training-results__topic {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.mg-training-results__topic strong {
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.mg-training-results__topic strong[data-change="1"] {
+  color: var(--success);
+}
+
+.mg-training-results__topic strong[data-change="-1"] {
+  color: var(--danger);
+}
+
+.mg-training-results progress {
+  width: 100%;
+  height: 6px;
+  accent-color: var(--accent);
+}
+
+.mg-training-results__scale {
+  color: var(--text-secondary);
+  font-size: 11px;
 }

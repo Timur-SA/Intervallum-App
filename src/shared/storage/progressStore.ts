@@ -18,11 +18,23 @@ export interface ForceVectorSave {
 export interface TaskStat {
   attempts: number;
   bestScore: number;
+  lastScore?: number;
+  lastAttemptAt?: number;
+  creditedXp?: number;
+}
+
+export interface TopicReview {
+  dueAt: number;
+  intervalDays: number;
 }
 
 /** Прогресс трека ОГЭ: опыт по темам, звёзды, боссы и предметы. */
 export interface PracticeProgress {
   xpByTopic: Record<string, number>;
+  peakXpByTopic?: Record<string, number>;
+  readTopicIds?: string[];
+  introducedTypes?: string[];
+  reviewsByTopic?: Record<string, TopicReview>;
   /** Типы мини-игр, которые пользователь уже проходил. */
   exploredTypes: string[];
   /** Лучшая доля верного ответа по типу задачи, 0..1. */
@@ -69,6 +81,9 @@ export interface DailyActivityState {
 }
 
 export interface UserProgressData {
+  onboarding?: 'started' | 'skipped' | 'completed';
+  forceGuideDismissed?: true;
+  formulaGuideDismissed?: true;
   forceLab: {
     completedTaskIds: string[];
     savedVectors: Record<string, ForceVectorSave[]>;
@@ -205,16 +220,29 @@ const booleanValue = (value: unknown, fallback: boolean): boolean =>
 const themePreference = (value: unknown): ThemePreference =>
   value === 'light' || value === 'dark' || value === 'auto' ? value : 'light';
 
+const reviewsRecord = (value: unknown): Record<string, TopicReview> => {
+  if (!value || typeof value !== 'object') return {};
+  const result: Record<string, TopicReview> = {};
+  for (const [topic, raw] of Object.entries(value)) {
+    if (!raw || !Number.isFinite(raw.dueAt) || !Number.isFinite(raw.intervalDays)) continue;
+    result[topic] = { dueAt: raw.dueAt, intervalDays: raw.intervalDays };
+  }
+  return result;
+};
+
 const taskStatsRecord = (value: unknown): Record<string, TaskStat> => {
   if (!value || typeof value !== 'object') return {};
 
   const result: Record<string, TaskStat> = {};
   for (const [taskId, raw] of Object.entries(value as Record<string, unknown>)) {
     if (!raw || typeof raw !== 'object') continue;
-    const stat = raw as { attempts?: unknown; bestScore?: unknown };
+    const stat = raw as Partial<TaskStat>;
     result[taskId] = {
       attempts: typeof stat.attempts === 'number' ? stat.attempts : 0,
       bestScore: typeof stat.bestScore === 'number' ? stat.bestScore : 0,
+      lastScore: Number.isFinite(stat.lastScore) ? stat.lastScore : undefined,
+      lastAttemptAt: Number.isFinite(stat.lastAttemptAt) ? stat.lastAttemptAt : undefined,
+      creditedXp: Number.isFinite(stat.creditedXp) ? stat.creditedXp : undefined,
     };
   }
   return result;
@@ -232,12 +260,17 @@ export const loadUserProgress = (): UserProgressData => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return fallback;
     const parsed = JSON.parse(raw);
+    const onboarding = parsed?.onboarding;
 
     const forceCompleted = stringArray(parsed?.forceLab?.completedTaskIds);
     const formulaCompleted = stringArray(parsed?.formulaTrainer?.completedTaskIds);
 
     const practice: PracticeProgress = {
       xpByTopic: numericRecord(parsed?.practice?.xpByTopic),
+      peakXpByTopic: numericRecord(parsed?.practice?.peakXpByTopic),
+      readTopicIds: stringArray(parsed?.practice?.readTopicIds),
+      introducedTypes: stringArray(parsed?.practice?.introducedTypes),
+      reviewsByTopic: reviewsRecord(parsed?.practice?.reviewsByTopic),
       exploredTypes: stringArray(parsed?.practice?.exploredTypes),
       bestScoreByType: numericRecord(parsed?.practice?.bestScoreByType),
       taskStats: taskStatsRecord(parsed?.practice?.taskStats),
@@ -279,6 +312,11 @@ export const loadUserProgress = (): UserProgressData => {
     };
 
     return {
+      onboarding: onboarding === 'started' || onboarding === 'skipped' || onboarding === 'completed'
+        ? onboarding
+        : undefined,
+      forceGuideDismissed: parsed?.forceGuideDismissed === true ? true : undefined,
+      formulaGuideDismissed: parsed?.formulaGuideDismissed === true ? true : undefined,
       forceLab: {
         completedTaskIds: forceCompleted,
         savedVectors: parsed?.forceLab?.savedVectors || {},
@@ -463,6 +501,38 @@ export const markFormulaTaskCompleted = (taskId: string): UserProgressData => {
  * Записывает результат задания: опыт по теме, статистику задачи,
  * лучшую долю по типу и активность за день.
  */
+export const hasSeenTaskGuide = (practice: PracticeProgress, taskType: string): boolean =>
+  practice.exploredTypes.includes(taskType) || Boolean(practice.introducedTypes?.includes(taskType));
+
+export const markTaskGuideSeen = (taskType: string): void => {
+  const current = loadUserProgress();
+  if (hasSeenTaskGuide(current.practice, taskType)) return;
+  (current.practice.introducedTypes ??= []).push(taskType);
+  saveUserProgress(current);
+};
+
+export const recordPracticeAttempt = (
+  practice: PracticeProgress,
+  taskId: string,
+  taskType: string,
+  score: number,
+  now = Date.now(),
+): TaskStat => {
+  const previous = practice.taskStats[taskId];
+  const result = Math.max(0, Math.min(1, score));
+  if (!practice.exploredTypes.includes(taskType)) practice.exploredTypes.push(taskType);
+  practice.bestScoreByType[taskType] = Math.max(practice.bestScoreByType[taskType] ?? 0, result);
+
+  const stat = {
+    ...previous,
+    attempts: (previous?.attempts ?? 0) + 1,
+    bestScore: Math.max(previous?.bestScore ?? 0, result),
+    lastScore: result,
+    lastAttemptAt: now,
+  };
+  practice.taskStats[taskId] = stat;
+  return stat;
+};
 export const recordTaskResult = (params: {
   taskId: string;
   taskType: string;
@@ -473,31 +543,13 @@ export const recordTaskResult = (params: {
 }): UserProgressData => {
   const current = loadUserProgress();
   const { taskId, taskType, topicId, xp, score } = params;
-  const previousStat = current.practice.taskStats[taskId];
-
   const previousBestXp = current.practice.bestXpByTask[taskId] ?? 0;
   const gainedXp = Math.max(0, xp - previousBestXp);
   current.practice.bestXpByTask[taskId] = Math.max(previousBestXp, xp);
-
   if (gainedXp > 0) {
-    current.practice.xpByTopic[topicId] =
-      (current.practice.xpByTopic[topicId] ?? 0) + gainedXp;
+    current.practice.xpByTopic[topicId] = (current.practice.xpByTopic[topicId] ?? 0) + gainedXp;
   }
-
-  if (!current.practice.exploredTypes.includes(taskType)) {
-    current.practice.exploredTypes.push(taskType);
-  }
-
-  current.practice.bestScoreByType[taskType] = Math.max(
-    current.practice.bestScoreByType[taskType] ?? 0,
-    Math.max(0, Math.min(1, score)),
-  );
-
-  current.practice.taskStats[taskId] = {
-    attempts: (previousStat?.attempts ?? 0) + 1,
-    bestScore: Math.max(previousStat?.bestScore ?? 0, Math.max(0, Math.min(1, score))),
-  };
-
+  recordPracticeAttempt(current.practice, taskId, taskType, score);
   registerActivity(current);
   saveUserProgress(current);
   return current;

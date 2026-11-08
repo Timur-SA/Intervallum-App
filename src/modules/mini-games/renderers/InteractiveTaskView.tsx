@@ -94,6 +94,7 @@ export const InteractiveTaskView: React.FC<TaskViewProps<InteractiveTask>> = ({
         <FormulaTrainerModule
           ref={solverRef}
           embeddedTask={task.physicsTask}
+          autoShowGuide={headerRight === undefined}
           onBackToHub={() => undefined}
           onEmbeddedChecked={setFeedback}
         />

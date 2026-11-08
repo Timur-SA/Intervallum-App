@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, StatusBadge } from '@maxhub/max-ui';
+import { BookOpen } from 'lucide-react';
 import { ForceCanvas } from '../../force-lab/components/ForceCanvas';
 import { ForceCatalogSheet } from '../../force-lab/components/ForceCatalogSheet';
 import { ForceToolbar } from '../../force-lab/components/ForceToolbar';
@@ -11,8 +12,10 @@ import { getSectionByTopic, getTopic } from '../domain/sections';
 import { xpForScore } from '../engine/grading';
 import { GradeResponse } from '../api/contracts';
 import { haptics } from '../../../shared/motion/haptics';
+import { hasSeenTaskGuide, loadUserProgress, markTaskGuideSeen, saveUserProgress } from '../../../shared/storage/progressStore';
 import { GameShell } from '../components/GameShell';
 import { TaskViewProps } from './taskView';
+import { getForceGuideStep } from './forceGuide';
 
 export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
   task,
@@ -35,9 +38,30 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [reviewQueue, setReviewQueue] = useState<ReviewEntry[]>([]);
   const [reviewIndex, setReviewIndex] = useState(0);
+  const [guideOpen, setGuideOpen] = useState(() => {
+    const progress = loadUserProgress();
+    return headerRight === undefined &&
+      !progress.forceGuideDismissed &&
+      !hasSeenTaskGuide(progress.practice, 'forces') &&
+      progress.forceLab.completedTaskIds.length === 0;
+  });
+
+  useEffect(() => {
+    if (guideOpen) markTaskGuideSeen('forces');
+  }, [guideOpen]);
 
   const checked = validationResult !== null;
   const passed = validationResult?.passed ?? false;
+  const guide = guideOpen ? getForceGuideStep(forceTask, vectors, selectedForce) : null;
+
+  const toggleGuide = () => {
+    if (guideOpen) {
+      const progress = loadUserProgress();
+      progress.forceGuideDismissed = true;
+      saveUserProgress(progress);
+    }
+    setGuideOpen(!guideOpen);
+  };
 
   const checkpoint = () => {
     setHistory(previous => [...previous.slice(-19), vectors.map(vector => ({ ...vector }))]);
@@ -82,6 +106,7 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
     if (passed || !vectors.length) return;
 
     const result = validatePlacement(forceTask, vectors);
+    setGuideOpen(false);
     setValidationResult(result);
     setActiveVectorType(null);
 
@@ -138,18 +163,38 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
           </>
         }
       >
-        <div className="mg-force-head">
-          <div className="mg-question__meta">
-            <StatusBadge status="neutral" text={section ? section.title : 'Механика'} />
-            <span className="mg-question__meta-text">
-              {topic?.title}
-            </span>
-          </div>
+        <div className={guide ? "mg-force-head mg-force-head--guided" : "mg-force-head"}>
+          {!guide && (
+            <div className="mg-question__meta">
+              <StatusBadge status="neutral" text={section ? section.title : 'Механика'} />
+              <span className="mg-question__meta-text">{topic?.title}</span>
+            </div>
+          )}
 
-          <p className="mg-question__prompt">{forceTask.title}</p>
+          <div className="mg-force-title-row">
+            <p className="mg-question__prompt">{forceTask.title}</p>
+            {!passed && (
+              <button
+                type="button"
+                className="mg-force-guide-toggle"
+                aria-expanded={guideOpen}
+                aria-controls={guideOpen ? 'mg-force-guide' : undefined}
+                onClick={toggleGuide}
+              >
+                <BookOpen size={14} aria-hidden="true" />
+                {guideOpen ? 'Свернуть' : 'Как решать'}
+              </button>
+            )}
+          </div>
           <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-secondary)' }}>
             {forceTask.condition}
           </p>
+          {guide && (
+            <div id="mg-force-guide" role="status" className="mg-force-feedback mg-force-guide">
+              <strong>{guide.title}</strong>
+              <span>{guide.instruction}</span>
+            </div>
+          )}
         </div>
 
         <div className="mg-force-canvas">
@@ -157,6 +202,7 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
             task={forceTask}
             vectors={vectors}
             referenceVectors={refsDrawn}
+            guideOrigin={guide?.origin}
             selectedForce={selectedForce}
             activeType={activeVectorType}
             errorTypes={validationResult?.badTypes || []}
@@ -171,22 +217,24 @@ export const ForceTaskView: React.FC<TaskViewProps<ForcesTask>> = ({
           />
         </div>
 
-        <div
-          role="status"
-          className={`mg-force-feedback ${
-            passed ? 'is-pass' : validationResult ? 'is-fail' : ''
-          }`}
-        >
-          {passed ? (
-            <strong>Отлично! Все точки приложения и направления верны.</strong>
-          ) : validationResult ? (
-            <span>Исправьте стрелки на схеме и проверьте снова.</span>
-          ) : selectedForce ? (
-            <span>Коснитесь точки на теле и протяните стрелку силы</span>
-          ) : (
-            <span>Выберите силу в каталоге снизу</span>
-          )}
-        </div>
+        {!guide && (
+          <div
+            role="status"
+            className={`mg-force-feedback ${
+              passed ? 'is-pass' : validationResult ? 'is-fail' : ''
+            }`}
+          >
+            {passed ? (
+              <strong>Отлично! Все точки приложения и направления верны.</strong>
+            ) : validationResult ? (
+              <span>Исправьте стрелки на схеме и проверьте снова.</span>
+            ) : selectedForce ? (
+              <span>Коснитесь точки на теле и протяните стрелку силы</span>
+            ) : (
+              <span>Выберите силу в каталоге снизу</span>
+            )}
+          </div>
+        )}
       </GameShell>
 
       <ForceCatalogSheet
