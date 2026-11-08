@@ -19,11 +19,20 @@ interface StreakFlameProps {
   label?: string;
 }
 
-const FLAME_PATH =
-  'M36 3 C37.4 9.6 39.6 14.2 42.8 18.8 C49.8 29.2 57 39.2 57 51 C57 64.5 46 73.5 32 73.5 C18 73.5 7 64.5 7 51 C7 39.8 13.8 30.3 17.8 21.7 C20.1 16.3 18.2 9.9 22.2 6.2 C24.8 3.8 28 5.6 28.8 10.2 C29.5 14.1 28.7 18.8 31 21.4 C32.8 17.2 33.7 10.9 36 3 Z';
+const OUTER_MAIN =
+  'M29 3 C25 15 21 25 15 36 C8 49 4 61 9 75 C14 87 26 92 38 89 C50 85 56 75 54 64 C52 54 44 48 41 37 C38 27 37 15 38 6 C35 13 32 21 30 29 C30 18 30 10 29 3 Z';
 
-const INNER_FLAME_PATH =
-  'M32 31 C36 36 42 42 43 50 C44 59 38 66 32 66 C25 66 20 60 20 51 C20 43 27 37 32 31 Z';
+const OUTER_TONGUE =
+  'M55 24 C58 33 59 44 57 54 C56 64 51 72 43 76 C49 68 50 59 47 50 C44 41 47 32 55 24 Z';
+
+const LOWER_TONGUE =
+  'M54 57 C58 62 59 70 56 77 C53 84 45 89 38 88 C46 84 51 77 51 68 C51 64 52 60 54 57 Z';
+
+const MIDDLE_FLAME =
+  'M30 18 C27 29 19 38 15 51 C11 65 17 79 30 82 C43 85 51 74 50 61 C49 50 40 43 36 31 C34 38 31 46 26 53 C28 42 31 28 30 18 Z';
+
+const INNER_FLAME =
+  'M29 42 C24 51 21 61 26 71 C30 78 39 79 44 73 C49 66 45 56 40 48 C37 42 33 38 32 30 C31 37 30 40 29 42 Z';
 
 export const StreakFlame: React.FC<StreakFlameProps> = ({
   days,
@@ -35,19 +44,26 @@ export const StreakFlame: React.FC<StreakFlameProps> = ({
   const tier = getStreakTier(days);
   const gradientId = `streak-grad-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const isOutline = tier === 'outline';
-  const height = Math.round((size * 76) / 64);
-  const numberSize = days >= 100 ? 19 : days >= 10 ? 21 : 23;
+  const shouldAnimate = animate && days >= 5;
+  const height = Math.round((size * 94) / 64);
+  const numberSize = days >= 100 ? 20 : days >= 10 ? 22 : 24;
+
+  const outerFill = isOutline
+    ? 'none'
+    : tier === 'yellow'
+      ? '#ffd43b'
+      : `url(#${gradientId})`;
 
   return (
     <span
       className={`streak-flame streak-flame--${tier} ${
-        animate ? 'is-animated' : 'is-static'
+        shouldAnimate ? 'is-animated' : 'is-static'
       } ${className}`}
       style={{ width: size, height }}
       role="img"
       aria-label={label ?? `Серия: ${days} дней`}
     >
-      <svg viewBox="0 0 64 76" className="streak-flame__svg" aria-hidden>
+      <svg viewBox="0 0 64 94" className="streak-flame__svg" aria-hidden>
         <defs>
           {tier === 'orange' && (
             <linearGradient id={gradientId} x1="0" y1="1" x2="0" y2="0">
@@ -74,35 +90,34 @@ export const StreakFlame: React.FC<StreakFlameProps> = ({
           )}
         </defs>
 
-        <path
-          d={FLAME_PATH}
-          className="streak-flame__body"
-          fill={
-            isOutline
-              ? 'none'
-              : tier === 'yellow'
-                ? '#ffd43b'
-                : `url(#${gradientId})`
-          }
-          stroke={isOutline ? 'currentColor' : undefined}
-          strokeWidth={isOutline ? 3 : undefined}
-        />
+        <g className="streak-flame__body">
+          <path
+            d={OUTER_MAIN}
+            fill={outerFill}
+            stroke={isOutline ? 'currentColor' : undefined}
+            strokeWidth={isOutline ? 2.6 : undefined}
+          />
+          <path
+            d={OUTER_TONGUE}
+            fill={outerFill}
+            stroke={isOutline ? 'currentColor' : undefined}
+            strokeWidth={isOutline ? 2.6 : undefined}
+          />
+        </g>
 
-        {tier !== 'outline' && (
+        {!isOutline && (
           <>
-            <path
-              d="M27.5 50 C23 43 25.5 35.5 31 29 C32.5 37 37.5 40 38 46 C38.5 51 34 54.5 30.5 52.5 Z"
-              className="streak-flame__inner"
-            />
-            <circle cx="16" cy="22" r="1.8" className="streak-flame__spark spark-a" />
-            <circle cx="53" cy="28" r="1.4" className="streak-flame__spark spark-b" />
-            <circle cx="49" cy="61" r="1.2" className="streak-flame__spark spark-c" />
+            <path d={MIDDLE_FLAME} className="streak-flame__middle" />
+            <path d={INNER_FLAME} className="streak-flame__inner" />
+            <circle cx="15" cy="25" r="1.8" className="streak-flame__spark spark-a" />
+            <circle cx="53" cy="32" r="1.4" className="streak-flame__spark spark-b" />
+            <circle cx="52" cy="72" r="1.2" className="streak-flame__spark spark-c" />
           </>
         )}
 
         <text
           x="32"
-          y="51"
+          y="64"
           className="streak-flame__number"
           textAnchor="middle"
           fontSize={numberSize}

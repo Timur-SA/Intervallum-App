@@ -30,7 +30,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ activity }) =>
   const todayKey = getDateKey(now);
   const todayCount = activity.counts[todayKey] ?? 0;
 
-  const cells = Array.from({ length: 32 }, (_, index) => {
+  const cells = Array.from({ length: 33 }, (_, index) => {
     if (index >= daysInMonth) return null;
 
     const day = index + 1;
@@ -78,9 +78,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ activity }) =>
                 'задания',
                 'заданий',
               ])}`}
-            >
-              <span className="activity-heatmap__day">{cell.day}</span>
-            </span>
+            />
           ) : (
             <span key={`empty-${index}`} className="activity-heatmap__cell is-empty" aria-hidden />
           ),

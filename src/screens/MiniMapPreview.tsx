@@ -58,14 +58,22 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
       }
     : null;
 
-  const pathParts = nodes.map(
-    (node, index) => `${index === 0 ? 'M' : 'L'} ${node.x.toFixed(1)} ${node.y.toFixed(1)}`,
+  const nextPoint = start + visibleTopics.length < topics.length
+    ? {
+        x: WIDTH / 2 + Math.sin((start + visibleTopics.length + 1) * 1.2) * 30,
+        y: 18 + visibleTopics.length * step,
+      }
+    : null;
+
+  const points = [previousPoint, ...nodes, nextPoint].filter(
+    (point): point is NonNullable<typeof point> => Boolean(point),
   );
-  const path = previousPoint
-    ? `M ${previousPoint.x.toFixed(1)} ${previousPoint.y.toFixed(1)} ${pathParts
-        .join(' ')
-        .replace(/^M/, 'L')}`
-    : pathParts.join(' ');
+  const path = points
+    .map(
+      (point, index) =>
+        `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`,
+    )
+    .join(' ');
 
   const SectionPattern = section ? SECTION_PATTERNS[section.id] : null;
 
@@ -110,7 +118,7 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
                 <circle
                   cx={node.x}
                   cy={node.y}
-                  r="10.5"
+                  r="11.5"
                   fill="none"
                   stroke={`var(--section-${section?.id ?? 'mechanics'})`}
                   strokeWidth="2"
@@ -120,7 +128,7 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
               <circle
                 cx={node.x}
                 cy={node.y}
-                r={node.current ? 7.2 : 6.1}
+                r={node.current ? 8 : 6.8}
                 style={{ fill: color }}
                 opacity={node.available || node.done ? 1 : 0.72}
               />
@@ -129,7 +137,7 @@ export const MiniMapPreview: React.FC<MiniMapPreviewProps> = ({
                 y={node.y + 2.5}
                 className="mini-map__number"
                 textAnchor="middle"
-                fontSize="7.2"
+                fontSize="7.8"
               >
                 {node.level}
               </text>

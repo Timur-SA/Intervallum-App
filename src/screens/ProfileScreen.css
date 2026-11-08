@@ -4,13 +4,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background:
-    radial-gradient(
-      120% 70% at 80% 0%,
-      color-mix(in srgb, var(--accent) 8%, transparent) 0%,
-      transparent 55%
-    ),
-    var(--bg-app);
+  background: var(--bg-app);
 }
 
 .profile-scroll > * {
@@ -55,34 +49,12 @@
 
 .profile-identity {
   position: relative;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 18px 16px 16px;
-  border-radius: 24px;
-  border: 1px solid var(--border);
-  background:
-    radial-gradient(
-      100% 80% at 50% -20%,
-      color-mix(in srgb, var(--accent) 20%, transparent) 0%,
-      transparent 68%
-    ),
-    var(--bg-card);
-}
-
-.profile-identity::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(
-    color-mix(in srgb, var(--text-primary) 9%, transparent) 0.7px,
-    transparent 0.7px
-  );
-  background-size: 12px 12px;
-  opacity: 0.5;
-  pointer-events: none;
+  gap: 8px;
+  padding: 2px 0 0;
+  overflow: visible;
 }
 
 .profile-avatar-wrap {
@@ -104,6 +76,11 @@
 .profile-avatar-button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
+}
+
+.profile-avatar-button [class*='AvatarText'] {
+  background: var(--accent) !important;
+  background-image: none !important;
 }
 
 .profile-avatar__badge {
@@ -164,13 +141,6 @@
   letter-spacing: -0.35px;
 }
 
-.profile-role {
-  margin: 4px 0 0;
-  color: var(--text-muted);
-  font-size: 11.5px;
-  line-height: 1.35;
-}
-
 .profile-link-btn {
   margin-top: 7px;
   padding: 2px 0;
@@ -186,74 +156,56 @@
 .profile-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  padding: 12px 0;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--bg-card);
 }
 
 .profile-stat {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1px 7px;
-  padding: 11px 10px;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--accent);
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 0 6px;
+  text-align: center;
 }
 
-.profile-stat svg {
-  grid-row: span 2;
+.profile-stat + .profile-stat {
+  border-left: 1px solid var(--border);
 }
 
 .profile-stat strong {
   color: var(--text-primary);
-  font-size: 19px;
-  line-height: 1.05;
+  font-size: 20px;
+  line-height: 1;
   letter-spacing: -0.3px;
 }
 
 .profile-stat span {
+  max-width: 100%;
+  overflow: hidden;
   color: var(--text-muted);
   font-size: 9.5px;
   line-height: 1.15;
-  white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .profile-stat--streak {
-  color: #f59e0b;
+  gap: 1px;
 }
 
-.profile-settings {
+.profile-stat--streak .streak-flame {
+  margin-bottom: 1px;
+}
+
+.profile-settings-list {
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  padding: 14px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-}
-
-.profile-section-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  padding-bottom: 3px;
-}
-
-.profile-section-head h2 {
-  margin: 0;
-  color: var(--text-primary);
-  font-size: 16px;
-  line-height: 1.2;
-}
-
-.profile-section-head span {
-  color: var(--text-muted);
-  font-size: 10px;
+  gap: 8px;
 }
 
 .profile-setting-row {
@@ -261,8 +213,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 52px;
-  padding: 4px 2px;
+  min-height: 58px;
+  padding: 9px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
 }
 
 .profile-setting-label {
@@ -293,9 +248,9 @@
 }
 
 .profile-setting-cell {
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid var(--border);
-  background: var(--bg-surface);
+  background: var(--bg-card);
 }
 
 .profile-setting-cell [class*='content'] {
@@ -326,7 +281,7 @@
 }
 
 .profile-delete-btn {
-  margin-top: 4px;
+  margin-top: 0;
 }
 
 .profile-badge-sheet {

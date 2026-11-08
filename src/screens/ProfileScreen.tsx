@@ -9,9 +9,6 @@ import {
   Switch,
 } from '@maxhub/max-ui';
 import {
-  CalendarDays,
-  CheckCircle2,
-  Flame,
   ImagePlus,
   Moon,
   Plus,
@@ -35,6 +32,7 @@ import {
   isBadgeUnlocked,
 } from '../shared/profile/badges';
 import { BadgeMedal } from '../shared/components/BadgeMedal';
+import { StreakFlame } from '../shared/components/StreakFlame';
 import { ActivityHeatmap } from '../shared/components/ActivityHeatmap';
 import { haptics } from '../shared/motion/haptics';
 import { useAppSettings } from '../shell/SettingsContext';
@@ -104,6 +102,15 @@ const resizeAvatar = (file: File): Promise<string> =>
 
     image.src = objectUrl;
   });
+
+const pluralTasks = (count: number): string => {
+  const abs = Math.abs(count) % 100;
+  const last = abs % 10;
+  if (abs > 10 && abs < 20) return 'заданий';
+  if (last > 1 && last < 5) return 'задания';
+  if (last === 1) return 'задание';
+  return 'заданий';
+};
 
 const pluralDays = (count: number): string => {
   const abs = Math.abs(count) % 100;
@@ -265,7 +272,6 @@ export const ProfileScreen: React.FC = () => {
 
           <div className="profile-name-block">
             <h2 className="profile-name">{displayName}</h2>
-            <p className="profile-role">Подготовка к ОГЭ · физика</p>
             {data.profile.avatarDataUrl && (
               <button type="button" className="profile-link-btn" onClick={resetAvatar}>
                 Вернуть аватар MAX
@@ -276,31 +282,24 @@ export const ProfileScreen: React.FC = () => {
 
         <section className="profile-stats" aria-label="Основная статистика">
           <div className="profile-stat">
-            <CalendarDays size={17} />
             <strong>{activeDays}</strong>
             <span>{pluralDays(activeDays)}</span>
           </div>
           <div className="profile-stat profile-stat--streak">
-            <Flame size={17} />
+            <StreakFlame days={bestStreak} size={30} />
             <strong>{bestStreak}</strong>
             <span>лучшая серия</span>
           </div>
           <div className="profile-stat">
-            <CheckCircle2 size={17} />
             <strong>{completedTasks}</strong>
-            <span>заданий</span>
+            <span>{pluralTasks(completedTasks)}</span>
           </div>
         </section>
 
         <ActivityHeatmap activity={data.activity} />
 
-        <section className="profile-settings" aria-label="Настройки">
-          <div className="profile-section-head">
-            <h2>Настройки</h2>
-            <span>Персонализация</span>
-          </div>
-
-          <div className="profile-setting-row">
+        <section className="profile-settings-list" aria-label="Настройки">
+          <div className="profile-setting-block profile-setting-row">
             <div className="profile-setting-label">
               {theme === 'dark' ? <Moon size={17} /> : <Sun size={17} />}
               <div>

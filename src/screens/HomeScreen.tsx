@@ -111,16 +111,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap }) => {
           </div>
         </div>
 
-        <Button
-          variant="primary"
-          size="large"
-          stretched
-          disabled
-          className="home-train-btn"
-        >
-          Начать персональную тренировку
-        </Button>
-
         <section className="home-sections">
           <div className="home-section-head">
             <h2>Разделы</h2>
@@ -168,6 +158,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenMap }) => {
             })}
           </div>
         </section>
+
+        <Button
+          variant="primary"
+          size="large"
+          stretched
+          disabled
+          className="home-train-btn"
+        >
+          Начать персональную тренировку
+        </Button>
       </div>
     </div>
   );
