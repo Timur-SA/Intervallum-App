@@ -148,7 +148,7 @@ export const JourneyMapScreen: React.FC<JourneyMapScreenProps> = ({
   }, []);
 
   const selectedTasks = selected
-    ? TASK_BANK.filter(task => task.topic === selected.topicId && task.type !== 'cards')
+    ? TASK_BANK.filter(task => task.topic === selected.topicId)
     : [];
   const selectedTopicMeta = selected ? getTopic(selected.topicId) : null;
   const selectedSection = selected ? getSection(selected.sectionId) : null;

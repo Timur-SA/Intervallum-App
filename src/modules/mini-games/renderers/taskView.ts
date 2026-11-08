@@ -12,6 +12,9 @@ export interface TaskViewProps<T extends AnyTask = AnyTask> {
   headerRight?: ReactNode;
   /** Сид сессии: меняет порядок вариантов при каждом заходе. */
   seed?: string;
+  /** Для карточной фазы: номер карточки и общее число карточек. */
+  cardIndex?: number;
+  cardTotal?: number;
   /** Вызывается, когда задание оценено и пользователь готов идти дальше. */
   onDone: (grade: GradeResponse) => void;
 }

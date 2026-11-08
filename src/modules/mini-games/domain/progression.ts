@@ -3,9 +3,9 @@ import { TASK_BANK } from '../data';
 import { SECTIONS, getSection } from './sections';
 import { SectionId, TopicId } from './types';
 
-/** Максимум опыта темы — сумма опыта всех её заданий. */
+/** Максимум опыта темы — сумма опыта всех её заданий, включая карточки. */
 export const topicMaxXp = (topicId: TopicId): number =>
-  TASK_BANK.filter(task => task.topic === topicId && task.type !== 'cards').reduce(
+  TASK_BANK.filter(task => task.topic === topicId).reduce(
     (sum, task) => sum + 10 * task.difficulty,
     0,
   );

@@ -524,28 +524,161 @@
 
 /* ------------------------------------------------------------- Карточки */
 
-.mg-cards__actions {
+.mg-cards__counter {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mg-swipe-stage {
+  position: relative;
+  flex: 1;
+  min-height: 220px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.mg-swipe-card {
+  position: relative;
+  width: 100%;
+}
+
+.mg-swipe-stage .mg-flash {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Стабильный слой для свайпа поверх перевёрнутой 3D-карточки */
+.mg-swipe-catcher {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  touch-action: none;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.mg-swipe-catcher.is-dragging {
+  cursor: grabbing;
+}
+
+.mg-swipe-glow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 56px;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 90ms linear;
+}
+
+.mg-swipe-glow--left {
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--danger) 62%, transparent),
+    transparent
+  );
+}
+
+.mg-swipe-glow--right {
+  right: 0;
+  background: linear-gradient(
+    270deg,
+    color-mix(in srgb, var(--success) 62%, transparent),
+    transparent
+  );
+}
+
+.mg-cards__swipe-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 42px;
+}
+
+.mg-cards__swipe-side {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  opacity: 0.62;
+  transition: opacity 140ms ease, filter 140ms ease;
+}
+
+.mg-cards__swipe-side--left {
+  color: var(--danger);
+}
+
+.mg-cards__swipe-side--right {
+  color: var(--success);
+}
+
+.mg-cards__swipe-side.is-active {
+  opacity: 1;
+  filter: drop-shadow(0 0 7px currentColor);
+}
+
+.mg-cards__swipe-icon {
+  width: 32px;
+  height: 32px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
   display: grid;
-  align-items: end;
+  place-items: center;
+  background: var(--bg-card);
+  flex-shrink: 0;
 }
 
-.mg-cards__actions > * {
-  grid-area: 1 / 1;
+.mg-cards__swipe-arrow {
+  flex-shrink: 0;
 }
 
-.mg-cards__actions[data-flipped="false"] .mg-cards__grades,
-.mg-cards__actions[data-flipped="true"] .mg-cards__reveal {
-  visibility: hidden;
+.mg-cards__swipe-side--left .mg-cards__swipe-arrow {
+  animation: mg-card-arrow-left 440ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.mg-cards__grades {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+.mg-cards__swipe-side--right .mg-cards__swipe-arrow {
+  animation: mg-card-arrow-right 440ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.mg-cards__actions[data-flipped="true"] .mg-cards__grades {
-  animation: mg-slide-up 160ms ease-out;
+.mg-cards__swipe-hint {
+  flex: 1;
+  text-align: center;
+  font-size: 10.5px;
+  line-height: 1.25;
+  color: var(--text-muted);
+}
+
+@keyframes mg-card-arrow-left {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mg-card-arrow-right {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .mg-flash {
@@ -2179,7 +2312,8 @@
 
   .mg-game__body,
   .mg-game__fill--new,
-  .mg-cards__actions[data-flipped="true"] .mg-cards__grades,
+  .mg-cards__swipe-arrow,
+  .mg-cards__swipe-icon,
   .mg-result__badge,
   .mg-result__stats,
   .mg-feedback,
@@ -2216,10 +2350,17 @@
     display: none;
   }
 
+  .mg-flash,
   .mg-flash__inner,
+  .mg-swipe-glow,
+  .mg-cards__swipe-side,
   .mg-option,
   .mg-row {
     transition: none;
+  }
+
+  .mg-flash {
+    transition: none !important;
   }
 
   .mg-game__footer button:enabled:active {
