@@ -437,14 +437,50 @@
   outline-offset: -2px;
 }
 
-.mg-tile--correct {
-  outline: 2px solid var(--success);
-  outline-offset: -2px;
+/* Проверка: все блоки подсвечиваются зелёным или красным */
+.mg-tile--check-correct,
+.mg-tile--check-wrong {
+  opacity: 1 !important;
+  font-weight: 700 !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
 }
 
-.mg-tile--wrong {
-  outline: 2px solid var(--danger);
-  outline-offset: -2px;
+.mg-tile--check-correct {
+  background: #0e9f74 !important;
+  border-color: #34d399 !important;
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+.mg-tile--check-wrong {
+  background: #dc2626 !important;
+  border-color: #f87171 !important;
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme='light'] .mg-tile--check-correct {
+  background: #dcfce7 !important;
+  border-color: #22c55e !important;
+  color: #14532d !important;
+  text-shadow: none;
+}
+
+[data-theme='light'] .mg-tile--check-wrong {
+  background: #fee2e2 !important;
+  border-color: #ef4444 !important;
+  color: #7f1d1d !important;
+  text-shadow: none;
+}
+
+.mg-tile--check-correct .mg-tile__content,
+.mg-tile--check-wrong .mg-tile__content {
+  color: inherit !important;
 }
 
 .mg-tile__content {

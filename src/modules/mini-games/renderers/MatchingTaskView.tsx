@@ -733,8 +733,11 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
               linkedRightId ? 'mg-tile--linked' : '',
               isSelected ? 'mg-tile--selected' : '',
               isSnapTarget ? 'mg-tile--snap' : '',
-              wrongIds.includes(pair.id) ? 'mg-tile--wrong' : '',
-              solved && links[pair.id] === pair.id ? 'mg-tile--correct' : '',
+              checked
+                ? links[pair.id] === pair.id
+                  ? 'mg-tile--check-correct'
+                  : 'mg-tile--check-wrong'
+                : '',
             ]
               .filter(Boolean)
               .join(' ');
@@ -775,8 +778,11 @@ export const MatchingTaskView: React.FC<TaskViewProps<MatchingTask>> = ({
               owner ? 'mg-tile--linked' : '',
               isSelected ? 'mg-tile--selected' : '',
               isSnapTarget ? 'mg-tile--snap' : '',
-              owner && wrongIds.includes(owner) ? 'mg-tile--wrong' : '',
-              solved && owner ? 'mg-tile--correct' : '',
+              checked
+                ? owner === pair.id
+                  ? 'mg-tile--check-correct'
+                  : 'mg-tile--check-wrong'
+                : '',
             ]
               .filter(Boolean)
               .join(' ');
